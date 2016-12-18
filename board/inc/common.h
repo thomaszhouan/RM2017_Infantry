@@ -22,6 +22,10 @@
     #define ABS(x) (((x)>0)?(x):(-(x)))
 #endif
 
+#ifndef COUNTOF
+    #define COUNTOF(_buffer) (sizeof(_buffer)/sizeof(*(_buffer)))
+#endif
+
 typedef enum {
     kCoreClock,
     kSysTickExt
