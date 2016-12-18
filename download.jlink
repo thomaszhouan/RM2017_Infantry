@@ -1,0 +1,9 @@
+connect
+STM32F405RG
+S
+4000
+h
+exec device = STM32F405RG
+loadfile ./Objects/RM2017_Infantry.hex, 0x08000000
+g
+exit
