@@ -43,6 +43,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_it.h"
+#include "common.h"
 
 /** @addtogroup STM32F4xx_HAL_Examples
   * @{
@@ -163,7 +164,7 @@ void PendSV_Handler(void)
   */
 void SysTick_Handler(void)
 {
-
+  HAL_IncTick();
 }
 
 /******************************************************************************/

@@ -10,6 +10,24 @@
 #include "stm32f4xx.h"
 #include "stm32f4xx_hal_conf.h"
 
+#ifndef MIN
+    #define MIN(a, b) (((a)<(b))?(a):(b))
+#endif
+
+#ifndef MAX
+    #define MAX(a, b) (((a)>(b))?(a):(b))
+#endif
+
+#ifndef ABS
+    #define ABS(x) (((x)>0)?(x):(-(x)))
+#endif
+
+typedef enum {
+    kCoreClock,
+    kSysTickExt
+} Clock_t;
+
 void SystemClock_Config(void);
+uint32_t GetClock(Clock_t clockName);
 
 #endif // COMMON_H

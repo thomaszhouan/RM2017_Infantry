@@ -12,6 +12,8 @@ void LED_Init(uint8_t id) {
 
     if (GPIOx == GPIOA) __HAL_RCC_GPIOA_CLK_ENABLE();
     else if (GPIOx == GPIOB) __HAL_RCC_GPIOB_CLK_ENABLE();
+    else if (GPIOx == GPIOC) __HAL_RCC_GPIOC_CLK_ENABLE();
+    else if (GPIOx == GPIOD) __HAL_RCC_GPIOD_CLK_ENABLE();
 
     GPIO_InitTypeDef GPIO_InitStruct;
     GPIO_InitStruct.Pin = pin;

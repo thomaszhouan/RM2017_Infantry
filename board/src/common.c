@@ -58,3 +58,14 @@ void SystemClock_Config(void) {
         __HAL_FLASH_PREFETCH_BUFFER_ENABLE();
     }
 }
+
+uint32_t GetClock(Clock_t clockName) {
+    SystemCoreClockUpdate();
+    uint32_t clock;
+    switch (clockName) {
+        case kCoreClock:        clock = SystemCoreClock; break;
+        case kSysTickExt:       clock = SystemCoreClock / 8; break;
+        default: clock = 0;
+    }
+    return clock;
+}
