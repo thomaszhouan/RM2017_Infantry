@@ -1,9 +1,9 @@
 #ifndef LED_H
 #define LED_H
 
-void LED_Init(uint8_t id);
-void LED_On(uint8_t id);
-void LED_Off(uint8_t id);
-void LED_Toggle(uint8_t id);
+void LED_Init(Led_TypeDef led);
+void LED_On(Led_TypeDef led);
+void LED_Off(Led_TypeDef led);
+void LED_Toggle(Led_TypeDef led);
 
 #endif // LED_H

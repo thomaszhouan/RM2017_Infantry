@@ -2,41 +2,29 @@
 #include "board_info.h"
 #include "led.h"
 
-void LED_Init(uint8_t id) {
-    GPIO_TypeDef *GPIOx;
-    uint32_t pin;
+GPIO_TypeDef* GPIO_PORT[LEDn] = {LED0_PORT};
+const uint16_t GPIO_PIN[LEDn] = {LED0_PIN};
 
-    switch (id) {
-        case LED0: GPIOx = LED0_PORT; pin = LED0_PIN; break;
-    }
-
-    if (GPIOx == GPIOA) __HAL_RCC_GPIOA_CLK_ENABLE();
-    else if (GPIOx == GPIOB) __HAL_RCC_GPIOB_CLK_ENABLE();
-    else if (GPIOx == GPIOC) __HAL_RCC_GPIOC_CLK_ENABLE();
-    else if (GPIOx == GPIOD) __HAL_RCC_GPIOD_CLK_ENABLE();
+void LED_Init(Led_TypeDef led) {
+    LEDx_GPIO_CLK_ENABLE(led);
 
     GPIO_InitTypeDef GPIO_InitStruct;
-    GPIO_InitStruct.Pin = pin;
+    GPIO_InitStruct.Pin = GPIO_PIN[led];
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-    HAL_GPIO_Init(GPIOx, &GPIO_InitStruct);
+    HAL_GPIO_Init(GPIO_PORT[led], &GPIO_InitStruct);
+    HAL_GPIO_WritePin(GPIO_PORT[led], GPIO_PIN[led], GPIO_PIN_SET);
 }
 
-void LED_On(uint8_t id) {
-    switch (id) {
-        case LED0: HAL_GPIO_WritePin(LED0_PORT, LED0_PIN, GPIO_PIN_RESET); break;
-    }
+void LED_On(Led_TypeDef led) {
+    HAL_GPIO_WritePin(GPIO_PORT[led], GPIO_PIN[led], GPIO_PIN_RESET);
 }
 
-void LED_Off(uint8_t id) {
-    switch (id) {
-        case LED0: HAL_GPIO_WritePin(LED0_PORT, LED0_PIN, GPIO_PIN_SET); break;
-    }
+void LED_Off(Led_TypeDef led) {
+    HAL_GPIO_WritePin(GPIO_PORT[led], GPIO_PIN[led], GPIO_PIN_SET);
 }
 
-void LED_Toggle(uint8_t id) {
-    switch (id) {
-        case LED0: HAL_GPIO_TogglePin(LED0_PORT, LED0_PIN); break;
-    }
+void LED_Toggle(Led_TypeDef led) {
+    HAL_GPIO_TogglePin(GPIO_PORT[led], GPIO_PIN[led]);
 }
