@@ -3,10 +3,11 @@
 int main(void) {
     HAL_Init();
     SystemClock_Config();
-
-    LED_Init(LED0);
     HAL_InitTick((1UL << __NVIC_PRIO_BITS) - 1UL);
 
+    LED_Init(LED0);
+    BUZZER_Init();
+    
     while (1) {
         LED_On(LED0);
         HAL_Delay(500);

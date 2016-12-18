@@ -17,4 +17,9 @@ typedef enum {
 #define LEDx_GPIO_CLK_DISABLE(_id) do { if (_id==LED0) LED0_GPIO_CLK_DISABLE();\
                                       } while(0)
 
+#define BUZZER_PORT                GPIOB
+#define BUZZER_PIN                 GPIO_PIN_1
+#define BUZZER_GPIO_CLK_ENABLE()   __HAL_RCC_GPIOB_CLK_ENABLE()
+#define BUZZER_GPIO_CLK_DISABLE()  __HAL_RCC_GPIOB_CLK_DISABLE()
+
 #endif // BOARD_INFO_H

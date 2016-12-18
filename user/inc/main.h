@@ -4,5 +4,6 @@
 #include "common.h"
 #include "board_info.h"
 #include "led.h"
+#include "buzzer.h"
 
 #endif // MAIN_H
