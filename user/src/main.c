@@ -4,8 +4,9 @@ UART_HandleTypeDef UartHandle;
 #define RXBUFFERSIZE (128U)
 static uint8_t RxBuffer[RXBUFFERSIZE];
 
+TIM_HandleTypeDef TimHandle;
+
 void JOYSTICK_Handler(uint16_t GPIO_Pin);
-void Error_Handler(void);
 
 int main(void) {
     /* STM32F4xx HAL library initialization:
@@ -21,25 +22,29 @@ int main(void) {
     LED_Init(LED0);
     BUZZER_Init();
     UART_Init(&UartHandle, UART1, 115200);
-    HAL_NVIC_SetPriority(USART1_IRQn, 6, 0);
+    HAL_NVIC_SetPriority(USART1_IRQn, 7, 0);
     HAL_NVIC_EnableIRQ(USART1_IRQn);
 
     JOYSTICK_Init(10, 0);
     for (Joystick_TypeDef pos = JUP; pos < JOYSTICKn; ++pos)
         JOYSTICK_CallbackInstall(pos, JOYSTICK_Handler);
+
+    // TIM init
+    __HAL_RCC_TIM2_CLK_ENABLE();
+    TimHandle.Instance = TIM2;
+    TimHandle.Init.Prescaler = (uint32_t) (((SystemCoreClock / 2) / 10000)-1);
+    TimHandle.Init.CounterMode = TIM_COUNTERMODE_UP;
+    TimHandle.Init.Period = 10-1;
+    TimHandle.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+    HAL_TIM_Base_Init(&TimHandle);
+
+    HAL_NVIC_SetPriority(TIM2_IRQn, 6, 0);
+    HAL_NVIC_EnableIRQ(TIM2_IRQn);
+    HAL_TIM_Base_Start_IT(&TimHandle);
     
     while (1) {
-        HAL_UART_Receive_IT(&UartHandle, RxBuffer, 1);
-        HAL_Delay(100);
-        LED_Toggle(LED0);
-    }
-}
 
-uint16_t Strlen(const uint8_t *p) {
-    uint16_t ret = 0;
-    while (*p++)
-        ++ret;
-    return ret;
+    }
 }
 
 void JOYSTICK_Handler(uint16_t GPIO_Pin) {
@@ -62,4 +67,13 @@ void JOYSTICK_Handler(uint16_t GPIO_Pin) {
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *handle) {
     UNUSED(handle);
     BUZZER_Beep();
+}
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *handle) {
+    static uint32_t tick = 0;
+    ++tick;
+    if (tick == 1000) tick = 0;
+    UNUSED(handle);
+    if (tick % 500 == 0)
+        LED_Toggle(LED0);
 }

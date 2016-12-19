@@ -221,6 +221,16 @@ void USART1_IRQHandler(void) {
 }
 
 /**
+  * @brief  This function handles TIM2 interrupt request.
+  * @param  None
+  * @retval None
+  */
+extern TIM_HandleTypeDef TimHandle;
+void TIM2_IRQHandler(void) {
+  HAL_TIM_IRQHandler(&TimHandle);
+}
+
+/**
   * @brief  This function handles PPP interrupt request.
   * @param  None
   * @retval None

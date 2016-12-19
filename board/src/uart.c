@@ -31,3 +31,10 @@ void UART_Init(UART_HandleTypeDef *handle, Uart_TypeDef uart, uint32_t baudrate)
     handle->Init.OverSampling = UART_OVERSAMPLING_16;
     HAL_UART_Init(handle);
 }
+
+uint16_t Strlen(const uint8_t *p) {
+    uint16_t ret = 0;
+    while (*p++)
+        ++ret;
+    return ret;
+}
