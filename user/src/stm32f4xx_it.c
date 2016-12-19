@@ -44,6 +44,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_it.h"
 #include "common.h"
+#include "board_info.h"
 
 /** @addtogroup STM32F4xx_HAL_Examples
   * @{
@@ -173,6 +174,41 @@ void SysTick_Handler(void)
 /*  available peripheral interrupt handler's name please refer to the startup */
 /*  file (startup_stm32f4xx.s).                                               */
 /******************************************************************************/
+
+/**
+  * @brief  This function handles External line 0 interrupt request.
+  * @param  None
+  * @retval None
+  */
+void EXTI0_IRQHandler(void) {
+    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_0);
+}
+
+/**
+  * @brief  This function handles External line 1 interrupt request.
+  * @param  None
+  * @retval None
+  */
+void EXTI1_IRQHandler(void) {
+    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_1);
+}
+
+/**
+  * @brief  This function handles External line 15:10 interrupt request.
+  * @param  None
+  * @retval None
+  */
+void EXTI15_10_IRQHandler(void) {
+    uint32_t pin;
+    if (__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_10)!=RESET) pin = GPIO_PIN_10;
+    else if (__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_11)!=RESET) pin = GPIO_PIN_11;
+    else if (__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_12)!=RESET) pin = GPIO_PIN_12;
+    else if (__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_13)!=RESET) pin = GPIO_PIN_13;
+    else if (__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_14)!=RESET) pin = GPIO_PIN_14;
+    else if (__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_15)!=RESET) pin = GPIO_PIN_15;
+
+    HAL_GPIO_EXTI_IRQHandler(pin);
+}
 
 /**
   * @brief  This function handles PPP interrupt request.

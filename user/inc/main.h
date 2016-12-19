@@ -5,5 +5,7 @@
 #include "board_info.h"
 #include "led.h"
 #include "buzzer.h"
+#include "joystick.h"
+#include "uart.h"
 
 #endif // MAIN_H

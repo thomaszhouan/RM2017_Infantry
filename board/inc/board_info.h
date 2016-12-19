@@ -58,4 +58,26 @@ typedef enum {
                                                      else if (_id==UART3) UART3_CLK_DISABLE();\
                                                    } while(0)
 
+typedef enum {
+    JUP = 0,
+    JLEFT,
+    JRIGHT,
+    JDOWN,
+    JCENTER,
+
+    JOYSTICKn
+} Joystick_TypeDef;
+
+#define JOYSTICK_PORT                           GPIOC
+#define JOYSTICK_UP_PIN                         GPIO_PIN_15
+#define JOYSTICK_LEFT_PIN                       GPIO_PIN_0
+#define JOYSTICK_RIGHT_PIN                      GPIO_PIN_14
+#define JOYSTICK_DOWN_PIN                       GPIO_PIN_1
+#define JOYSTICK_CENTER_PIN                     GPIO_PIN_13
+#define JOYSTICK_ALL_PIN                        (JOYSTICK_UP_PIN | JOYSTICK_LEFT_PIN |\
+                                                 JOYSTICK_RIGHT_PIN | JOYSTICK_DOWN_PIN |\
+                                                 JOYSTICK_CENTER_PIN)
+#define JOYSTICK_GPIO_CLK_ENABLE()              __HAL_RCC_GPIOC_CLK_ENABLE()
+#define JOYSTICK_GPIO_CLK_DISABLE()             __HAL_RCC_GPIOC_CLK_DISABLE()
+
 #endif // BOARD_INFO_H
