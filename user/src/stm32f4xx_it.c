@@ -227,7 +227,25 @@ void USART1_IRQHandler(void) {
   */
 extern TIM_HandleTypeDef TimHandle;
 void TIM2_IRQHandler(void) {
-  HAL_TIM_IRQHandler(&TimHandle);
+    HAL_TIM_IRQHandler(&TimHandle);
+}
+
+/**
+  * @brief  This function handles DMA RX interrupt request.  
+  * @param  None
+  * @retval None   
+  */
+void DMA2_Stream6_IRQHandler(void) {
+    HAL_DMA_IRQHandler(UartHandle.hdmarx);
+}
+
+/**
+  * @brief  This function handles DMA TX interrupt request.
+  * @param  None
+  * @retval None   
+  */
+void DMA2_Stream7_IRQHandler(void) {
+    HAL_DMA_IRQHandler(UartHandle.hdmatx);
 }
 
 /**

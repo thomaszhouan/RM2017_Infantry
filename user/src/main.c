@@ -1,12 +1,16 @@
 #include "main.h"
 
 UART_HandleTypeDef UartHandle;
+static uint8_t TxBuffer[] = "Hello DMA\n";
+#define TXBUFFERSIZE (COUNTOF(TxBuffer)-1)
 #define RXBUFFERSIZE (128U)
 static uint8_t RxBuffer[RXBUFFERSIZE];
 
 TIM_HandleTypeDef TimHandle;
+DMA_HandleTypeDef UartTxDmaHandle, UartRxDmaHandle;
 
 void JOYSTICK_Handler(uint16_t GPIO_Pin);
+void Error_Handler(void);
 
 int main(void) {
     /* STM32F4xx HAL library initialization:
@@ -21,9 +25,19 @@ int main(void) {
 
     LED_Init(LED0);
     BUZZER_Init();
-    UART_Init(&UartHandle, UART1, 115200);
-    HAL_NVIC_SetPriority(USART1_IRQn, 7, 0);
-    HAL_NVIC_EnableIRQ(USART1_IRQn);
+
+    // USART1 init
+    UART_SimpleInitTypeDef UART_InitStruct;
+    UART_InitStruct.UartHandle             = &UartHandle;
+    UART_InitStruct.DmaHandleTx            = &UartTxDmaHandle;
+    UART_InitStruct.DmaHandleRx            = &UartRxDmaHandle;
+    UART_InitStruct.Baudrate               = 115200;
+    UART_InitStruct.PreemptionPriority     = 7;
+    UART_InitStruct.SubPriority            = 0;
+    UART_InitStruct.DMA_PreemptionPriority = 8;
+    UART_InitStruct.DMA_SubPriority        = 0;
+    UART_Init(&UART_InitStruct);
+    UNUSED(RxBuffer);
 
     JOYSTICK_Init(10, 0);
     for (Joystick_TypeDef pos = JUP; pos < JOYSTICKn; ++pos)
@@ -54,7 +68,7 @@ void JOYSTICK_Handler(uint16_t GPIO_Pin) {
     HAL_Delay(50);
     if (HAL_GPIO_ReadPin(JOYSTICK_PORT, GPIO_Pin)== RESET) {
         switch (GPIO_Pin) {
-            case JOYSTICK_UP_PIN    : HAL_UART_Transmit(&UartHandle, msg[JUP], Strlen(msg[JUP]), 5000); break;
+            case JOYSTICK_UP_PIN    : HAL_UART_Transmit_IT(&UartHandle, msg[JUP], Strlen(msg[JUP])); break;
             case JOYSTICK_LEFT_PIN  : HAL_UART_Transmit(&UartHandle, msg[JLEFT], Strlen(msg[JLEFT]), 5000); break;
             case JOYSTICK_RIGHT_PIN : HAL_UART_Transmit(&UartHandle, msg[JRIGHT], Strlen(msg[JRIGHT]), 5000); break;
             case JOYSTICK_DOWN_PIN  : HAL_UART_Transmit(&UartHandle, msg[JDOWN], Strlen(msg[JDOWN]), 5000); break;
@@ -66,7 +80,10 @@ void JOYSTICK_Handler(uint16_t GPIO_Pin) {
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *handle) {
     UNUSED(handle);
-    BUZZER_Beep();
+}
+
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *handle) {
+    UNUSED(handle);
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *handle) {
@@ -74,6 +91,15 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *handle) {
     ++tick;
     if (tick == 1000) tick = 0;
     UNUSED(handle);
-    if (tick % 500 == 0)
+    if (tick == 0 || tick == 500)
         LED_Toggle(LED0);
+    if (tick == 0) {
+        HAL_UART_Transmit_DMA(&UartHandle, TxBuffer, TXBUFFERSIZE);
+    }
+}
+
+void Error_Handler(void) {
+    BUZZER_Beep();
+    while (1)
+        ;
 }

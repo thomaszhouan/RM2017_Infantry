@@ -25,7 +25,7 @@ void BUZZER_Off(void) {
 
 void BUZZER_Beep(void) {
     BUZZER_On();
-    for (uint32_t i = 0; i < 0x10000; ++i)
+    for (uint32_t i = 0; i < 0x80000; ++i)
         ;
     BUZZER_Off();
 }

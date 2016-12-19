@@ -36,6 +36,8 @@ typedef enum {
 #define UART1_GPIO_CLK_DISABLE()                __HAL_RCC_GPIOB_CLK_DISABLE()
 #define UART1_CLK_ENABLE()                      __HAL_RCC_USART1_CLK_ENABLE()
 #define UART1_CLK_DISABLE()                     __HAL_RCC_USART1_CLK_DISABLE()
+#define UART1_DMA_CLK_ENABLE()                  __HAL_RCC_DMA2_CLK_ENABLE()
+#define UART1_DMA_CLK_DISABLE()                 __HAL_RCC_DMA2_CLK_DISABLE()
 
 #define UART3_PORT                              GPIOB
 #define UART3_TX_PIN                            GPIO_PIN_10
@@ -44,6 +46,8 @@ typedef enum {
 #define UART3_GPIO_CLK_DISABLE()                __HAL_RCC_GPIOB_CLK_DISABLE()
 #define UART3_CLK_ENABLE()                      __HAL_RCC_USART3_CLK_ENABLE()
 #define UART3_CLK_DISABLE()                     __HAL_RCC_USART3_CLK_DISABLE()
+#define UART3_DMA_CLK_ENABLE()                  __HAL_RCC_DMA1_CLK_ENABLE()
+#define UART3_DMA_CLK_DISABLE()                 __HAL_RCC_DMA1_CLK_DISABLE()
 
 #define UARTx_GPIO_CLK_ENABLE(_id)              do { if (_id==UART1) UART1_GPIO_CLK_ENABLE();\
                                                      else if (_id==UART3) UART3_GPIO_CLK_ENABLE();\
@@ -56,6 +60,12 @@ typedef enum {
                                                    } while(0)
 #define UARTx_CLK_DISABLE(_id)                  do { if (_id==UART1) UART1_CLK_DISABLE();\
                                                      else if (_id==UART3) UART3_CLK_DISABLE();\
+                                                   } while(0)
+#define UARTx_DMA_CLK_ENABLE(_id)               do { if (_id==UART1) UART1_DMA_CLK_ENABLE();\
+                                                     else if (_id==UART3) UART3_DMA_CLK_ENABLE();\
+                                                   } while(0)
+#define UARTx_DMA_CLK_DISABLE(_id)              do { if (_id==UART1) UART1_DMA_CLK_DISABLE();\
+                                                     else if (_id==UART3) UART3_DMA_CLK_DISABLE();\
                                                    } while(0)
 
 typedef enum {
