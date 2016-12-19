@@ -211,6 +211,16 @@ void EXTI15_10_IRQHandler(void) {
 }
 
 /**
+  * @brief  This function handles UART1 interrupt request.  
+  * @param  None
+  * @retval None
+  */
+extern UART_HandleTypeDef UartHandle;
+void USART1_IRQHandler(void) {
+    HAL_UART_IRQHandler(&UartHandle);
+}
+
+/**
   * @brief  This function handles PPP interrupt request.
   * @param  None
   * @retval None

@@ -1,11 +1,11 @@
 #include "main.h"
-#include "string.h"
 
-static UART_HandleTypeDef UartHandle;
-static uint8_t TxBuffer[] = "Hello there!\n";
-#define TXBUFFERSIZE (COUNTOF(TxBuffer)-1)
+UART_HandleTypeDef UartHandle;
+#define RXBUFFERSIZE (128U)
+static uint8_t RxBuffer[RXBUFFERSIZE];
 
 void JOYSTICK_Handler(uint16_t GPIO_Pin);
+void Error_Handler(void);
 
 int main(void) {
     /* STM32F4xx HAL library initialization:
@@ -21,33 +21,45 @@ int main(void) {
     LED_Init(LED0);
     BUZZER_Init();
     UART_Init(&UartHandle, UART1, 115200);
+    HAL_NVIC_SetPriority(USART1_IRQn, 6, 0);
+    HAL_NVIC_EnableIRQ(USART1_IRQn);
 
-    // Joystick testing
     JOYSTICK_Init(10, 0);
     for (Joystick_TypeDef pos = JUP; pos < JOYSTICKn; ++pos)
         JOYSTICK_CallbackInstall(pos, JOYSTICK_Handler);
     
     while (1) {
-        HAL_UART_Transmit(&UartHandle, TxBuffer, TXBUFFERSIZE, 5000);
-        LED_On(LED0);
-        HAL_Delay(500);
-        LED_Off(LED0);
-        HAL_Delay(500);
+        HAL_UART_Receive_IT(&UartHandle, RxBuffer, 1);
+        HAL_Delay(100);
+        LED_Toggle(LED0);
     }
 }
 
-void JOYSTICK_Handler(uint16_t GPIO_Pin) {
-    static uint8_t msg[][5] = {"0", "1", "13", "14", "15"};
+uint16_t Strlen(const uint8_t *p) {
+    uint16_t ret = 0;
+    while (*p++)
+        ++ret;
+    return ret;
+}
 
+void JOYSTICK_Handler(uint16_t GPIO_Pin) {
+    static uint8_t msg[JOYSTICKn][10] = {"up\n", "left\n", "right\n", "down\n", "center\n"};
+
+    // Prevent spike
     HAL_Delay(50);
     if (HAL_GPIO_ReadPin(JOYSTICK_PORT, GPIO_Pin)== RESET) {
         switch (GPIO_Pin) {
-            case GPIO_PIN_0 : HAL_UART_Transmit(&UartHandle, msg[0], 1, 5000); break;
-            case GPIO_PIN_1 : HAL_UART_Transmit(&UartHandle, msg[1], 1, 5000); break;
-            case GPIO_PIN_13: HAL_UART_Transmit(&UartHandle, msg[2], 2, 5000); break;
-            case GPIO_PIN_14: HAL_UART_Transmit(&UartHandle, msg[3], 2, 5000); break;
-            case GPIO_PIN_15: HAL_UART_Transmit(&UartHandle, msg[4], 2, 5000); break;
+            case JOYSTICK_UP_PIN    : HAL_UART_Transmit(&UartHandle, msg[JUP], Strlen(msg[JUP]), 5000); break;
+            case JOYSTICK_LEFT_PIN  : HAL_UART_Transmit(&UartHandle, msg[JLEFT], Strlen(msg[JLEFT]), 5000); break;
+            case JOYSTICK_RIGHT_PIN : HAL_UART_Transmit(&UartHandle, msg[JRIGHT], Strlen(msg[JRIGHT]), 5000); break;
+            case JOYSTICK_DOWN_PIN  : HAL_UART_Transmit(&UartHandle, msg[JDOWN], Strlen(msg[JDOWN]), 5000); break;
+            case JOYSTICK_CENTER_PIN: HAL_UART_Transmit(&UartHandle, msg[JCENTER], Strlen(msg[JCENTER]), 5000); break;
         }
     }
     __HAL_GPIO_EXTI_CLEAR_IT(GPIO_Pin);
+}
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *handle) {
+    UNUSED(handle);
+    BUZZER_Beep();
 }

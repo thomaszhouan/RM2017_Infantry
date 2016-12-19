@@ -11,7 +11,8 @@ void BUZZER_Init(void) {
     GPIO_InitStruct.Pull  = GPIO_PULLDOWN;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
     HAL_GPIO_Init(BUZZER_PORT, &GPIO_InitStruct);
-    HAL_GPIO_WritePin(BUZZER_PORT, BUZZER_PIN, GPIO_PIN_RESET);
+
+    BUZZER_Off();
 }
 
 void BUZZER_On(void) {
@@ -20,4 +21,10 @@ void BUZZER_On(void) {
 
 void BUZZER_Off(void) {
     HAL_GPIO_WritePin(BUZZER_PORT, BUZZER_PIN, GPIO_PIN_RESET);
+}
+
+void BUZZER_Beep(void) {
+    BUZZER_On();
+    HAL_Delay(50);
+    BUZZER_Off();
 }

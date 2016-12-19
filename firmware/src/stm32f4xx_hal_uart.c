@@ -853,7 +853,7 @@ HAL_StatusTypeDef HAL_UART_Receive_IT(UART_HandleTypeDef *huart, uint8_t *pData,
     SET_BIT(huart->Instance->CR3, USART_CR3_EIE);
 
     /* Enable the UART Data Register not empty Interrupt */
-     SET_BIT(huart->Instance->CR1, USART_CR1_RXNEIE);
+    SET_BIT(huart->Instance->CR1, USART_CR1_RXNEIE);
     
     return HAL_OK;
   }
