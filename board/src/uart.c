@@ -48,45 +48,49 @@ void UART_Init(UART_SimpleInitTypeDef *UART_Init) {
     DMA_HandleTypeDef *hdma;
     // DMA Tx
     hdma = UART_Init->DmaHandleTx;
-    hdma->Init.Channel             = DMA_CHANNEL[uart];
-    hdma->Init.Direction           = DMA_MEMORY_TO_PERIPH;
-    hdma->Init.PeriphInc           = DMA_PINC_DISABLE;
-    hdma->Init.MemInc              = DMA_MINC_ENABLE;
-    hdma->Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-    hdma->Init.MemDataAlignment    = DMA_MDATAALIGN_BYTE;
-    hdma->Init.Mode                = DMA_NORMAL;
-    hdma->Init.Priority            = DMA_PRIORITY_HIGH;
-    hdma->Init.FIFOMode            = DMA_FIFOMODE_DISABLE;
-    hdma->Init.PeriphBurst         = DMA_PBURST_SINGLE;
-    hdma->Init.MemBurst            = DMA_MBURST_SINGLE;
-    hdma->Parent                   = handle;
-    hdma->Instance                 = DMA_INSTANCE[uart<<1];
-    HAL_DMA_Init(hdma);
-    handle->hdmatx = hdma;
-    HAL_NVIC_SetPriority(DMA_IRQn[uart<<1], UART_Init->DMA_PreemptionPriority,
-        UART_Init->DMA_SubPriority);
-    HAL_NVIC_EnableIRQ(DMA_IRQn[uart<<1]);
+    if (hdma != NULL) {
+        hdma->Init.Channel             = DMA_CHANNEL[uart];
+        hdma->Init.Direction           = DMA_MEMORY_TO_PERIPH;
+        hdma->Init.PeriphInc           = DMA_PINC_DISABLE;
+        hdma->Init.MemInc              = DMA_MINC_ENABLE;
+        hdma->Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+        hdma->Init.MemDataAlignment    = DMA_MDATAALIGN_BYTE;
+        hdma->Init.Mode                = DMA_NORMAL;
+        hdma->Init.Priority            = DMA_PRIORITY_HIGH;
+        hdma->Init.FIFOMode            = DMA_FIFOMODE_DISABLE;
+        hdma->Init.PeriphBurst         = DMA_PBURST_SINGLE;
+        hdma->Init.MemBurst            = DMA_MBURST_SINGLE;
+        hdma->Parent                   = handle;
+        hdma->Instance                 = DMA_INSTANCE[uart<<1];
+        HAL_DMA_Init(hdma);
+        handle->hdmatx = hdma;
+        HAL_NVIC_SetPriority(DMA_IRQn[uart<<1], UART_Init->DMA_PreemptionPriority,
+            UART_Init->DMA_SubPriority);
+        HAL_NVIC_EnableIRQ(DMA_IRQn[uart<<1]);
+    }
 
     // Rx
     hdma = UART_Init->DmaHandleRx;
-    hdma->Init.Channel             = DMA_CHANNEL[uart];
-    hdma->Init.Direction           = DMA_MEMORY_TO_PERIPH;
-    hdma->Init.PeriphInc           = DMA_PINC_DISABLE;
-    hdma->Init.MemInc              = DMA_MINC_ENABLE;
-    hdma->Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-    hdma->Init.MemDataAlignment    = DMA_MDATAALIGN_BYTE;
-    hdma->Init.Mode                = DMA_NORMAL;
-    hdma->Init.Priority            = DMA_PRIORITY_HIGH;
-    hdma->Init.FIFOMode            = DMA_FIFOMODE_DISABLE;
-    hdma->Init.PeriphBurst         = DMA_PBURST_SINGLE;
-    hdma->Init.MemBurst            = DMA_MBURST_SINGLE;
-    hdma->Parent                   = handle;
-    hdma->Instance                 = DMA_INSTANCE[(uart<<1)+1];
-    HAL_DMA_Init(hdma);
-    handle->hdmarx = hdma;
-    HAL_NVIC_SetPriority(DMA_IRQn[(uart<<1)+1], UART_Init->DMA_PreemptionPriority,
-        UART_Init->DMA_SubPriority);
-    HAL_NVIC_EnableIRQ(DMA_IRQn[(uart<<1)+1]);
+    if (hdma != NULL) {
+        hdma->Init.Channel             = DMA_CHANNEL[uart];
+        hdma->Init.Direction           = DMA_PERIPH_TO_MEMORY;
+        hdma->Init.PeriphInc           = DMA_PINC_DISABLE;
+        hdma->Init.MemInc              = DMA_MINC_ENABLE;
+        hdma->Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+        hdma->Init.MemDataAlignment    = DMA_MDATAALIGN_BYTE;
+        hdma->Init.Mode                = DMA_NORMAL;
+        hdma->Init.Priority            = DMA_PRIORITY_HIGH;
+        hdma->Init.FIFOMode            = DMA_FIFOMODE_DISABLE;
+        hdma->Init.PeriphBurst         = DMA_PBURST_SINGLE;
+        hdma->Init.MemBurst            = DMA_MBURST_SINGLE;
+        hdma->Parent                   = handle;
+        hdma->Instance                 = DMA_INSTANCE[(uart<<1)+1];
+        HAL_DMA_Init(hdma);
+        handle->hdmarx = hdma;
+        HAL_NVIC_SetPriority(DMA_IRQn[(uart<<1)+1], UART_Init->DMA_PreemptionPriority,
+            UART_Init->DMA_SubPriority);
+        HAL_NVIC_EnableIRQ(DMA_IRQn[(uart<<1)+1]);
+    }
 }
 
 uint16_t Strlen(const uint8_t *p) {

@@ -221,6 +221,15 @@ void USART1_IRQHandler(void) {
 }
 
 /**
+  * @brief  This function handles UART3 interrupt request.  
+  * @param  None
+  * @retval None
+  */
+void USART3_IRQHandler(void) {
+    HAL_UART_IRQHandler(&UartHandle);
+}
+
+/**
   * @brief  This function handles TIM2 interrupt request.
   * @param  None
   * @retval None
@@ -231,20 +240,38 @@ void TIM2_IRQHandler(void) {
 }
 
 /**
-  * @brief  This function handles DMA RX interrupt request.  
+  * @brief  This function handles USART1 DMA RX interrupt request.  
   * @param  None
   * @retval None   
   */
-void DMA2_Stream6_IRQHandler(void) {
+void DMA2_Stream5_IRQHandler(void) {
     HAL_DMA_IRQHandler(UartHandle.hdmarx);
 }
 
 /**
-  * @brief  This function handles DMA TX interrupt request.
+  * @brief  This function handles USART1 DMA TX interrupt request.
   * @param  None
   * @retval None   
   */
 void DMA2_Stream7_IRQHandler(void) {
+    HAL_DMA_IRQHandler(UartHandle.hdmatx);
+}
+
+/**
+  * @brief  This function handles USART3 DMA RX interrupt request.  
+  * @param  None
+  * @retval None   
+  */
+void DMA1_Stream1_IRQHandler(void) {
+    HAL_DMA_IRQHandler(UartHandle.hdmarx);
+}
+
+/**
+  * @brief  This function handles USART3 DMA TX interrupt request.
+  * @param  None
+  * @retval None   
+  */
+void DMA1_Stream3_IRQHandler(void) {
     HAL_DMA_IRQHandler(UartHandle.hdmatx);
 }
 

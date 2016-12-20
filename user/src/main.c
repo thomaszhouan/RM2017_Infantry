@@ -28,6 +28,7 @@ int main(void) {
 
     // USART1 init
     UART_SimpleInitTypeDef UART_InitStruct;
+    UART_InitStruct.Instance               = UART1;
     UART_InitStruct.UartHandle             = &UartHandle;
     UART_InitStruct.DmaHandleTx            = &UartTxDmaHandle;
     UART_InitStruct.DmaHandleRx            = &UartRxDmaHandle;
@@ -37,7 +38,7 @@ int main(void) {
     UART_InitStruct.DMA_PreemptionPriority = 8;
     UART_InitStruct.DMA_SubPriority        = 0;
     UART_Init(&UART_InitStruct);
-    UNUSED(RxBuffer);
+    // UNUSED(RxBuffer);
 
     JOYSTICK_Init(10, 0);
     for (Joystick_TypeDef pos = JUP; pos < JOYSTICKn; ++pos)
@@ -80,6 +81,7 @@ void JOYSTICK_Handler(uint16_t GPIO_Pin) {
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *handle) {
     UNUSED(handle);
+    BUZZER_Beep();
 }
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *handle) {
@@ -88,14 +90,16 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *handle) {
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *handle) {
     static uint32_t tick = 0;
+    UNUSED(handle);
+
     ++tick;
     if (tick == 1000) tick = 0;
-    UNUSED(handle);
-    if (tick == 0 || tick == 500)
+    if (tick % 500 == 0)
         LED_Toggle(LED0);
-    if (tick == 0) {
+    if (tick == 0)
         HAL_UART_Transmit_DMA(&UartHandle, TxBuffer, TXBUFFERSIZE);
-    }
+    if (tick % 50 == 0)
+        HAL_UART_Receive_DMA(&UartHandle, RxBuffer, 1);
 }
 
 void Error_Handler(void) {
