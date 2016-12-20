@@ -7,5 +7,7 @@
 #include "buzzer.h"
 #include "joystick.h"
 #include "uart.h"
+#include "dbus.h"
+#include "st7735.h"
 
 #endif // MAIN_H

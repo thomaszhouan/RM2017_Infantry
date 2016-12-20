@@ -26,6 +26,11 @@
     #define COUNTOF(_buffer) (sizeof(_buffer)/sizeof(*(_buffer)))
 #endif
 
+#define PASTER2(x, y) x ## y
+#define EVALUATOR2(x, y) PASTER2(x, y)
+#define PASTER3(x, y, z) x ## y ## z
+#define EVALUATOR3(x, y, z) PASTER3(x, y, z)
+
 typedef enum {
     kCoreClock,
     kSysTickExt

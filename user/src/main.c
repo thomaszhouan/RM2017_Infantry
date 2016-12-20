@@ -6,8 +6,8 @@ static uint8_t TxBuffer[] = "Hello DMA\n";
 #define RXBUFFERSIZE 128U
 static uint8_t RxBuffer[RXBUFFERSIZE];
 
-#define DBUS_BUFFER_SIZE 18U
-static uint8_t DbusBuffer[DBUS_BUFFER_SIZE];
+// #define DBUS_BUFFER_SIZE 18U
+// static uint8_t DbusBuffer[DBUS_BUFFER_SIZE];
 
 void JOYSTICK_Handler(uint16_t GPIO_Pin);
 void Error_Handler(void);
@@ -27,22 +27,23 @@ int main(void) {
     BUZZER_Init();
 
     // USART1 init
-    UART_SimpleInitTypeDef UART_InitStruct;
-    UART_InitStruct.Instance               = UART1;
-    UART_InitStruct.UartHandle             = &Uart1_Handle;
-    UART_InitStruct.DmaHandleTx            = &Uart1_TxDmaHandle;
-    UART_InitStruct.DmaHandleRx            = &Uart1_RxDmaHandle;
-    UART_InitStruct.Baudrate               = 100000;
-    UART_InitStruct.Parity                 = UART_PARITY_EVEN;
-    UART_InitStruct.PreemptionPriority     = 12;
-    UART_InitStruct.SubPriority            = 0;
-    UART_InitStruct.DMA_Rx_Mode            = DMA_CIRCULAR;
-    UART_InitStruct.DMA_PreemptionPriority = 7;
-    UART_InitStruct.DMA_SubPriority        = 0;
-    UART_Init(&UART_InitStruct);
-    HAL_UART_Receive_DMA(&Uart1_Handle, DbusBuffer, DBUS_BUFFER_SIZE);
+    // UART_InitStruct.Instance               = UART1;
+    // UART_InitStruct.UartHandle             = &Uart1_Handle;
+    // UART_InitStruct.DmaHandleTx            = NULL;
+    // UART_InitStruct.DmaHandleRx            = &Uart1_RxDmaHandle;
+    // UART_InitStruct.Baudrate               = 100000;
+    // UART_InitStruct.Parity                 = UART_PARITY_EVEN;
+    // UART_InitStruct.PreemptionPriority     = 12;
+    // UART_InitStruct.SubPriority            = 0;
+    // UART_InitStruct.DMA_Rx_Mode            = DMA_CIRCULAR;
+    // UART_InitStruct.DMA_PreemptionPriority = 7;
+    // UART_InitStruct.DMA_SubPriority        = 0;
+    // UART_Init(&UART_InitStruct);
+    // HAL_UART_Receive_DMA(&Uart1_Handle, DbusBuffer, DBUS_BUFFER_SIZE);
+    DBUS_Init();
 
     // USART3 init
+    UART_SimpleInitTypeDef UART_InitStruct;
     UART_InitStruct.Instance               = UART3;
     UART_InitStruct.UartHandle             = &Uart3_Handle;
     UART_InitStruct.DmaHandleTx            = &Uart3_TxDmaHandle;
@@ -62,6 +63,12 @@ int main(void) {
     JOYSTICK_Init(10, 0);
     for (Joystick_TypeDef pos = JUP; pos < JOYSTICKn; ++pos)
         JOYSTICK_CallbackInstall(pos, JOYSTICK_Handler);
+
+    ST7735_Init();
+    ST7735_SetOrientation(kNormal);
+    ST7735_FillColor(BLACK);
+    ST7735_Print(0, 0, GREEN, BLACK, "Hello!");
+    ST7735_Print(4, 1, GREEN, BLACK, "Thomas");
 
     // TIM init
     __HAL_RCC_TIM2_CLK_ENABLE();
@@ -100,7 +107,7 @@ void JOYSTICK_Handler(uint16_t GPIO_Pin) {
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *handle) {
     UNUSED(handle);
-    HAL_UART_Transmit_DMA(UartHandle, DbusBuffer, DBUS_BUFFER_SIZE);
+    HAL_UART_Transmit_DMA(UartHandle, DBUS_Buffer, DBUS_BUFFER_SIZE);
 }
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *handle) {

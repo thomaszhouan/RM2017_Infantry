@@ -2,19 +2,29 @@
 #define BOARD_INFO_H
 
 /* external handles */
+#ifndef HANDLE_FILE
+    #define HANDLE_EXT extern
+#else
+    #define HANDLE_EXT
+#endif
 // USART1
 #define USE_USART1
-extern UART_HandleTypeDef Uart1_Handle;
-extern DMA_HandleTypeDef Uart1_TxDmaHandle, Uart1_RxDmaHandle;
+HANDLE_EXT UART_HandleTypeDef Uart1_Handle;
+HANDLE_EXT DMA_HandleTypeDef Uart1_TxDmaHandle, Uart1_RxDmaHandle;
 
 // USART3
 #define USE_USART3
-extern UART_HandleTypeDef Uart3_Handle;
-extern DMA_HandleTypeDef Uart3_TxDmaHandle, Uart3_RxDmaHandle;
+HANDLE_EXT UART_HandleTypeDef Uart3_Handle;
+HANDLE_EXT DMA_HandleTypeDef Uart3_TxDmaHandle, Uart3_RxDmaHandle;
 
 // TIM2
 #define USE_TIM2
-extern TIM_HandleTypeDef Tim2_Handle;
+HANDLE_EXT TIM_HandleTypeDef Tim2_Handle;
+
+// SPI1
+#define USE_SPI1
+HANDLE_EXT SPI_HandleTypeDef Spi1_Handle;
+#define LCD_SPI_HANDLE Spi1_Handle
 
 typedef enum {
     LED0 = 0,
@@ -43,6 +53,8 @@ typedef enum {
 
     UARTn
 } Uart_TypeDef;
+
+#define DBUS_UART_NUM                           1
 
 #define UART1_PORT                              GPIOB
 #define UART1_TX_PIN                            GPIO_PIN_6
@@ -104,5 +116,22 @@ typedef enum {
                                                  JOYSTICK_CENTER_PIN)
 #define JOYSTICK_GPIO_CLK_ENABLE()              __HAL_RCC_GPIOC_CLK_ENABLE()
 #define JOYSTICK_GPIO_CLK_DISABLE()             __HAL_RCC_GPIOC_CLK_DISABLE()
+
+#define LCD_GPIO_CLK_ENABLE()                   do { __HAL_RCC_GPIOA_CLK_ENABLE();\
+                                                     __HAL_RCC_GPIOB_CLK_ENABLE();\
+                                                     __HAL_RCC_GPIOC_CLK_ENABLE();\
+                                                   } while(0)
+#define LCD_SPI_CLK_ENABLE()                    __HAL_RCC_SPI1_CLK_ENABLE()
+#define LCD_CS_PORT                             GPIOC
+#define LCD_DC_PORT                             GPIOC
+#define LCD_RST_PORT                            GPIOB
+#define LCD_SCLK_PORT                           GPIOA
+#define LCD_SDAT_PORT                           GPIOA
+#define LCD_CS_PIN                              GPIO_PIN_4
+#define LCD_DC_PIN                              GPIO_PIN_5
+#define LCD_RST_PIN                             GPIO_PIN_0
+#define LCD_SCLK_PIN                            GPIO_PIN_5
+#define LCD_SDAT_PIN                            GPIO_PIN_7
+
 
 #endif // BOARD_INFO_H
