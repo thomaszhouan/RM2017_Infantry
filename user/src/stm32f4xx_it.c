@@ -210,33 +210,14 @@ void EXTI15_10_IRQHandler(void) {
     HAL_GPIO_EXTI_IRQHandler(pin);
 }
 
+#ifdef USE_USART1
 /**
   * @brief  This function handles UART1 interrupt request.  
   * @param  None
   * @retval None
   */
-extern UART_HandleTypeDef UartHandle;
 void USART1_IRQHandler(void) {
-    HAL_UART_IRQHandler(&UartHandle);
-}
-
-/**
-  * @brief  This function handles UART3 interrupt request.  
-  * @param  None
-  * @retval None
-  */
-void USART3_IRQHandler(void) {
-    HAL_UART_IRQHandler(&UartHandle);
-}
-
-/**
-  * @brief  This function handles TIM2 interrupt request.
-  * @param  None
-  * @retval None
-  */
-extern TIM_HandleTypeDef TimHandle;
-void TIM2_IRQHandler(void) {
-    HAL_TIM_IRQHandler(&TimHandle);
+    HAL_UART_IRQHandler(&Uart1_Handle);
 }
 
 /**
@@ -245,7 +226,7 @@ void TIM2_IRQHandler(void) {
   * @retval None   
   */
 void DMA2_Stream5_IRQHandler(void) {
-    HAL_DMA_IRQHandler(UartHandle.hdmarx);
+    HAL_DMA_IRQHandler(Uart1_Handle.hdmarx);
 }
 
 /**
@@ -254,7 +235,18 @@ void DMA2_Stream5_IRQHandler(void) {
   * @retval None   
   */
 void DMA2_Stream7_IRQHandler(void) {
-    HAL_DMA_IRQHandler(UartHandle.hdmatx);
+    HAL_DMA_IRQHandler(Uart1_Handle.hdmatx);
+}
+#endif // USE_USART1
+
+#ifdef USE_USART3
+/**
+  * @brief  This function handles UART3 interrupt request.  
+  * @param  None
+  * @retval None
+  */
+void USART3_IRQHandler(void) {
+    HAL_UART_IRQHandler(&Uart3_Handle);
 }
 
 /**
@@ -263,7 +255,7 @@ void DMA2_Stream7_IRQHandler(void) {
   * @retval None   
   */
 void DMA1_Stream1_IRQHandler(void) {
-    HAL_DMA_IRQHandler(UartHandle.hdmarx);
+    HAL_DMA_IRQHandler(Uart3_Handle.hdmarx);
 }
 
 /**
@@ -272,8 +264,20 @@ void DMA1_Stream1_IRQHandler(void) {
   * @retval None   
   */
 void DMA1_Stream3_IRQHandler(void) {
-    HAL_DMA_IRQHandler(UartHandle.hdmatx);
+    HAL_DMA_IRQHandler(Uart3_Handle.hdmatx);
 }
+#endif
+
+/**
+  * @brief  This function handles TIM2 interrupt request.
+  * @param  None
+  * @retval None
+  */
+#ifdef USE_TIM2
+void TIM2_IRQHandler(void) {
+    HAL_TIM_IRQHandler(&Tim2_Handle);
+}
+#endif
 
 /**
   * @brief  This function handles PPP interrupt request.

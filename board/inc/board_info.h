@@ -1,6 +1,21 @@
 #ifndef BOARD_INFO_H
 #define BOARD_INFO_H
 
+/* external handles */
+// USART1
+#define USE_USART1
+extern UART_HandleTypeDef Uart1_Handle;
+extern DMA_HandleTypeDef Uart1_TxDmaHandle, Uart1_RxDmaHandle;
+
+// USART3
+#define USE_USART3
+extern UART_HandleTypeDef Uart3_Handle;
+extern DMA_HandleTypeDef Uart3_TxDmaHandle, Uart3_RxDmaHandle;
+
+// TIM2
+#define USE_TIM2
+extern TIM_HandleTypeDef Tim2_Handle;
+
 typedef enum {
     LED0 = 0,
 
