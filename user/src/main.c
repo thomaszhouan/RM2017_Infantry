@@ -1,10 +1,13 @@
 #include "main.h"
 
-UART_HandleTypeDef *UartHandle = &Uart1_Handle;
+UART_HandleTypeDef *UartHandle = &Uart3_Handle;
 static uint8_t TxBuffer[] = "Hello DMA\n";
 #define TXBUFFERSIZE (COUNTOF(TxBuffer)-1)
-#define RXBUFFERSIZE (128U)
+#define RXBUFFERSIZE 128U
 static uint8_t RxBuffer[RXBUFFERSIZE];
+
+#define DBUS_BUFFER_SIZE 18U
+static uint8_t DbusBuffer[DBUS_BUFFER_SIZE];
 
 void JOYSTICK_Handler(uint16_t GPIO_Pin);
 void Error_Handler(void);
@@ -29,13 +32,32 @@ int main(void) {
     UART_InitStruct.UartHandle             = &Uart1_Handle;
     UART_InitStruct.DmaHandleTx            = &Uart1_TxDmaHandle;
     UART_InitStruct.DmaHandleRx            = &Uart1_RxDmaHandle;
-    UART_InitStruct.Baudrate               = 115200;
-    UART_InitStruct.PreemptionPriority     = 7;
+    UART_InitStruct.Baudrate               = 100000;
+    UART_InitStruct.Parity                 = UART_PARITY_EVEN;
+    UART_InitStruct.PreemptionPriority     = 12;
     UART_InitStruct.SubPriority            = 0;
+    UART_InitStruct.DMA_Rx_Mode            = DMA_CIRCULAR;
+    UART_InitStruct.DMA_PreemptionPriority = 7;
+    UART_InitStruct.DMA_SubPriority        = 0;
+    UART_Init(&UART_InitStruct);
+    HAL_UART_Receive_DMA(&Uart1_Handle, DbusBuffer, DBUS_BUFFER_SIZE);
+
+    // USART3 init
+    UART_InitStruct.Instance               = UART3;
+    UART_InitStruct.UartHandle             = &Uart3_Handle;
+    UART_InitStruct.DmaHandleTx            = &Uart3_TxDmaHandle;
+    UART_InitStruct.DmaHandleRx            = &Uart3_RxDmaHandle;
+    UART_InitStruct.Baudrate               = 115200;
+    UART_InitStruct.Parity                 = UART_PARITY_NONE;
+    UART_InitStruct.PreemptionPriority     = 12;
+    UART_InitStruct.SubPriority            = 0;
+    UART_InitStruct.DMA_Tx_Mode            = DMA_NORMAL;
+    UART_InitStruct.DMA_Rx_Mode            = DMA_NORMAL;
     UART_InitStruct.DMA_PreemptionPriority = 8;
     UART_InitStruct.DMA_SubPriority        = 0;
     UART_Init(&UART_InitStruct);
-    // UNUSED(RxBuffer);
+    UNUSED(TxBuffer);
+    UNUSED(RxBuffer);
 
     JOYSTICK_Init(10, 0);
     for (Joystick_TypeDef pos = JUP; pos < JOYSTICKn; ++pos)
@@ -78,7 +100,7 @@ void JOYSTICK_Handler(uint16_t GPIO_Pin) {
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *handle) {
     UNUSED(handle);
-    BUZZER_Beep();
+    HAL_UART_Transmit_DMA(UartHandle, DbusBuffer, DBUS_BUFFER_SIZE);
 }
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *handle) {
@@ -93,14 +115,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *handle) {
     if (tick == 1000) tick = 0;
     if (tick % 500 == 0)
         LED_Toggle(LED0);
-    if (tick == 0)
-        HAL_UART_Transmit_DMA(UartHandle, TxBuffer, TXBUFFERSIZE);
-    if (tick % 50 == 0)
-        HAL_UART_Receive_DMA(UartHandle, RxBuffer, 1);
 }
 
 void Error_Handler(void) {
-    BUZZER_Beep();
+    BUZZER_On();
     while (1)
         ;
 }

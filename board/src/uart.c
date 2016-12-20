@@ -28,13 +28,14 @@ void UART_Init(UART_SimpleInitTypeDef *UART_Init) {
     GPIO_InitStruct.Alternate = GPIO_AF[uart];
     HAL_GPIO_Init(GPIO_PORT[uart], &GPIO_InitStruct);
 
-    // default: 8-N-1, no flow control
+    // default: no flow control
     UART_HandleTypeDef *handle = UART_Init->UartHandle;
     handle->Instance          = UART_INSTANCE[uart];
     handle->Init.BaudRate     = UART_Init->Baudrate;
-    handle->Init.WordLength   = UART_WORDLENGTH_8B;
+    handle->Init.WordLength   = (UART_Init->Parity==UART_PARITY_NONE)?
+                                UART_WORDLENGTH_8B:UART_WORDLENGTH_9B;
     handle->Init.StopBits     = UART_STOPBITS_1;
-    handle->Init.Parity       = UART_PARITY_NONE;
+    handle->Init.Parity       = UART_Init->Parity;
     handle->Init.Mode         = UART_MODE_TX_RX;
     handle->Init.HwFlowCtl    = UART_HWCONTROL_NONE;
     handle->Init.OverSampling = UART_OVERSAMPLING_16;
@@ -55,7 +56,7 @@ void UART_Init(UART_SimpleInitTypeDef *UART_Init) {
         hdma->Init.MemInc              = DMA_MINC_ENABLE;
         hdma->Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
         hdma->Init.MemDataAlignment    = DMA_MDATAALIGN_BYTE;
-        hdma->Init.Mode                = DMA_NORMAL;
+        hdma->Init.Mode                = UART_Init->DMA_Tx_Mode;
         hdma->Init.Priority            = DMA_PRIORITY_HIGH;
         hdma->Init.FIFOMode            = DMA_FIFOMODE_DISABLE;
         hdma->Init.PeriphBurst         = DMA_PBURST_SINGLE;
@@ -78,7 +79,7 @@ void UART_Init(UART_SimpleInitTypeDef *UART_Init) {
         hdma->Init.MemInc              = DMA_MINC_ENABLE;
         hdma->Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
         hdma->Init.MemDataAlignment    = DMA_MDATAALIGN_BYTE;
-        hdma->Init.Mode                = DMA_NORMAL;
+        hdma->Init.Mode                = UART_Init->DMA_Rx_Mode;
         hdma->Init.Priority            = DMA_PRIORITY_HIGH;
         hdma->Init.FIFOMode            = DMA_FIFOMODE_DISABLE;
         hdma->Init.PeriphBurst         = DMA_PBURST_SINGLE;

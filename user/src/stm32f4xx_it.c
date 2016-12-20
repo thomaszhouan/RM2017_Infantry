@@ -45,6 +45,7 @@
 #include "stm32f4xx_it.h"
 #include "common.h"
 #include "board_info.h"
+#include "buzzer.h"
 
 /** @addtogroup STM32F4xx_HAL_Examples
   * @{
