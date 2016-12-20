@@ -6,9 +6,6 @@ static uint8_t TxBuffer[] = "Hello DMA\n";
 #define RXBUFFERSIZE 128U
 static uint8_t RxBuffer[RXBUFFERSIZE];
 
-// #define DBUS_BUFFER_SIZE 18U
-// static uint8_t DbusBuffer[DBUS_BUFFER_SIZE];
-
 void JOYSTICK_Handler(uint16_t GPIO_Pin);
 void Error_Handler(void);
 
@@ -25,21 +22,6 @@ int main(void) {
 
     LED_Init(LED0);
     BUZZER_Init();
-
-    // USART1 init
-    // UART_InitStruct.Instance               = UART1;
-    // UART_InitStruct.UartHandle             = &Uart1_Handle;
-    // UART_InitStruct.DmaHandleTx            = NULL;
-    // UART_InitStruct.DmaHandleRx            = &Uart1_RxDmaHandle;
-    // UART_InitStruct.Baudrate               = 100000;
-    // UART_InitStruct.Parity                 = UART_PARITY_EVEN;
-    // UART_InitStruct.PreemptionPriority     = 12;
-    // UART_InitStruct.SubPriority            = 0;
-    // UART_InitStruct.DMA_Rx_Mode            = DMA_CIRCULAR;
-    // UART_InitStruct.DMA_PreemptionPriority = 7;
-    // UART_InitStruct.DMA_SubPriority        = 0;
-    // UART_Init(&UART_InitStruct);
-    // HAL_UART_Receive_DMA(&Uart1_Handle, DbusBuffer, DBUS_BUFFER_SIZE);
     DBUS_Init();
 
     // USART3 init
@@ -65,10 +47,16 @@ int main(void) {
         JOYSTICK_CallbackInstall(pos, JOYSTICK_Handler);
 
     ST7735_Init();
-    ST7735_SetOrientation(kNormal);
+    ST7735_SetOrientation(kRevert);
     ST7735_FillColor(BLACK);
-    ST7735_Print(0, 0, GREEN, BLACK, "Hello!");
-    ST7735_Print(4, 1, GREEN, BLACK, "Thomas");
+    ST7735_Print(0, 0, GREEN, BLACK, "RM2017 Thomas");
+    ST7735_Print(0, 1, GREEN, BLACK, "CH1");
+    ST7735_Print(0, 2, GREEN, BLACK, "CH2");
+    ST7735_Print(0, 3, GREEN, BLACK, "CH3");
+    ST7735_Print(0, 4, GREEN, BLACK, "CH4");
+    ST7735_Print(0, 5, GREEN, BLACK, "X");
+    ST7735_Print(0, 6, GREEN, BLACK, "Y");
+    ST7735_Print(0, 7, GREEN, BLACK, "Z");
 
     // TIM init
     __HAL_RCC_TIM2_CLK_ENABLE();
@@ -83,8 +71,18 @@ int main(void) {
     HAL_NVIC_EnableIRQ(TIM2_IRQn);
     HAL_TIM_Base_Start_IT(&Tim2_Handle);
     
+    uint32_t DBUS_LastCount = DBUS_FrameCount;
     while (1) {
-
+        if (DBUS_FrameCount != DBUS_LastCount) {
+            DBUS_LastCount = DBUS_FrameCount;
+            ST7735_Print(4, 1, GREEN, BLACK, "%d", DBUS_Data.ch1);
+            ST7735_Print(4, 2, GREEN, BLACK, "%d", DBUS_Data.ch2);
+            ST7735_Print(4, 3, GREEN, BLACK, "%d", DBUS_Data.ch3);
+            ST7735_Print(4, 4, GREEN, BLACK, "%d", DBUS_Data.ch4);
+            ST7735_Print(4, 5, GREEN, BLACK, "%d", DBUS_Data.mouse.x);
+            ST7735_Print(4, 6, GREEN, BLACK, "%d", DBUS_Data.mouse.y);
+            ST7735_Print(4, 7, GREEN, BLACK, "%d", DBUS_Data.mouse.z);
+        }
     }
 }
 
@@ -106,8 +104,9 @@ void JOYSTICK_Handler(uint16_t GPIO_Pin) {
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *handle) {
-    UNUSED(handle);
-    HAL_UART_Transmit_DMA(UartHandle, DBUS_Buffer, DBUS_BUFFER_SIZE);
+    if (handle == &DBUS_UART_HANDLE) {
+        DBUS_Decode();
+    }
 }
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *handle) {

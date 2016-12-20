@@ -83,9 +83,10 @@ typedef enum {
     #define DBUS_EXT
 #endif // DBUS_FILE
 
-DBUS_EXT uint8_t DBUS_Buffer[DBUS_BUFFER_SIZE];
-DBUS_EXT DBUS_DecodeTypeDef DBUS_Data, DBUS_LastData;
-DBUS_EXT DBUS_StatusTypeDef DBUS_Status;
+DBUS_EXT volatile uint8_t DBUS_Buffer[DBUS_BUFFER_SIZE];
+DBUS_EXT volatile DBUS_DecodeTypeDef DBUS_Data, DBUS_LastData;
+DBUS_EXT volatile DBUS_StatusTypeDef DBUS_Status;
+DBUS_EXT volatile uint32_t DBUS_FrameCount;
 
 void DBUS_Init(void);
 void DBUS_Decode(void);

@@ -7,7 +7,7 @@
 
   <Targets>
     <Target>
-      <TargetName>M2017_Infantry</TargetName>
+      <TargetName>RM2017_Infantry</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
       <pCCUsed>5060061::V5.06 update 1 (build 61)::ARMCC</pCCUsed>
@@ -332,7 +332,7 @@
               <MiscControls></MiscControls>
               <Define>USE_STDPERIPH_DRIVER,STM32F405xx</Define>
               <Undefine></Undefine>
-              <IncludePath>.\core;.\firmware\inc;.\user\inc</IncludePath>
+              <IncludePath>.\core;.\firmware\inc;.\user\inc;.\board\inc</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -375,6 +375,11 @@
         <Group>
           <GroupName>user</GroupName>
           <Files>
+            <File>
+              <FileName>dbus.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\user\src\dbus.c</FilePath>
+            </File>
             <File>
               <FileName>main.c</FileName>
               <FileType>1</FileType>
@@ -489,6 +494,51 @@
               <FileName>stm32f4xx_hal_usart.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\firmware\src\stm32f4xx_hal_usart.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>board</GroupName>
+          <Files>
+            <File>
+              <FileName>buzzer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\board\src\buzzer.c</FilePath>
+            </File>
+            <File>
+              <FileName>common.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\board\src\common.c</FilePath>
+            </File>
+            <File>
+              <FileName>gpio.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\board\src\gpio.c</FilePath>
+            </File>
+            <File>
+              <FileName>handle.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\board\src\handle.c</FilePath>
+            </File>
+            <File>
+              <FileName>joystick.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\board\src\joystick.c</FilePath>
+            </File>
+            <File>
+              <FileName>led.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\board\src\led.c</FilePath>
+            </File>
+            <File>
+              <FileName>st7735.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\board\src\st7735.c</FilePath>
+            </File>
+            <File>
+              <FileName>uart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\board\src\uart.c</FilePath>
             </File>
           </Files>
         </Group>

@@ -14,6 +14,7 @@ void DBUS_Init(void) {
     DBUS_Data.switch_left  = 2;
     DBUS_Data.switch_right = 2;
     DBUS_LastData = DBUS_Data;
+    DBUS_FrameCount = 0;
 
     UART_SimpleInitTypeDef UART_InitStruct;
     UART_InitStruct.Instance               = DBUS_UART;
@@ -28,10 +29,12 @@ void DBUS_Init(void) {
     UART_InitStruct.DMA_PreemptionPriority = 7;
     UART_InitStruct.DMA_SubPriority        = 0;
     UART_Init(&UART_InitStruct);
-    HAL_UART_Receive_DMA(&DBUS_UART_HANDLE, DBUS_Buffer, DBUS_BUFFER_SIZE);
+    HAL_UART_Receive_DMA(&DBUS_UART_HANDLE, (uint8_t*)DBUS_Buffer, DBUS_BUFFER_SIZE);
 }
 
 void DBUS_Decode(void) {
+    ++DBUS_FrameCount;
+
     DBUS_LastData = DBUS_Data;
 
     DBUS_Data.ch1 = (((uint32_t)DBUS_Buffer[0]) | ((uint32_t)DBUS_Buffer[1]<<8)) & 0x07FF;
@@ -41,6 +44,7 @@ void DBUS_Decode(void) {
     DBUS_Data.ch3 = (((uint32_t)DBUS_Buffer[2]>>6) | ((uint32_t)DBUS_Buffer[3]<<2) | ((uint32_t)DBUS_Buffer[4]<<10)) & 0x07FF;
     DBUS_Data.ch3 -= 1024;
     DBUS_Data.ch4 = (((uint32_t)DBUS_Buffer[4]>>1) | ((uint32_t)DBUS_Buffer[5]<<7)) & 0x07FF;
+    DBUS_Data.ch4 -= 1024;
 
     DBUS_Data.switch_left = (DBUS_Buffer[5]>>6) & 0x03;
     DBUS_Data.switch_right = (DBUS_Buffer[5]>>4) & 0x03;
