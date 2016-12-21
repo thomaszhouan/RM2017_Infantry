@@ -1,16 +1,14 @@
 #include "main.h"
+#include <stdio.h>
+#include <string.h>
 
 UART_HandleTypeDef *UartHandle = &Uart3_Handle;
-static uint8_t TxBuffer[] = "Hello DMA\n";
-#define TXBUFFERSIZE (COUNTOF(TxBuffer)-1)
-#define RXBUFFERSIZE 128U
-static uint8_t RxBuffer[RXBUFFERSIZE];
 
 volatile uint16_t angle;
 volatile char angleUpdated;
-// CanRxMsgTypeDef CanRxMsg;
-// CanTxMsgTypeDef CanTxMsg;
-volatile int16_t velocity;
+volatile int16_t velocity, targetV;
+volatile int16_t pidOutput;
+PID_Controller pid;
 
 void JOYSTICK_Handler(uint16_t GPIO_Pin);
 void Error_Handler(void);
@@ -45,8 +43,6 @@ int main(void) {
     UART_InitStruct.DMA_PreemptionPriority = 8;
     UART_InitStruct.DMA_SubPriority        = 0;
     UART_Init(&UART_InitStruct);
-    UNUSED(TxBuffer);
-    UNUSED(RxBuffer);
 
     JOYSTICK_Init(10, 0);
     for (Joystick_TypeDef pos = JUP; pos < JOYSTICKn; ++pos)
@@ -61,6 +57,9 @@ int main(void) {
     ST7735_Print(0, 2, GREEN, BLACK, "CH2");
     ST7735_Print(0, 3, GREEN, BLACK, "CH3");
     ST7735_Print(0, 4, GREEN, BLACK, "CH4");
+    ST7735_Print(0, 5, GREEN, BLACK, "TAR");
+    ST7735_Print(0, 6, GREEN, BLACK, "V");
+    ST7735_Print(0, 7, GREEN, BLACK, "OUT");
 
     // testing CAN1
     CAN_SimpleInitTypeDef CAN_InitStruct;
@@ -90,6 +89,15 @@ int main(void) {
     HAL_NVIC_SetPriority(TIM2_IRQn, 6, 0);
     HAL_NVIC_EnableIRQ(TIM2_IRQn);
     HAL_TIM_Base_Start_IT(&Tim2_Handle);
+
+    pid.Kp = 5.0f;
+    pid.Ki = 0.1f;
+    pid.Kd = 0.0f;
+    pid.MAX_Iout = 10000;
+    pid.MAX_PIDout = 10000;
+    pid.mode = kIncremental;
+    PID_Reset(&pid);
+    targetV = 0;
     
     while (1) {
         if (DBUS_Status == kConnected) {
@@ -97,15 +105,21 @@ int main(void) {
             ST7735_Print(4, 2, GREEN, BLACK, "%d", DBUS_Data.ch2);
             ST7735_Print(4, 3, GREEN, BLACK, "%d", DBUS_Data.ch3);
             ST7735_Print(4, 4, GREEN, BLACK, "%d", DBUS_Data.ch4);
-            velocity = DBUS_Data.ch2*2;
         }
         else { // DBUS connection lost
             ST7735_Print(4, 1, GREEN, BLACK, "N/A");
             ST7735_Print(4, 2, GREEN, BLACK, "N/A");
             ST7735_Print(4, 3, GREEN, BLACK, "N/A");
             ST7735_Print(4, 4, GREEN, BLACK, "N/A");
+
+            PID_Reset(&pid);
+            pidOutput = 0;
+            targetV = 0;
             velocity = 0;
         }
+        ST7735_Print(4, 5, GREEN, BLACK, "%d", targetV);
+        ST7735_Print(4, 6, GREEN, BLACK, "%d", velocity);
+        ST7735_Print(4, 7, GREEN, BLACK, "%d", pidOutput);
     }
 }
 
@@ -117,10 +131,10 @@ void JOYSTICK_Handler(uint16_t GPIO_Pin) {
     if (HAL_GPIO_ReadPin(JOYSTICK_PORT, GPIO_Pin)== RESET) {
         switch (GPIO_Pin) {
             case JOYSTICK_UP_PIN    : HAL_UART_Transmit_IT(UartHandle, msg[JUP], Strlen(msg[JUP])); break;
-            case JOYSTICK_LEFT_PIN  : HAL_UART_Transmit(UartHandle, msg[JLEFT], Strlen(msg[JLEFT]), 5000); break;
-            case JOYSTICK_RIGHT_PIN : HAL_UART_Transmit(UartHandle, msg[JRIGHT], Strlen(msg[JRIGHT]), 5000); break;
-            case JOYSTICK_DOWN_PIN  : HAL_UART_Transmit(UartHandle, msg[JDOWN], Strlen(msg[JDOWN]), 5000); break;
-            case JOYSTICK_CENTER_PIN: HAL_UART_Transmit(UartHandle, msg[JCENTER], Strlen(msg[JCENTER]), 5000); break;
+            case JOYSTICK_LEFT_PIN  : HAL_UART_Transmit_IT(UartHandle, msg[JLEFT], Strlen(msg[JLEFT])); break;
+            case JOYSTICK_RIGHT_PIN : HAL_UART_Transmit_IT(UartHandle, msg[JRIGHT], Strlen(msg[JRIGHT])); break;
+            case JOYSTICK_DOWN_PIN  : HAL_UART_Transmit_IT(UartHandle, msg[JDOWN], Strlen(msg[JDOWN])); break;
+            case JOYSTICK_CENTER_PIN: HAL_UART_Transmit_IT(UartHandle, msg[JCENTER], Strlen(msg[JCENTER])); break;
         }
     }
     __HAL_GPIO_EXTI_CLEAR_IT(GPIO_Pin);
@@ -129,6 +143,7 @@ void JOYSTICK_Handler(uint16_t GPIO_Pin) {
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *handle) {
     if (handle == &DBUS_UART_HANDLE) {
         DBUS_Decode();
+        targetV = 5*DBUS_Data.ch2;
     }
 }
 
@@ -146,31 +161,37 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *handle) {
         LED_Toggle(LED0);
 
     // check DBUS connection
-    if (tick % 20 == 0)
+    // static uint8_t uartBuffer[100];
+    if (tick % 20 == 0) {
         DBUS_UpdateStatus();
 
-    HAL_CAN_Receive_IT(&CHASSIS_CAN_HANDLE, 0);
-    if (tick % 50 == 0) {
-        CHASSIS_CAN_TX.Data[0] = (uint8_t)((uint16_t)velocity>>8);
-        CHASSIS_CAN_TX.Data[1] = (uint8_t)((uint16_t)velocity&0xFF);
-        CHASSIS_CAN_TX.Data[2] = (uint8_t)0;
-        CHASSIS_CAN_TX.Data[3] = (uint8_t)0;
-        CHASSIS_CAN_TX.Data[4] = (uint8_t)0;
-        CHASSIS_CAN_TX.Data[5] = (uint8_t)0;
-        CHASSIS_CAN_TX.Data[6] = (uint8_t)0;
-        CHASSIS_CAN_TX.Data[7] = (uint8_t)0;
-
-        HAL_CAN_Transmit_IT(&CHASSIS_CAN_HANDLE);
+        // sprintf((char*)uartBuffer, "%d %d\n", velocity, pidOutput);
+        // HAL_UART_Transmit_DMA(UartHandle, uartBuffer, strlen((char*)uartBuffer));
     }
+
+    HAL_CAN_Receive_IT(&CHASSIS_CAN_HANDLE, 0);
+    
+    CHASSIS_CAN_TX.Data[0] = (uint8_t)((uint16_t)pidOutput>>8);
+    CHASSIS_CAN_TX.Data[1] = (uint8_t)((uint16_t)pidOutput&0xFF);
+    CHASSIS_CAN_TX.Data[2] = (uint8_t)0;
+    CHASSIS_CAN_TX.Data[3] = (uint8_t)0;
+    CHASSIS_CAN_TX.Data[4] = (uint8_t)0;
+    CHASSIS_CAN_TX.Data[5] = (uint8_t)0;
+    CHASSIS_CAN_TX.Data[6] = (uint8_t)0;
+    CHASSIS_CAN_TX.Data[7] = (uint8_t)0;
+
+    HAL_CAN_Transmit_IT(&CHASSIS_CAN_HANDLE);
 }
 
 void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef *handle) {
     UNUSED(handle);
     uint8_t *data = CHASSIS_CAN_RX.Data;
-    uint16_t newAngle = ((uint16_t)data[0]<<8) | ((uint16_t)data[1]);
-    if (newAngle != angle) {
-        angle = newAngle;
-        angleUpdated = 1;
+
+    angle = ((uint16_t)data[0]<<8) | ((uint16_t)data[1]);
+    velocity = ((uint16_t)data[2]<<8) | ((uint16_t)data[3]);
+
+    if (DBUS_Status == kConnected) {
+        pidOutput = (int16_t)PID_Update(&pid, targetV, velocity);
     }
 }
 
