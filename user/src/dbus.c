@@ -15,6 +15,7 @@ void DBUS_Init(void) {
     DBUS_Data.switch_right = 2;
     DBUS_LastData = DBUS_Data;
     DBUS_FrameCount = 0;
+    DBUS_LastFrameCount = 0;
 
     UART_SimpleInitTypeDef UART_InitStruct;
     UART_InitStruct.Instance               = DBUS_UART;
@@ -57,4 +58,14 @@ void DBUS_Decode(void) {
     DBUS_Data.mouse.press_right = DBUS_Buffer[13];
 
     DBUS_Data.key.key_code = ((uint32_t)DBUS_Buffer[14]) | ((uint32_t)DBUS_Buffer[15]<<8);
+}
+
+void DBUS_UpdateStatus(void) {
+    if (DBUS_FrameCount != DBUS_LastFrameCount) {
+        DBUS_LastFrameCount = DBUS_FrameCount;
+        DBUS_Status = kConnected;
+    }
+    else {
+        DBUS_Status = kLost;
+    }
 }

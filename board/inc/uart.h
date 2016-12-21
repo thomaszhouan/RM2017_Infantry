@@ -16,7 +16,7 @@ typedef struct {
     uint32_t DMA_SubPriority;
 } UART_SimpleInitTypeDef;
 
-void UART_Init(UART_SimpleInitTypeDef *UART_Init);
+void UART_Init(UART_SimpleInitTypeDef *uartInit);
 
 uint16_t Strlen(const uint8_t *p);
 

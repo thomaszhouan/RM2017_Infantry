@@ -6,6 +6,12 @@ static uint8_t TxBuffer[] = "Hello DMA\n";
 #define RXBUFFERSIZE 128U
 static uint8_t RxBuffer[RXBUFFERSIZE];
 
+volatile uint16_t angle;
+volatile char angleUpdated;
+// CanRxMsgTypeDef CanRxMsg;
+// CanTxMsgTypeDef CanTxMsg;
+volatile int16_t velocity;
+
 void JOYSTICK_Handler(uint16_t GPIO_Pin);
 void Error_Handler(void);
 
@@ -46,6 +52,7 @@ int main(void) {
     for (Joystick_TypeDef pos = JUP; pos < JOYSTICKn; ++pos)
         JOYSTICK_CallbackInstall(pos, JOYSTICK_Handler);
 
+    // LCD
     ST7735_Init();
     ST7735_SetOrientation(kRevert);
     ST7735_FillColor(BLACK);
@@ -54,10 +61,23 @@ int main(void) {
     ST7735_Print(0, 2, GREEN, BLACK, "CH2");
     ST7735_Print(0, 3, GREEN, BLACK, "CH3");
     ST7735_Print(0, 4, GREEN, BLACK, "CH4");
-    ST7735_Print(0, 5, GREEN, BLACK, "X");
-    ST7735_Print(0, 6, GREEN, BLACK, "Y");
-    ST7735_Print(0, 7, GREEN, BLACK, "Z");
 
+    // testing CAN1
+    CAN_SimpleInitTypeDef CAN_InitStruct;
+    CAN_InitStruct.id = CHASSIS_CAN_ID;
+    CAN_InitStruct.CanHandle = &CHASSIS_CAN_HANDLE;
+    CAN_InitStruct.CanRx = &CHASSIS_CAN_RX;
+    CAN_InitStruct.CanTx = &CHASSIS_CAN_TX;
+    CAN_InitStruct.PreemptionPriority = 9;
+    CAN_InitStruct.SubPriority = 0;
+    CAN_Init(&CAN_InitStruct);
+
+    // CAN Tx test
+    CHASSIS_CAN_TX.StdId = 0x200;
+    CHASSIS_CAN_TX.IDE = CAN_ID_STD;
+    CHASSIS_CAN_TX.RTR = CAN_RTR_DATA;
+    CHASSIS_CAN_TX.DLC = 8;
+    
     // TIM init
     __HAL_RCC_TIM2_CLK_ENABLE();
     Tim2_Handle.Instance = TIM2;
@@ -71,17 +91,20 @@ int main(void) {
     HAL_NVIC_EnableIRQ(TIM2_IRQn);
     HAL_TIM_Base_Start_IT(&Tim2_Handle);
     
-    uint32_t DBUS_LastCount = DBUS_FrameCount;
     while (1) {
-        if (DBUS_FrameCount != DBUS_LastCount) {
-            DBUS_LastCount = DBUS_FrameCount;
+        if (DBUS_Status == kConnected) {
             ST7735_Print(4, 1, GREEN, BLACK, "%d", DBUS_Data.ch1);
             ST7735_Print(4, 2, GREEN, BLACK, "%d", DBUS_Data.ch2);
             ST7735_Print(4, 3, GREEN, BLACK, "%d", DBUS_Data.ch3);
             ST7735_Print(4, 4, GREEN, BLACK, "%d", DBUS_Data.ch4);
-            ST7735_Print(4, 5, GREEN, BLACK, "%d", DBUS_Data.mouse.x);
-            ST7735_Print(4, 6, GREEN, BLACK, "%d", DBUS_Data.mouse.y);
-            ST7735_Print(4, 7, GREEN, BLACK, "%d", DBUS_Data.mouse.z);
+            velocity = DBUS_Data.ch2*2;
+        }
+        else { // DBUS connection lost
+            ST7735_Print(4, 1, GREEN, BLACK, "N/A");
+            ST7735_Print(4, 2, GREEN, BLACK, "N/A");
+            ST7735_Print(4, 3, GREEN, BLACK, "N/A");
+            ST7735_Print(4, 4, GREEN, BLACK, "N/A");
+            velocity = 0;
         }
     }
 }
@@ -121,6 +144,34 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *handle) {
     if (tick == 1000) tick = 0;
     if (tick % 500 == 0)
         LED_Toggle(LED0);
+
+    // check DBUS connection
+    if (tick % 20 == 0)
+        DBUS_UpdateStatus();
+
+    HAL_CAN_Receive_IT(&CHASSIS_CAN_HANDLE, 0);
+    if (tick % 50 == 0) {
+        CHASSIS_CAN_TX.Data[0] = (uint8_t)((uint16_t)velocity>>8);
+        CHASSIS_CAN_TX.Data[1] = (uint8_t)((uint16_t)velocity&0xFF);
+        CHASSIS_CAN_TX.Data[2] = (uint8_t)0;
+        CHASSIS_CAN_TX.Data[3] = (uint8_t)0;
+        CHASSIS_CAN_TX.Data[4] = (uint8_t)0;
+        CHASSIS_CAN_TX.Data[5] = (uint8_t)0;
+        CHASSIS_CAN_TX.Data[6] = (uint8_t)0;
+        CHASSIS_CAN_TX.Data[7] = (uint8_t)0;
+
+        HAL_CAN_Transmit_IT(&CHASSIS_CAN_HANDLE);
+    }
+}
+
+void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef *handle) {
+    UNUSED(handle);
+    uint8_t *data = CHASSIS_CAN_RX.Data;
+    uint16_t newAngle = ((uint16_t)data[0]<<8) | ((uint16_t)data[1]);
+    if (newAngle != angle) {
+        angle = newAngle;
+        angleUpdated = 1;
+    }
 }
 
 void Error_Handler(void) {

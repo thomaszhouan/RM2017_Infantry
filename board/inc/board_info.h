@@ -1,7 +1,7 @@
 #ifndef BOARD_INFO_H
 #define BOARD_INFO_H
 
-/* external handles */
+/*----------External Handles----------*/
 #ifndef HANDLE_FILE
     #define HANDLE_EXT extern
 #else
@@ -26,6 +26,13 @@ HANDLE_EXT TIM_HandleTypeDef Tim2_Handle;
 HANDLE_EXT SPI_HandleTypeDef Spi1_Handle;
 #define LCD_SPI_HANDLE Spi1_Handle
 
+// CAN1
+#define USE_CAN1
+HANDLE_EXT CAN_HandleTypeDef Can1_Handle;
+HANDLE_EXT CanRxMsgTypeDef Can1_RxMsg;
+HANDLE_EXT CanTxMsgTypeDef Can1_TxMsg;
+
+/*----------LED----------*/
 typedef enum {
     LED0 = 0,
 
@@ -42,11 +49,13 @@ typedef enum {
 #define LEDx_GPIO_CLK_DISABLE(_id)              do { if (_id==LED0) LED0_GPIO_CLK_DISABLE();\
                                                    } while(0)
 
+/*----------Buzzer----------*/
 #define BUZZER_PORT                             GPIOB
 #define BUZZER_PIN                              GPIO_PIN_1
 #define BUZZER_GPIO_CLK_ENABLE()                __HAL_RCC_GPIOB_CLK_ENABLE()
 #define BUZZER_GPIO_CLK_DISABLE()               __HAL_RCC_GPIOB_CLK_DISABLE()
 
+/*----------UART----------*/
 typedef enum {
     UART1 = 0,
     UART3,
@@ -95,6 +104,7 @@ typedef enum {
                                                      else if (_id==UART3) UART3_DMA_CLK_DISABLE();\
                                                    } while(0)
 
+/*----------Joystick----------*/
 typedef enum {
     JUP = 0,
     JLEFT,
@@ -117,6 +127,7 @@ typedef enum {
 #define JOYSTICK_GPIO_CLK_ENABLE()              __HAL_RCC_GPIOC_CLK_ENABLE()
 #define JOYSTICK_GPIO_CLK_DISABLE()             __HAL_RCC_GPIOC_CLK_DISABLE()
 
+/*----------LCD----------*/
 #define LCD_GPIO_CLK_ENABLE()                   do { __HAL_RCC_GPIOA_CLK_ENABLE();\
                                                      __HAL_RCC_GPIOB_CLK_ENABLE();\
                                                      __HAL_RCC_GPIOC_CLK_ENABLE();\
@@ -133,5 +144,33 @@ typedef enum {
 #define LCD_SCLK_PIN                            GPIO_PIN_5
 #define LCD_SDAT_PIN                            GPIO_PIN_7
 
+/*----------CAN----------*/
+typedef enum {
+    xCAN1 = 0,
+    xCAN2,
+
+    xCANn
+} xCAN_TypeDef;
+
+#define CAN1_GPIO_PORT                          GPIOA
+#define CAN1_GPIO_PIN                           (GPIO_PIN_11 | GPIO_PIN_12)
+#define CAN1_GPIO_CLK_ENABLE()                  __HAL_RCC_GPIOA_CLK_ENABLE()
+
+#define CAN2_GPIO_PORT                          GPIOB
+#define CAN2_GPIO_PIN                           (GPIO_PIN_12 | GPIO_PIN_13)
+#define CAN2_GPIO_CLK_ENABLE()                  __HAL_RCC_GPIOB_CLK_ENABLE()
+
+#define CANx_GPIO_CLK_ENABLE(_id)               do { if (_id==xCAN1) CAN1_GPIO_CLK_ENABLE();\
+                                                     else if (_id==xCAN2) CAN2_GPIO_CLK_ENABLE();\
+                                                   } while(0)
+#define xCAN_CLK_ENABLE()                       do { __HAL_RCC_CAN1_CLK_ENABLE();\
+                                                     __HAL_RCC_CAN2_CLK_ENABLE();\
+                                                   } while(0)
+
+#define CHASSIS_CAN_ID                          1
+#define CHASSIS_CAN_INSTANCE                    EVALUATOR2(CAN, CHASSIS_CAN_ID)
+#define CHASSIS_CAN_TX                          EVALUATOR3(Can, CHASSIS_CAN_ID, _TxMsg)
+#define CHASSIS_CAN_RX                          EVALUATOR3(Can, CHASSIS_CAN_ID, _RxMsg)
+#define CHASSIS_CAN_HANDLE                      EVALUATOR3(Can, CHASSIS_CAN_ID, _Handle)
 
 #endif // BOARD_INFO_H

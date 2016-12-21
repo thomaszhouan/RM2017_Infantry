@@ -267,7 +267,27 @@ void DMA1_Stream1_IRQHandler(void) {
 void DMA1_Stream3_IRQHandler(void) {
     HAL_DMA_IRQHandler(Uart3_Handle.hdmatx);
 }
-#endif
+#endif // USE_USART3
+
+#ifdef USE_CAN1
+/**
+  * @brief  This function handles CAN1 RX0 interrupt request.
+  * @param  None
+  * @retval None   
+  */
+void CAN1_RX0_IRQHandler(void) {
+    HAL_CAN_IRQHandler(&Can1_Handle);
+}
+
+/**
+  * @brief  This function handles CAN1 TX interrupt request.
+  * @param  None
+  * @retval None   
+  */
+void CAN1_TX_IRQHandler(void) {
+    HAL_CAN_IRQHandler(&Can1_Handle);
+}
+#endif // USE_CAN1
 
 /**
   * @brief  This function handles TIM2 interrupt request.
