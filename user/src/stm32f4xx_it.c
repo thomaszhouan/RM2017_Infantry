@@ -45,7 +45,7 @@
 #include "stm32f4xx_it.h"
 #include "common.h"
 #include "board_info.h"
-#include "buzzer.h"
+#include "dbus.h"
 
 /** @addtogroup STM32F4xx_HAL_Examples
   * @{
@@ -218,7 +218,14 @@ void EXTI15_10_IRQHandler(void) {
   * @retval None
   */
 void USART1_IRQHandler(void) {
-    HAL_UART_IRQHandler(&Uart1_Handle);
+    /* clear IDLE line interrupt flag */
+    uint8_t tmp;
+    tmp = USART1->DR;
+    tmp = USART1->SR;
+    __HAL_UART_DISABLE_IT(&DBUS_UART_HANDLE, UART_IT_IDLE);
+
+    HAL_UART_Receive_DMA(&DBUS_UART_HANDLE, (uint8_t*)DBUS_Buffer, DBUS_BUFFER_SIZE);
+    UNUSED(tmp);
 }
 
 /**

@@ -102,22 +102,12 @@ void JOYSTICK_Handler(uint16_t GPIO_Pin) {
     if (HAL_GPIO_ReadPin(JOYSTICK_PORT, GPIO_Pin)== RESET) {
         switch (GPIO_Pin) {
             case JOYSTICK_UP_PIN:
-            // HAL_UART_Transmit_IT(UartHandle, msg[JUP], Strlen(msg[JUP]));
-            // if (pid.Kp<80.0f) pid.Kp += 0.1f;
             break;
             case JOYSTICK_LEFT_PIN:
-            // HAL_UART_Transmit_IT(UartHandle, msg[JLEFT], Strlen(msg[JLEFT]));
-            // if (pid.Ki>=0.02f) pid.Ki -= 0.01f;
-            // else pid.Ki = 0.0f;
             break;
             case JOYSTICK_RIGHT_PIN:
-            // HAL_UART_Transmit_IT(UartHandle, msg[JRIGHT], Strlen(msg[JRIGHT]));
-            // if (pid.Ki<1.00f) pid.Ki += 0.01f;
             break;
             case JOYSTICK_DOWN_PIN:
-            // HAL_UART_Transmit_IT(UartHandle, msg[JDOWN], Strlen(msg[JDOWN]));
-            // if (pid.Kp>=0.2f) pid.Kp -= 0.1f;
-            // else pid.Kp = 0.0f;
             break;
             case JOYSTICK_CENTER_PIN:
             HAL_UART_Transmit_IT(UartHandle, msg[JCENTER], Strlen(msg[JCENTER]));
@@ -130,7 +120,7 @@ void JOYSTICK_Handler(uint16_t GPIO_Pin) {
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *handle) {
     if (handle == &DBUS_UART_HANDLE) {
         DBUS_Decode();
-        int16_t target = 5*DBUS_Data.ch2;
+        int16_t target = 8*DBUS_Data.ch2;
         for (uint16_t id = 0x201; id <= 0x204; ++id)
             CHASSIS_SetTargetVelocity(id, target);
     }
@@ -165,7 +155,6 @@ void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef *handle) {
     if (handle == &CHASSIS_CAN_HANDLE) {
         CHASSIS_UpdateMeasure(CHASSIS_CAN_RX.StdId);
         HAL_CAN_Receive_IT(&CHASSIS_CAN_HANDLE, 0);
-        // __HAL_CAN_ENABLE_IT(&CHASSIS_CAN_HANDLE, CAN_IT_FMP0);
     }
 }
 

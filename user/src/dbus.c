@@ -30,7 +30,9 @@ void DBUS_Init(void) {
     UART_InitStruct.DMA_PreemptionPriority = 12;
     UART_InitStruct.DMA_SubPriority        = 0;
     UART_Init(&UART_InitStruct);
-    HAL_UART_Receive_DMA(&DBUS_UART_HANDLE, (uint8_t*)DBUS_Buffer, DBUS_BUFFER_SIZE);
+
+    /* detect the first frame */
+    __HAL_UART_ENABLE_IT(&DBUS_UART_HANDLE, UART_IT_IDLE);
 }
 
 void DBUS_Decode(void) {
