@@ -27,7 +27,7 @@ void DBUS_Init(void) {
     UART_InitStruct.PreemptionPriority     = 15;
     UART_InitStruct.SubPriority            = 0;
     UART_InitStruct.DMA_Rx_Mode            = DMA_CIRCULAR;
-    UART_InitStruct.DMA_PreemptionPriority = 7;
+    UART_InitStruct.DMA_PreemptionPriority = 12;
     UART_InitStruct.DMA_SubPriority        = 0;
     UART_Init(&UART_InitStruct);
     HAL_UART_Receive_DMA(&DBUS_UART_HANDLE, (uint8_t*)DBUS_Buffer, DBUS_BUFFER_SIZE);

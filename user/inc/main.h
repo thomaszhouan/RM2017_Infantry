@@ -10,6 +10,6 @@
 #include "dbus.h"
 #include "st7735.h"
 #include "can.h"
-#include "pid.h"
+#include "chassis.h"
 
 #endif // MAIN_H

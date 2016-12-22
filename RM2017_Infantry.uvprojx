@@ -386,6 +386,11 @@
               <FilePath>.\user\src\main.c</FilePath>
             </File>
             <File>
+              <FileName>pid.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\user\src\pid.c</FilePath>
+            </File>
+            <File>
               <FileName>stm32f4xx_it.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\user\src\stm32f4xx_it.c</FilePath>
@@ -504,6 +509,11 @@
               <FileName>buzzer.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\board\src\buzzer.c</FilePath>
+            </File>
+            <File>
+              <FileName>can.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\board\src\can.c</FilePath>
             </File>
             <File>
               <FileName>common.c</FileName>

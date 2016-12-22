@@ -4,6 +4,7 @@
 */
 
 #include "pid.h"
+#include "common.h"
 #include <string.h>
 
 /*
@@ -43,7 +44,7 @@ float PID_Update(PID_Controller *pid, float target, float measure) {
         Dout = pid->Kd * (pid->err[kNOW] - 2*pid->err[kLAST] + pid->err[kLLAST]);
 
         Iout = PID_Trim(Iout, pid->MAX_Iout);
-        pid->output += Pout + Iout + Dout;
+        pid->output += (Pout + Iout + Dout);
         pid->output = PID_Trim(pid->output, pid->MAX_PIDout);
     }
     else if (pid->mode == kPositional) {
@@ -65,5 +66,7 @@ float PID_Update(PID_Controller *pid, float target, float measure) {
     pid->err[kLLAST] = pid->err[kLAST];
     pid->err[kLAST] = pid->err[kNOW];
 
-    return pid->output;
+    float ret = pid->output;
+    if (ABS(ret) < pid->MIN_PIDout) ret = 0.0f;
+    return ret;
 }

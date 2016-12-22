@@ -20,7 +20,7 @@ typedef enum {
 typedef struct {
     /* set by user */
     float Kp, Ki, Kd;
-    float MAX_Iout, MAX_PIDout;
+    float MAX_Iout, MAX_PIDout, MIN_PIDout;
     PID_ModeTypeDef mode;
 
     /* updated by calling PID_Update */
