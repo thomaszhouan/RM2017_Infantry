@@ -2,11 +2,7 @@
 #define CHASSIS_H
 
 #include "pid.h"
-
-#define FL_MOTOR_ID 0x201U
-#define FR_MOTOR_ID 0x202U
-#define BL_MOTOR_ID 0x203U
-#define BR_MOTOR_ID 0x204U
+#include "param.h"
 
 #ifndef CHASSIS_FILE
     #define CHASSIS_EXT extern
@@ -15,6 +11,12 @@
 #endif
 
 CHASSIS_EXT volatile int16_t MotorVelocity[4], TargetVelocity[4];
+CHASSIS_EXT PID_Controller MotorController[4];
+CHASSIS_EXT volatile uint16_t MotorAngle[4];
+CHASSIS_EXT int16_t MotorVelocityBuffer[4][4];
+CHASSIS_EXT uint8_t BufferId[4];
+CHASSIS_EXT volatile uint16_t MotorOutput[4];
+CHASSIS_EXT volatile char MeasureUpdated[4];
 
 /*
     Initialize controllers and internal states.
@@ -30,6 +32,11 @@ void CHASSIS_UpdateMeasure(uint16_t motorId);
     Update the controller if angle/velocity updated.
 */
 void CHASSIS_MotorControl(uint16_t motorId);
+
+/*
+    Set target velocity for 4 motors.
+*/
+void CHASSIS_SetMotion(void);
 
 /*
     Update velocity target.

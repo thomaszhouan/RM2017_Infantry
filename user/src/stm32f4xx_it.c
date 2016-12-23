@@ -296,6 +296,26 @@ void CAN1_TX_IRQHandler(void) {
 }
 #endif // USE_CAN1
 
+#ifdef USE_CAN2
+/**
+  * @brief  This function handles CAN2 RX0 interrupt request.
+  * @param  None
+  * @retval None   
+  */
+void CAN2_RX0_IRQHandler(void) {
+    HAL_CAN_IRQHandler(&Can2_Handle);
+}
+
+/**
+  * @brief  This function handles CAN2 TX interrupt request.
+  * @param  None
+  * @retval None   
+  */
+void CAN2_TX_IRQHandler(void) {
+    HAL_CAN_IRQHandler(&Can2_Handle);
+}
+#endif // USE_CAN2
+
 /**
   * @brief  This function handles TIM2 interrupt request.
   * @param  None

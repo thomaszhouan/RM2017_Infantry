@@ -32,6 +32,12 @@ HANDLE_EXT CAN_HandleTypeDef Can1_Handle;
 HANDLE_EXT CanRxMsgTypeDef Can1_RxMsg;
 HANDLE_EXT CanTxMsgTypeDef Can1_TxMsg;
 
+// CAN2
+#define USE_CAN2
+HANDLE_EXT CAN_HandleTypeDef Can2_Handle;
+HANDLE_EXT CanRxMsgTypeDef Can2_RxMsg;
+HANDLE_EXT CanTxMsgTypeDef Can2_TxMsg;
+
 /*----------LED----------*/
 typedef enum {
     LED0 = 0,
@@ -167,7 +173,7 @@ typedef enum {
                                                      __HAL_RCC_CAN2_CLK_ENABLE();\
                                                    } while(0)
 
-#define CHASSIS_CAN_ID                          1
+#define CHASSIS_CAN_ID                          2
 #define CHASSIS_CAN_INSTANCE                    EVALUATOR2(CAN, CHASSIS_CAN_ID)
 #define CHASSIS_CAN_TX                          EVALUATOR3(Can, CHASSIS_CAN_ID, _TxMsg)
 #define CHASSIS_CAN_RX                          EVALUATOR3(Can, CHASSIS_CAN_ID, _RxMsg)

@@ -48,7 +48,10 @@ int main(void) {
     ST7735_FillColor(BLACK);
     ST7735_Print(0, 0, GREEN, BLACK, "RM2017 Thomas");
     ST7735_Print(0, 1, GREEN, BLACK, "CH2");
-    ST7735_Print(0, 2, GREEN, BLACK, "V");
+    ST7735_Print(0, 2, GREEN, BLACK, "201");
+    ST7735_Print(0, 3, GREEN, BLACK, "202");
+    ST7735_Print(0, 4, GREEN, BLACK, "203");
+    ST7735_Print(0, 5, GREEN, BLACK, "204");
 
     // CAN1
     CAN_SimpleInitTypeDef CAN_InitStruct;
@@ -91,6 +94,9 @@ int main(void) {
             CHASSIS_SetFree();
         }
         ST7735_Print(4, 2, GREEN, BLACK, "%d", MotorVelocity[0]);
+        ST7735_Print(4, 3, GREEN, BLACK, "%d", MotorVelocity[1]);
+        ST7735_Print(4, 4, GREEN, BLACK, "%d", MotorVelocity[2]);
+        ST7735_Print(4, 5, GREEN, BLACK, "%d", MotorVelocity[3]);
     }
 }
 
@@ -120,9 +126,7 @@ void JOYSTICK_Handler(uint16_t GPIO_Pin) {
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *handle) {
     if (handle == &DBUS_UART_HANDLE) {
         DBUS_Decode();
-        int16_t target = 8*DBUS_Data.ch2;
-        for (uint16_t id = 0x201; id <= 0x204; ++id)
-            CHASSIS_SetTargetVelocity(id, target);
+        CHASSIS_SetMotion();
     }
 }
 
