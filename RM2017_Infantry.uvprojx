@@ -376,6 +376,11 @@
           <GroupName>user</GroupName>
           <Files>
             <File>
+              <FileName>chassis.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\user\src\chassis.c</FilePath>
+            </File>
+            <File>
               <FileName>dbus.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\user\src\dbus.c</FilePath>

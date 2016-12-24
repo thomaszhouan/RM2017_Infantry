@@ -4,6 +4,9 @@
 #include "board_info.h"
 #include "dbus.h"
 #include "uart.h"
+#include <string.h>
+
+#define _CLEAR(x) do { memset((void*)(&x), 0, sizeof(x)); } while(0)
 
 void DBUS_Init(void) {
     DBUS_Status = kLost;
@@ -69,5 +72,7 @@ void DBUS_UpdateStatus(void) {
     }
     else {
         DBUS_Status = kLost;
+        _CLEAR(DBUS_Data);
+        _CLEAR(DBUS_LastData);
     }
 }
