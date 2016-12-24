@@ -6,7 +6,7 @@
 #include "dbus.h"
 #include <string.h>
 
-#define MAX_TARGET_VELOCITY 8000
+#define MAX_TARGET_VELOCITY 8200
 
 #define _ID(x) ((x)-CHASSIS_CAN_ID_OFFSET)
 
@@ -34,11 +34,12 @@ static void CHASSIS_ClearAll(void) {
 
 void CHASSIS_Init(void) {
     for (uint8_t id = 0; id < 4; ++id) {
-        MotorController[id].Kp = 8.0;
-        MotorController[id].Ki = 0.75f;
-        MotorController[id].Kd = 0.00f;
+        MotorController[id].Kp = 5.20f;//5.5;
+        MotorController[id].Ki = 0.40f;//0.75f;
+        MotorController[id].Kd = 0.08f;
+        MotorController[id].MAX_Pout = 10000;
         MotorController[id].MAX_Iout = 10000;
-        MotorController[id].MAX_PIDout = 10000;
+        MotorController[id].MAX_PIDout = 15000;
         MotorController[id].MIN_PIDout = 0;
         MotorController[id].mode = kPositional;
         PID_Reset(MotorController+id);
@@ -57,7 +58,12 @@ void CHASSIS_UpdateMeasure(uint16_t motorId) {
     if (TargetVelocity[id] > 10 && newVelocity < -3000) newVelocity += 16384;
     else if (TargetVelocity[id] < -10 && newVelocity > 3000) newVelocity -= 16384;
 
-    MotorVelocity[id] = newVelocity;
+    MotorVelocity[id] -= MotorVelocityBuffer[id][BufferId[id]];
+    MotorVelocityBuffer[id][BufferId[id]] = newVelocity;
+    MotorVelocity[id] += newVelocity;
+    BufferId[id] = (BufferId[id]+1)&0x1U;
+
+    // MotorVelocity[id] = newVelocity;
 
     MeasureUpdated[id] = 1;
 }
@@ -66,7 +72,7 @@ void CHASSIS_MotorControl(uint16_t motorId) {
     uint16_t id = _ID(motorId);
     if (!MeasureUpdated[id]) return;
     MotorOutput[id] = (int16_t)PID_Update(MotorController+id,
-        TargetVelocity[id], MotorVelocity[id]);
+        TargetVelocity[id], MotorVelocity[id]/2);
 
     MeasureUpdated[id] = 0;
 }
@@ -78,16 +84,12 @@ void CHASSIS_MotorControl(uint16_t motorId) {
     0-- >x
 */
 void CHASSIS_SetMotion(void) {
-    static int32_t velocityX = 0,  omega = 0;
+    static int32_t velocityX = 0, velocityY = 0, omega = 0;
     static int32_t tmpVelocity[4];
-
-    // test acceleration
-    static float accelerationY = 0.0f, velocityY = 0.0f;
-    accelerationY = 10*DBUS_Data.ch2 - velocityY;
-    velocityY += accelerationY/10;
 
     /* low pass filter */
     velocityX = (velocityX*7+6*DBUS_Data.ch1)/8;
+    velocityY = (velocityY*7+12*DBUS_Data.ch2)/8;
     omega = (omega*7+8*DBUS_Data.ch3)/8;
 
     tmpVelocity[0] = (int32_t)velocityY + velocityX + omega;

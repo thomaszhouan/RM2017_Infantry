@@ -48,9 +48,10 @@ int main(void) {
     ST7735_FillColor(BLACK);
     ST7735_Print(0, 0, GREEN, BLACK, "RM2017 Infantry");
     ST7735_Print(0, 1, GREEN, BLACK, "CH2");
-    ST7735_Print(0, 2, GREEN, BLACK, "V");
+    ST7735_Print(0, 2, GREEN, BLACK, "V1");
     ST7735_Print(0, 3, GREEN, BLACK, "TAR");
     ST7735_Print(0, 4, GREEN, BLACK, "OUT");
+    ST7735_Print(0, 5, GREEN, BLACK, "I");
 
     // CAN1
     CAN_SimpleInitTypeDef CAN_InitStruct;
@@ -92,9 +93,10 @@ int main(void) {
             ST7735_Print(4, 1, GREEN, BLACK, "N/A");
             CHASSIS_SetFree();
         }
-        ST7735_Print(4, 2, GREEN, BLACK, "%d", MotorVelocity[0]);
+        ST7735_Print(4, 2, GREEN, BLACK, "%d", MotorVelocity[0]/2);
         ST7735_Print(4, 3, GREEN, BLACK, "%d", TargetVelocity[0]);
         ST7735_Print(4, 4, GREEN, BLACK, "%d", MotorOutput[0]);
+        ST7735_Print(4, 5, GREEN, BLACK, "%.2f", MotorController[0].errIntegral);
     }
 }
 
@@ -155,7 +157,12 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *handle) {
 
 void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef *handle) {
     if (handle == &CHASSIS_CAN_HANDLE) {
-        CHASSIS_UpdateMeasure(CHASSIS_CAN_RX.StdId);
+        switch (CHASSIS_CAN_RX.StdId) {
+            case FL_MOTOR_ID: case FR_MOTOR_ID:
+            case BR_MOTOR_ID: case BL_MOTOR_ID: {
+                CHASSIS_UpdateMeasure(CHASSIS_CAN_RX.StdId);
+            } break;
+        }
 
         // enable interrupt directly to speed up
         __HAL_CAN_ENABLE_IT(handle, CAN_IT_FMP0);
