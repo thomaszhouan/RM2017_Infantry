@@ -34,6 +34,11 @@ void CHASSIS_UpdateMeasure(uint16_t motorId);
 void CHASSIS_MotorControl(uint16_t motorId);
 
 /*
+    Update all controllers.
+*/
+void CHASSIS_Control(void);
+
+/*
     Set target velocity for 4 motors.
 */
 void CHASSIS_SetMotion(void);

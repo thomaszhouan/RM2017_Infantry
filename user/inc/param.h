@@ -4,11 +4,23 @@
 #define CHASSIS_USE_3510_19
 
 #if defined(CHASSIS_USE_3510_19)
+/* CAN ID */
+#define CHASSIS_MASTER_ID     0x200
 #define CHASSIS_CAN_ID_OFFSET 0x201
-#define FL_MOTOR_ID 0x201U
-#define FR_MOTOR_ID 0x202U
-#define BR_MOTOR_ID 0x203U
-#define BL_MOTOR_ID 0x204U
+#define FL_MOTOR_ID           0x201U
+#define FR_MOTOR_ID           0x202U
+#define BR_MOTOR_ID           0x203U
+#define BL_MOTOR_ID           0x204U
+
+/* PID parameter */
+#define CHASSIS_KP         5.20f
+#define CHASSIS_KI         0.40f
+#define CHASSIS_KD         0.08f
+#define CHASSIS_MAX_POUT   10000
+#define CHASSIS_MAX_IOUT   10000
+#define CHASSIS_MAX_PIDOUT 15000
+#define CHASSIS_MIN_PIDOUT 0
+#define CHASSIS_PID_MODE   kPositional
 
 #elif defined(CHASSIS_USE_EC60)
 

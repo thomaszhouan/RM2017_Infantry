@@ -2,8 +2,6 @@
 #include <stdio.h>
 #include <string.h>
 
-UART_HandleTypeDef *UartHandle = &Uart3_Handle;
-
 void JOYSTICK_Handler(uint16_t GPIO_Pin);
 void Error_Handler(void);
 
@@ -18,56 +16,24 @@ int main(void) {
     SystemClock_Config();
     HAL_NVIC_SetPriority(SysTick_IRQn, 5, 0);
 
-    LED_Init(LED0);
-    BUZZER_Init();
-    DBUS_Init();
-
-    // USART3 init
-    UART_SimpleInitTypeDef UART_InitStruct;
-    UART_InitStruct.Instance               = UART3;
-    UART_InitStruct.UartHandle             = &Uart3_Handle;
-    UART_InitStruct.DmaHandleTx            = &Uart3_TxDmaHandle;
-    UART_InitStruct.DmaHandleRx            = &Uart3_RxDmaHandle;
-    UART_InitStruct.Baudrate               = 115200;
-    UART_InitStruct.Parity                 = UART_PARITY_NONE;
-    UART_InitStruct.PreemptionPriority     = 13;
-    UART_InitStruct.SubPriority            = 0;
-    UART_InitStruct.DMA_Tx_Mode            = DMA_NORMAL;
-    UART_InitStruct.DMA_Rx_Mode            = DMA_NORMAL;
-    UART_InitStruct.DMA_PreemptionPriority = 13;
-    UART_InitStruct.DMA_SubPriority        = 0;
-    UART_Init(&UART_InitStruct);
-
-    JOYSTICK_Init(15, 0);
-    for (Joystick_TypeDef pos = JUP; pos < JOYSTICKn; ++pos)
-        JOYSTICK_CallbackInstall(pos, JOYSTICK_Handler);
-
     // LCD
     ST7735_Init();
     ST7735_SetOrientation(kRevert);
     ST7735_FillColor(BLACK);
     ST7735_Print(0, 0, GREEN, BLACK, "RM2017 Infantry");
-    ST7735_Print(0, 1, GREEN, BLACK, "CH2");
-    ST7735_Print(0, 2, GREEN, BLACK, "V1");
-    ST7735_Print(0, 3, GREEN, BLACK, "TAR");
-    ST7735_Print(0, 4, GREEN, BLACK, "OUT");
-    ST7735_Print(0, 5, GREEN, BLACK, "I");
+    ST7735_Print(0, 2, GREEN, BLACK, "Volt");
 
-    // CAN1
-    CAN_SimpleInitTypeDef CAN_InitStruct;
-    CAN_InitStruct.id = CHASSIS_CAN_ID;
-    CAN_InitStruct.CanHandle = &CHASSIS_CAN_HANDLE;
-    CAN_InitStruct.CanRx = &CHASSIS_CAN_RX;
-    CAN_InitStruct.CanTx = &CHASSIS_CAN_TX;
-    CAN_InitStruct.PreemptionPriority = 9;
-    CAN_InitStruct.SubPriority = 0;
-    CAN_Init(&CAN_InitStruct);
+    LED_Init(LED0);
+    BUZZER_Init();
+    DBUS_Init();
 
-    // CAN Tx
-    CHASSIS_CAN_TX.StdId = 0x200;
-    CHASSIS_CAN_TX.IDE = CAN_ID_STD;
-    CHASSIS_CAN_TX.RTR = CAN_RTR_DATA;
-    CHASSIS_CAN_TX.DLC = 8;
+    JUDGE_Init();
+
+    CHASSIS_Init();
+
+    JOYSTICK_Init(15, 0);
+    for (Joystick_TypeDef pos = JUP; pos < JOYSTICKn; ++pos)
+        JOYSTICK_CallbackInstall(pos, JOYSTICK_Handler);
     
     // TIM init
     __HAL_RCC_TIM2_CLK_ENABLE();
@@ -80,28 +46,21 @@ int main(void) {
 
     HAL_NVIC_SetPriority(TIM2_IRQn, 6, 0);
     HAL_NVIC_EnableIRQ(TIM2_IRQn);
-
-    CHASSIS_Init();
-    HAL_CAN_Receive_IT(&CHASSIS_CAN_HANDLE, 0);
     
     HAL_TIM_Base_Start_IT(&Tim2_Handle);
     while (1) {
         if (DBUS_Status == kConnected) {
-            ST7735_Print(4, 1, GREEN, BLACK, "%d", DBUS_Data.ch2);
+
         }
         else { // DBUS connection lost
-            ST7735_Print(4, 1, GREEN, BLACK, "N/A");
             CHASSIS_SetFree();
         }
-        ST7735_Print(4, 2, GREEN, BLACK, "%d", MotorVelocity[0]/2);
-        ST7735_Print(4, 3, GREEN, BLACK, "%d", TargetVelocity[0]);
-        ST7735_Print(4, 4, GREEN, BLACK, "%d", MotorOutput[0]);
-        ST7735_Print(4, 5, GREEN, BLACK, "%.2f", MotorController[0].errIntegral);
     }
 }
 
 void JOYSTICK_Handler(uint16_t GPIO_Pin) {
     static uint8_t msg[JOYSTICKn][10] = {"up\n", "left\n", "right\n", "down\n", "center\n"};
+    UNUSED(msg);
 
     // Prevent spike
     HAL_Delay(50);
@@ -116,7 +75,6 @@ void JOYSTICK_Handler(uint16_t GPIO_Pin) {
             case JOYSTICK_DOWN_PIN:
             break;
             case JOYSTICK_CENTER_PIN:
-            HAL_UART_Transmit_IT(UartHandle, msg[JCENTER], Strlen(msg[JCENTER]));
             break;
         }
     }
@@ -127,6 +85,9 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *handle) {
     if (handle == &DBUS_UART_HANDLE) {
         DBUS_Decode();
         CHASSIS_SetMotion();
+    }
+    else if (handle == &JUDGE_UART_HANDLE) {
+
     }
 }
 
@@ -149,8 +110,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *handle) {
     }
 
     if (DBUS_Status == kConnected) {
-        for (uint16_t id = 0x201; id <= 0x204; ++id)
-            CHASSIS_MotorControl(id);
+        CHASSIS_Control();
     }
     CHASSIS_SendCmd();
 }

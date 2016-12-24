@@ -46,6 +46,7 @@
 #include "common.h"
 #include "board_info.h"
 #include "dbus.h"
+#include "judge.h"
 
 /** @addtogroup STM32F4xx_HAL_Examples
   * @{
@@ -222,8 +223,9 @@ void USART1_IRQHandler(void) {
     uint8_t tmp;
     tmp = USART1->DR;
     tmp = USART1->SR;
-    __HAL_UART_DISABLE_IT(&DBUS_UART_HANDLE, UART_IT_IDLE);
+    __HAL_UART_DISABLE_IT(&Uart1_Handle, UART_IT_IDLE);
 
+    /* start DMA */
     HAL_UART_Receive_DMA(&DBUS_UART_HANDLE, (uint8_t*)DBUS_Buffer, DBUS_BUFFER_SIZE);
     UNUSED(tmp);
 }
@@ -253,8 +255,31 @@ void DMA2_Stream7_IRQHandler(void) {
   * @param  None
   * @retval None
   */
+#include "st7735.h"
 void USART3_IRQHandler(void) {
-    HAL_UART_IRQHandler(&Uart3_Handle);
+    static uint8_t cnt = 0;
+    
+    FormatTrans_TypeDef FT;
+
+    if (__HAL_UART_GET_FLAG(&Uart3_Handle, UART_FLAG_IDLE)==SET) {
+        ST7735_Print(0, 1, GREEN, BLACK, "%d", ++cnt);
+        HAL_DMA_Abort(&JUDGE_DMA_HANDLE);
+
+        FT.U[0] = JUDGE_DataBuffer[12];
+        FT.U[1] = JUDGE_DataBuffer[13];
+        FT.U[2] = JUDGE_DataBuffer[14];
+        FT.U[3] = JUDGE_DataBuffer[15];
+
+        ST7735_Print(6, 2, GREEN, BLACK, "%.2f", FT.F);
+        HAL_DMA_Start(&JUDGE_DMA_HANDLE, (uint32_t)&(JUDGE_UART_HANDLE.Instance->DR),
+            (uint32_t)JUDGE_DataBuffer, JudgeBufferLength);
+    }
+
+    /* clear IDLE line interrupt flag */
+    uint8_t tmp;
+    tmp = USART3->DR;
+    tmp = USART3->SR;
+    UNUSED(tmp);
 }
 
 /**

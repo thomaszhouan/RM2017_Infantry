@@ -70,6 +70,7 @@ typedef enum {
 } Uart_TypeDef;
 
 #define DBUS_UART_NUM                           1
+#define JUDGE_UART_NUM                          3
 
 #define UART1_PORT                              GPIOB
 #define UART1_TX_PIN                            GPIO_PIN_6

@@ -4,13 +4,14 @@
 #include "board_info.h"
 #include "chassis.h"
 #include "dbus.h"
+#include "can.h"
 #include <string.h>
 
 #define MAX_TARGET_VELOCITY 8200
 
 #define _ID(x) ((x)-CHASSIS_CAN_ID_OFFSET)
 
-// 1: normal 0: reverse
+/* 1: normal 0: reverse */
 static const char MOTOR_DIR[4] = {1, 0, 0, 1};
 
 #define _CLEAR(x) do { memset((void*)(x), 0, sizeof(x)); } while(0)
@@ -32,19 +33,41 @@ static void CHASSIS_ClearAll(void) {
     _CLEAR(MeasureUpdated);
 }
 
+static void CHASSIS_CanInit(void) {
+    // CAN
+    CAN_SimpleInitTypeDef CAN_InitStruct;
+    CAN_InitStruct.id                 = CHASSIS_CAN_ID;
+    CAN_InitStruct.CanHandle          = &CHASSIS_CAN_HANDLE;
+    CAN_InitStruct.CanRx              = &CHASSIS_CAN_RX;
+    CAN_InitStruct.CanTx              = &CHASSIS_CAN_TX;
+    CAN_InitStruct.PreemptionPriority = 9;
+    CAN_InitStruct.SubPriority        = 0;
+    CAN_Init(&CAN_InitStruct);
+
+    // CAN Tx
+    CHASSIS_CAN_TX.StdId = CHASSIS_MASTER_ID;
+    CHASSIS_CAN_TX.IDE   = CAN_ID_STD;
+    CHASSIS_CAN_TX.RTR   = CAN_RTR_DATA;
+    CHASSIS_CAN_TX.DLC   = 8;
+}
+
 void CHASSIS_Init(void) {
+    CHASSIS_CanInit();
+
     for (uint8_t id = 0; id < 4; ++id) {
-        MotorController[id].Kp = 5.20f;//5.5;
-        MotorController[id].Ki = 0.40f;//0.75f;
-        MotorController[id].Kd = 0.08f;
-        MotorController[id].MAX_Pout = 10000;
-        MotorController[id].MAX_Iout = 10000;
-        MotorController[id].MAX_PIDout = 15000;
-        MotorController[id].MIN_PIDout = 0;
-        MotorController[id].mode = kPositional;
+        MotorController[id].Kp = CHASSIS_KP;
+        MotorController[id].Ki = CHASSIS_KI;
+        MotorController[id].Kd = CHASSIS_KD;
+        MotorController[id].MAX_Pout = CHASSIS_MAX_POUT;
+        MotorController[id].MAX_Iout = CHASSIS_MAX_IOUT;
+        MotorController[id].MAX_PIDout = CHASSIS_MAX_PIDOUT;
+        MotorController[id].MIN_PIDout = CHASSIS_MIN_PIDOUT;
+        MotorController[id].mode = CHASSIS_PID_MODE;
         PID_Reset(MotorController+id);
     }
     CHASSIS_ClearAll();
+
+    HAL_CAN_Receive_IT(&CHASSIS_CAN_HANDLE, 0);
 }
 
 void CHASSIS_UpdateMeasure(uint16_t motorId) {
@@ -54,7 +77,7 @@ void CHASSIS_UpdateMeasure(uint16_t motorId) {
     MotorAngle[id] = ((uint16_t)data[0]<<8) | ((uint16_t)data[1]);
     int16_t newVelocity = ((uint16_t)data[2]<<8) | ((uint16_t)data[3]);
 
-    // test overflow protection
+    /* overflow protection */
     if (TargetVelocity[id] > 10 && newVelocity < -3000) newVelocity += 16384;
     else if (TargetVelocity[id] < -10 && newVelocity > 3000) newVelocity -= 16384;
 
@@ -62,8 +85,6 @@ void CHASSIS_UpdateMeasure(uint16_t motorId) {
     MotorVelocityBuffer[id][BufferId[id]] = newVelocity;
     MotorVelocity[id] += newVelocity;
     BufferId[id] = (BufferId[id]+1)&0x1U;
-
-    // MotorVelocity[id] = newVelocity;
 
     MeasureUpdated[id] = 1;
 }
@@ -75,6 +96,13 @@ void CHASSIS_MotorControl(uint16_t motorId) {
         TargetVelocity[id], MotorVelocity[id]/2);
 
     MeasureUpdated[id] = 0;
+}
+
+void CHASSIS_Control(void) {
+    CHASSIS_MotorControl(FL_MOTOR_ID);
+    CHASSIS_MotorControl(FR_MOTOR_ID);
+    CHASSIS_MotorControl(BR_MOTOR_ID);
+    CHASSIS_MotorControl(BL_MOTOR_ID);
 }
 
 /*

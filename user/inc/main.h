@@ -11,5 +11,7 @@
 #include "st7735.h"
 #include "can.h"
 #include "chassis.h"
+#include "param.h"
+#include "judge.h"
 
 #endif // MAIN_H
