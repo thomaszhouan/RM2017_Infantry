@@ -5,7 +5,6 @@
 #include "judge.h"
 #include "uart.h"
 
-#include "st7735.h"
 void JUDGE_Init(void) {
     UART_SimpleInitTypeDef UART_InitStruct;
     UART_InitStruct.Instance               = JUDGE_UART;
@@ -21,21 +20,82 @@ void JUDGE_Init(void) {
     UART_InitStruct.DMA_SubPriority        = 0;
     UART_Init(&UART_InitStruct);
 
-    // Enable DMA request
+    /* Enable DMA request */
     SET_BIT(JUDGE_UART_HANDLE.Instance->CR3, USART_CR3_DMAR);
     HAL_DMA_Start(&JUDGE_DMA_HANDLE, (uint32_t)&(JUDGE_UART_HANDLE.Instance->DR),
-        (uint32_t)JUDGE_DataBuffer, JudgeBufferLength);
+        (uint32_t)JUDGE_DataBuffer, JUDGE_BUFFER_LENGTH);
 
-    // Enable Rx IDLE interrupt
+    /* Enable Rx IDLE interrupt */
     __HAL_UART_ENABLE_IT(&JUDGE_UART_HANDLE, UART_IT_IDLE);
+
+    JUDGE_FrameCounter = 0;
+    JUDGE_Data.voltage = 25.0f;
+    JUDGE_Data.current = 0.0f;
+    JUDGE_Data.remainLife = 1500;
+    JUDGE_Data.hitArmorId = -1; // not hit yet
+    JUDGE_Data.lastHitTick = 0;
+}
+
+void JUDGE_Decode(void) {
+    static volatile FormatTrans_TypeDef FT;
+
+    __HAL_DMA_DISABLE(&JUDGE_DMA_HANDLE);
+
+    uint32_t frameByteCount = JUDGE_BUFFER_LENGTH - __HAL_DMA_GET_COUNTER(&JUDGE_DMA_HANDLE);
+
+    if (frameByteCount == JUDGE_INFO_FRAME_LENGTH &&
+        Verify_CRC16_Check_Sum((uint8_t*)JUDGE_DataBuffer, JUDGE_INFO_FRAME_LENGTH)) {
+        ++JUDGE_FrameCounter;
+
+        FT.U[0] = JUDGE_DataBuffer[12];
+        FT.U[1] = JUDGE_DataBuffer[13];
+        FT.U[2] = JUDGE_DataBuffer[14];
+        FT.U[3] = JUDGE_DataBuffer[15];
+        JUDGE_Data.voltage = FT.F;
+
+        FT.U[0] = JUDGE_DataBuffer[16];
+        FT.U[1] = JUDGE_DataBuffer[17];
+        FT.U[2] = JUDGE_DataBuffer[18];
+        FT.U[3] = JUDGE_DataBuffer[19];
+        JUDGE_Data.current = FT.F;
+
+        JUDGE_Data.remainLife = ((uint16_t)JUDGE_DataBuffer[11]<<8) | JUDGE_DataBuffer[10];
+    }
+    else if (frameByteCount == JUDGE_INFO_FRAME_LENGTH+JUDGE_BLOOD_FRAME_LENGTH &&
+        Verify_CRC16_Check_Sum((uint8_t*)JUDGE_DataBuffer, JUDGE_BLOOD_FRAME_LENGTH)) {
+        ++JUDGE_FrameCounter;
+
+        /* blood change due to bullet */
+        if ((JUDGE_DataBuffer[6]>>4) == 0x0) {
+            JUDGE_Data.hitArmorId = JUDGE_DataBuffer[6]&0x0F;
+            JUDGE_Data.lastHitTick = HAL_GetTick();
+        }
+    }
+    else if (frameByteCount == JUDGE_INFO_FRAME_LENGTH+JUDGE_SHOOT_FRAME_LENGTH &&
+        Verify_CRC16_Check_Sum((uint8_t*)JUDGE_DataBuffer, JUDGE_SHOOT_FRAME_LENGTH)) {
+        ++JUDGE_FrameCounter;
+
+        ++JUDGE_Data.shootNum;
+        FT.U[0] = JUDGE_DataBuffer[6];
+        FT.U[1] = JUDGE_DataBuffer[7];
+        FT.U[2] = JUDGE_DataBuffer[8];
+        FT.U[3] = JUDGE_DataBuffer[9];
+        JUDGE_Data.shootSpeed = FT.F;
+        JUDGE_Data.lastShootTick = HAL_GetTick();
+    }
+
+    __HAL_DMA_CLEAR_FLAG(&JUDGE_DMA_HANDLE, JUDGE_DMA_FLAG);
+    __HAL_DMA_SET_COUNTER(&JUDGE_DMA_HANDLE, JUDGE_BUFFER_LENGTH);
+    __HAL_DMA_ENABLE(&JUDGE_DMA_HANDLE);
 }
 
 /*
     CRC checking function provided by DJI
 */
+
 //crc8 generator polynomial:G(x)=x8+x5+x4+1
-const unsigned char CRC8_INIT = 0xff;
-const unsigned char CRC8_TAB[256] =
+static const unsigned char CRC8_INIT = 0xff;
+static const unsigned char CRC8_TAB[256] =
 {
     0x00, 0x5e, 0xbc, 0xe2, 0x61, 0x3f, 0xdd, 0x83, 0xc2, 0x9c, 0x7e, 0x20, 0xa3, 0xfd, 0x1f, 0x41,
     0x9d, 0xc3, 0x21, 0x7f, 0xfc, 0xa2, 0x40, 0x1e, 0x5f, 0x01, 0xe3, 0xbd, 0x3e, 0x60, 0x82, 0xdc,
@@ -99,7 +159,7 @@ void Append_CRC8_Check_Sum(unsigned char *pchMessage, unsigned int dwLength)
 
 uint16_t CRC_INIT = 0xffff;
 
-const uint16_t wCRC_Table[256] =
+static const uint16_t wCRC_Table[256] =
 {
     0x0000, 0x1189, 0x2312, 0x329b, 0x4624, 0x57ad, 0x6536, 0x74bf,
     0x8c48, 0x9dc1, 0xaf5a, 0xbed3, 0xca6c, 0xdbe5, 0xe97e, 0xf8f7,

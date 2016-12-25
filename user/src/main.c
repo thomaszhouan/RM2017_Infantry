@@ -21,7 +21,11 @@ int main(void) {
     ST7735_SetOrientation(kRevert);
     ST7735_FillColor(BLACK);
     ST7735_Print(0, 0, GREEN, BLACK, "RM2017 Infantry");
-    ST7735_Print(0, 2, GREEN, BLACK, "Volt");
+    ST7735_Print(0, 1, GREEN, BLACK, "Volt");
+    ST7735_Print(0, 2, GREEN, BLACK, "Curr");
+    ST7735_Print(0, 3, GREEN, BLACK, "RL");
+    ST7735_Print(0, 4, GREEN, BLACK, "h_ID");
+    ST7735_Print(0, 5, GREEN, BLACK, "h_T");
 
     LED_Init(LED0);
     BUZZER_Init();
@@ -55,6 +59,11 @@ int main(void) {
         else { // DBUS connection lost
             CHASSIS_SetFree();
         }
+        ST7735_Print(5, 1, GREEN, BLACK, "%.2f", JUDGE_Data.voltage);
+        ST7735_Print(5, 2, GREEN, BLACK, "%.2f", JUDGE_Data.current);
+        ST7735_Print(5, 3, GREEN, BLACK, "%d", JUDGE_Data.remainLife);
+        ST7735_Print(5, 4, GREEN, BLACK, "%d", JUDGE_Data.hitArmorId);
+        ST7735_Print(5, 5, GREEN, BLACK, "%d", JUDGE_Data.lastHitTick);
     }
 }
 
@@ -85,9 +94,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *handle) {
     if (handle == &DBUS_UART_HANDLE) {
         DBUS_Decode();
         CHASSIS_SetMotion();
-    }
-    else if (handle == &JUDGE_UART_HANDLE) {
-
     }
 }
 

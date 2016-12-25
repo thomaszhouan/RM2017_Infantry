@@ -6,5 +6,6 @@ h
 exec device = STM32F405RG
 loadfile ./Objects/RM2017_Infantry.hex, 0x08000000
 r
+sleep 500
 g
 exit

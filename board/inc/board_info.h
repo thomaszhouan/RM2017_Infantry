@@ -71,6 +71,7 @@ typedef enum {
 
 #define DBUS_UART_NUM                           1
 #define JUDGE_UART_NUM                          3
+#define JUDGE_DMA_FLAG                          (DMA_FLAG_TCIF1_5 | DMA_FLAG_HTIF1_5)
 
 #define UART1_PORT                              GPIOB
 #define UART1_TX_PIN                            GPIO_PIN_6

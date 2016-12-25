@@ -5,12 +5,12 @@
 #define JUDGE_UART_HANDLE       EVALUATOR3(Uart, JUDGE_UART_NUM, _Handle)
 #define JUDGE_DMA_HANDLE        EVALUATOR3(Uart, JUDGE_UART_NUM, _RxDmaHandle)
 
-#define JudgeBufferLength       150
-#define JudgeFrameLength_1      46
-#define JudgeFrameLength_2      11
-#define JudgeFrameLength_3      24
+#define JUDGE_BUFFER_LENGTH           150
+#define JUDGE_INFO_FRAME_LENGTH       46
+#define JUDGE_BLOOD_FRAME_LENGTH      11
+#define JUDGE_SHOOT_FRAME_LENGTH      24
 
-#define JudgeFrameHeader        0xA5
+#define JUDGE_FRAME_HEADER        0xA5
 
 #ifndef JUDGE_FILE
     #define JUDGE_EXT extern
@@ -21,9 +21,9 @@
 // BUFF
 typedef enum {
     BUFF_TYPE_NONE,
-    BUFF_TYPE_ARMOR = 0x01,
-    BUFF_TYPE_SUPPLY = 0x04,
-    BUFF_TYPE_BULLFTS= 0x08,
+    BUFF_TYPE_ARMOR   = 0x01,
+    BUFF_TYPE_SUPPLY  = 0x04,
+    BUFF_TYPE_BULLFTS = 0x08,
 } LBuffType_Enum;
 
 
@@ -78,14 +78,26 @@ typedef union {
     float F;
 } FormatTrans_TypeDef;
 
-JUDGE_EXT uint8_t JUDGE_DataBuffer[JudgeBufferLength];
-// JUDGE_EXT InfantryJudge_Struct InfantryJudge;
-JUDGE_EXT float JUDGE_FrameCounter;
-JUDGE_EXT float JUDGE_FrameRate;
+typedef struct {
+    float voltage;
+    float current;
+    uint16_t remainLife;
+
+    int8_t hitArmorId;
+    uint32_t lastHitTick;
+
+    uint16_t shootNum;
+    float shootSpeed;
+    uint32_t lastShootTick;
+} JUDGE_DecodeTypeDef;
+
+JUDGE_EXT volatile uint8_t JUDGE_DataBuffer[JUDGE_BUFFER_LENGTH];
+JUDGE_EXT volatile JUDGE_DecodeTypeDef JUDGE_Data;
+JUDGE_EXT volatile uint32_t JUDGE_FrameCounter;
 
 void JUDGE_Init(void);
+void JUDGE_Decode(void);
 
-/* provided by DJI */
 unsigned char Get_CRC8_Check_Sum(unsigned char *pchMessage,unsigned int dwLength,unsigned char ucCRC8);
 unsigned int Verify_CRC8_Check_Sum(unsigned char *pchMessage, unsigned int dwLength);
 void Append_CRC8_Check_Sum(unsigned char *pchMessage, unsigned int dwLength);
