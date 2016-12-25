@@ -47,7 +47,7 @@ void ST7735_Init(void) {
 
     // SPI Init
     LCD_SPI_CLK_ENABLE();
-    LCD_SPI_HANDLE.Instance = SPI1;
+    LCD_SPI_HANDLE.Instance = LCD_SPI_INSTANCE;
     LCD_SPI_HANDLE.Init.Mode = SPI_MODE_MASTER;
     LCD_SPI_HANDLE.Init.Direction = SPI_DIRECTION_2LINES;
     LCD_SPI_HANDLE.Init.DataSize = SPI_DATASIZE_8BIT;

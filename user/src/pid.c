@@ -56,6 +56,7 @@ float PID_Update(PID_Controller *pid, float target, float measure) {
 
         Pout = PID_Trim(Pout, pid->MAX_Pout);
         Iout = PID_Trim(Iout, pid->MAX_Iout);
+        pid->errIntegral = Iout / pid->Ki;
         pid->output = Pout + Iout + Dout;
         pid->output = PID_Trim(pid->output, pid->MAX_PIDout);
     }

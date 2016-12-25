@@ -24,7 +24,10 @@ HANDLE_EXT TIM_HandleTypeDef Tim2_Handle;
 // SPI1
 #define USE_SPI1
 HANDLE_EXT SPI_HandleTypeDef Spi1_Handle;
-#define LCD_SPI_HANDLE Spi1_Handle
+
+// SPI3
+#define USE_SPI3
+HANDLE_EXT SPI_HandleTypeDef Spi3_Handle;
 
 // CAN1
 #define USE_CAN1
@@ -136,6 +139,9 @@ typedef enum {
 #define JOYSTICK_GPIO_CLK_DISABLE()             __HAL_RCC_GPIOC_CLK_DISABLE()
 
 /*----------LCD----------*/
+#define LCD_SPI_NUM                             1
+#define LCD_SPI_INSTANCE                        EVALUATOR2(SPI, LCD_SPI_NUM)
+#define LCD_SPI_HANDLE                          EVALUATOR3(Spi, LCD_SPI_NUM, _Handle)
 #define LCD_GPIO_CLK_ENABLE()                   do { __HAL_RCC_GPIOA_CLK_ENABLE();\
                                                      __HAL_RCC_GPIOB_CLK_ENABLE();\
                                                      __HAL_RCC_GPIOC_CLK_ENABLE();\
@@ -151,6 +157,22 @@ typedef enum {
 #define LCD_RST_PIN                             GPIO_PIN_0
 #define LCD_SCLK_PIN                            GPIO_PIN_5
 #define LCD_SDAT_PIN                            GPIO_PIN_7
+
+/*----------ADIS16----------*/
+#define ADIS16_SPI_NUM                          3
+#define ADIS16_SPI_INSTANCE                     EVALUATOR2(SPI, ADIS16_SPI_NUM)
+#define ADIS16_SPI_HANDLE                       EVALUATOR3(Spi, ADIS16_SPI_NUM, _Handle)
+#define ADIS16_GPIO_CLK_ENABLE()                do { __HAL_RCC_GPIOA_CLK_ENABLE();\
+                                                     __HAL_RCC_GPIOC_CLK_ENABLE();\
+                                                     __HAL_RCC_GPIOD_CLK_ENABLE();\
+                                                   } while(0)
+#define ADIS16_SPI_CLK_ENABLE()                 __HAL_RCC_SPI3_CLK_ENABLE()
+#define ADIS16_CS_PORT                          GPIOD
+#define ADIS16_RST_PORT                         GPIOA
+#define ADIS16_SPI_PORT                         GPIOC
+#define ADIS16_CS_PIN                           GPIO_PIN_2
+#define ADIS16_RST_PIN                          GPIO_PIN_15
+#define ADIS16_SPI_PIN                          (GPIO_PIN_10 | GPIO_PIN_11 | GPIO_PIN_12)
 
 /*----------CAN----------*/
 typedef enum {

@@ -20,24 +20,26 @@ int main(void) {
     ST7735_Init();
     ST7735_SetOrientation(kRevert);
     ST7735_FillColor(BLACK);
-    ST7735_Print(0, 0, GREEN, BLACK, "RM2017 Infantry");
-    ST7735_Print(0, 1, GREEN, BLACK, "Volt");
-    ST7735_Print(0, 2, GREEN, BLACK, "Curr");
-    ST7735_Print(0, 3, GREEN, BLACK, "RL");
-    ST7735_Print(0, 4, GREEN, BLACK, "h_ID");
-    ST7735_Print(0, 5, GREEN, BLACK, "h_T");
+    ST7735_Print(0, 0, GREEN, BLACK, "Gyro Calibrate");
 
     LED_Init(LED0);
     BUZZER_Init();
     DBUS_Init();
-
     JUDGE_Init();
-
     CHASSIS_Init();
+    ADIS16_Init();
+    ADIS16_Calibrate(512);
 
     JOYSTICK_Init(15, 0);
     for (Joystick_TypeDef pos = JUP; pos < JOYSTICKn; ++pos)
         JOYSTICK_CallbackInstall(pos, JOYSTICK_Handler);
+
+    ST7735_Print(0, 0, GREEN, BLACK, "RM2017 Infantry");
+    ST7735_Print(0, 1, GREEN, BLACK, "Volt");
+    ST7735_Print(0, 2, GREEN, BLACK, "Curr");
+    ST7735_Print(0, 3, GREEN, BLACK, "RL");
+    ST7735_Print(0, 4, GREEN, BLACK, "Omg");
+    ST7735_Print(0, 5, GREEN, BLACK, "The");
     
     // TIM init
     __HAL_RCC_TIM2_CLK_ENABLE();
@@ -51,6 +53,7 @@ int main(void) {
     HAL_NVIC_SetPriority(TIM2_IRQn, 6, 0);
     HAL_NVIC_EnableIRQ(TIM2_IRQn);
     
+    // start TIM
     HAL_TIM_Base_Start_IT(&Tim2_Handle);
     while (1) {
         if (DBUS_Status == kConnected) {
@@ -62,8 +65,8 @@ int main(void) {
         ST7735_Print(5, 1, GREEN, BLACK, "%.2f", JUDGE_Data.voltage);
         ST7735_Print(5, 2, GREEN, BLACK, "%.2f", JUDGE_Data.current);
         ST7735_Print(5, 3, GREEN, BLACK, "%d", JUDGE_Data.remainLife);
-        ST7735_Print(5, 4, GREEN, BLACK, "%d", JUDGE_Data.hitArmorId);
-        ST7735_Print(5, 5, GREEN, BLACK, "%d", JUDGE_Data.lastHitTick);
+        ST7735_Print(5, 4, GREEN, BLACK, "%d", ADIS16_Data.omega);
+        ST7735_Print(5, 5, GREEN, BLACK, "%d", ADIS16_Data.theta);
     }
 }
 
@@ -107,8 +110,12 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *handle) {
 
     ++tick;
     if (tick == 1000) tick = 0;
-    if (tick % 500 == 0)
+    if (tick % 500 == 0) {
         LED_Toggle(LED0);
+    }
+
+    if (tick % 20 == 0)
+        ADIS16_Update();
 
     // check DBUS connection
     if (tick % 20 == 0) {

@@ -13,5 +13,6 @@
 #include "chassis.h"
 #include "param.h"
 #include "judge.h"
+#include "adis16.h"
 
 #endif // MAIN_H
