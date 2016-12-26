@@ -119,8 +119,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *handle) {
         LED_Toggle(LED0);
     }
 
-    if (tick % 4 == 0)
+    if (tick % 4 == 0) {
         ADIS16_Update();
+    }
 
     // check DBUS connection
     if (tick % 20 == 0) {

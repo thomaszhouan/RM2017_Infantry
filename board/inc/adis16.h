@@ -21,6 +21,7 @@ typedef struct {
 } ADIS16_DataTypeDef;
 
 ADIS16_EXT volatile ADIS16_DataTypeDef ADIS16_Data;
+ADIS16_EXT volatile uint8_t ADIS16_DataUpdated;
 
 void ADIS16_Init(void);
 void ADIS16_Update(void);

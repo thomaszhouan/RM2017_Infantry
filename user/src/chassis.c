@@ -13,9 +13,11 @@
 /* 1: normal 0: reverse */
 static const char MOTOR_DIR[4] = {1, 0, 0, 1};
 static PID_Controller MotorController[4];
+static PID_Controller ChassisAngleController;
 static volatile int16_t MotorVelocityBuffer[4][2];
 static volatile uint8_t BufferId[4];
 static volatile int32_t ChassisOmegaOutput;
+static volatile int32_t targetOmega = 0;
 
 #define _CLEAR(x) do { memset((void*)(x), 0, sizeof(x)); } while(0)
 
@@ -73,9 +75,9 @@ void CHASSIS_Init(void) {
 
     /* Chassis angle controller */
     PID_Reset(&ChassisAngleController);
-    ChassisAngleController.Kp = 0.65f;
-    ChassisAngleController.Ki = 0.00f;
-    ChassisAngleController.Kd = 0.01f;
+    ChassisAngleController.Kp = 0.45f;
+    ChassisAngleController.Ki = 0.012f;
+    ChassisAngleController.Kd = 0.020f;
     ChassisAngleController.MAX_Pout = 5000;
     ChassisAngleController.MAX_Integral = 5000;
     ChassisAngleController.MAX_PIDout = 5300;
@@ -127,20 +129,21 @@ void CHASSIS_Control(void) {
     ^
     |
     0-- >x
+    Rotation: CW as +ve
 */
-#include "st7735.h"
 void CHASSIS_SetMotion(void) {
     static int32_t velocityX = 0, velocityY = 0;
-    static int32_t targetOmega = 0;
     static int32_t tmpVelocity[4];
 
     /* low pass filter */
     velocityX = (velocityX*7+6*DBUS_Data.ch1)/8;
     velocityY = (velocityY*7+12*DBUS_Data.ch2)/8;
-    targetOmega = (targetOmega*7+8*DBUS_Data.ch3)/8;
-    ChassisOmegaOutput = (int32_t)PID_Update(&ChassisAngleController,
-        targetOmega, ADIS16_Data.omega);
-    // ST7735_Print(0, 9, GREEN, BLACK, "%d %d", targetOmega, ChassisOmegaOutput);
+    targetOmega = (targetOmega*7+16*DBUS_Data.ch3)/8;
+    if (ADIS16_DataUpdated) {
+        ADIS16_DataUpdated = 0;
+        ChassisOmegaOutput = (int32_t)PID_Update(&ChassisAngleController,
+            targetOmega, ADIS16_Data.omega);
+    }
     // ChassisOmegaOutput = (ChassisOmegaOutput*7+8*DBUS_Data.ch3)/8;
 
     tmpVelocity[0] = (int32_t)velocityY + velocityX + ChassisOmegaOutput;
@@ -150,6 +153,11 @@ void CHASSIS_SetMotion(void) {
 
     for (uint8_t i = 0; i < 4; ++i)
         CHASSIS_SetTargetVelocity(i+CHASSIS_CAN_ID_OFFSET, tmpVelocity[i]);
+}
+
+void CHASSIS_RotationControl(void) {
+    ChassisOmegaOutput = (int32_t)PID_Update(&ChassisAngleController,
+        targetOmega, ADIS16_Data.omega);
 }
 
 void CHASSIS_SetTargetVelocity(uint16_t motorId, int32_t velocity) {

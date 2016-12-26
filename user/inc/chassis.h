@@ -14,7 +14,6 @@ CHASSIS_EXT volatile int32_t MotorVelocity[4], TargetVelocity[4];
 CHASSIS_EXT volatile int16_t MotorAngle[4], MotorLastAngle[4];
 CHASSIS_EXT volatile int16_t MotorOutput[4];
 CHASSIS_EXT volatile char MeasureUpdated[4];
-CHASSIS_EXT PID_Controller ChassisAngleController;
 
 /*
     Initialize controllers and internal states.
@@ -32,9 +31,14 @@ void CHASSIS_UpdateMeasure(uint16_t motorId);
 void CHASSIS_MotorControl(uint16_t motorId);
 
 /*
-    Update all controllers.
+    Update 4 controllers for wheels and send CAN command.
 */
 void CHASSIS_Control(void);
+
+/*
+    Update chassis angle controller.
+*/
+void CHASSIS_RotationControl(void);
 
 /*
     Set target velocity for 4 motors.

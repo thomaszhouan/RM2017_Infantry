@@ -38,11 +38,12 @@ static int16_t ADIS16_GetTemperature(void);
 static float omegaIntegral;
 static float initialTemperature;
 
-#define omegaBufferSize           4
+#define omegaBufferSize           1
 static int32_t omegaBuffer[omegaBufferSize];
 static uint8_t omegaBufferId;
 
 void ADIS16_Init(void) {
+    /* Data initialization */
     ADIS16_Data.omega = 0;
     ADIS16_Data.theta = 0;
     ADIS16_Data.temperature = 25.0f;
@@ -50,7 +51,9 @@ void ADIS16_Init(void) {
     omegaIntegral = 0.0f;
     omegaBufferId = 0;
     memset(omegaBuffer, 0, sizeof(omegaBuffer));
+    ADIS16_DataUpdated = 0;
 
+    /* Peripheral initialization */
     ADIS16_SPI_Init();
 
     /* Reset */
@@ -71,6 +74,7 @@ void ADIS16_Update(void) {
     uint32_t tick = HAL_GetTick();
     if (tick - ADIS16_Data.lastUpdateTick < 4)
         return;
+    ADIS16_DataUpdated = 1;
 
     ADIS16_Data.lastUpdateTick = tick;
     ADIS16_Data.omegaHW = ADIS16_GetOmega();
