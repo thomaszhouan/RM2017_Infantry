@@ -14,5 +14,6 @@
 #include "param.h"
 #include "judge.h"
 #include "adis16.h"
+#include "dwt.h"
 
 #endif // MAIN_H

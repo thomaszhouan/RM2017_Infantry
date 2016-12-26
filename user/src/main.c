@@ -15,6 +15,7 @@ int main(void) {
     HAL_Init();
     SystemClock_Config();
     HAL_NVIC_SetPriority(SysTick_IRQn, 5, 0);
+    DWT_DelayInit();
 
     // LCD
     ST7735_Init();
@@ -41,7 +42,7 @@ int main(void) {
     ST7735_Print(0, 4, GREEN, BLACK, "Omg");
     ST7735_Print(0, 5, GREEN, BLACK, "The");
     
-    // TIM init
+    // TIM2 init (1ms)
     __HAL_RCC_TIM2_CLK_ENABLE();
     Tim2_Handle.Instance = TIM2;
     Tim2_Handle.Init.Prescaler = (uint32_t) (((SystemCoreClock / 2) / 10000)-1);
@@ -53,7 +54,7 @@ int main(void) {
     HAL_NVIC_SetPriority(TIM2_IRQn, 6, 0);
     HAL_NVIC_EnableIRQ(TIM2_IRQn);
     
-    // start TIM
+    // start TIM2
     HAL_TIM_Base_Start_IT(&Tim2_Handle);
     while (1) {
         if (DBUS_Status == kConnected) {
@@ -66,7 +67,7 @@ int main(void) {
         ST7735_Print(5, 2, GREEN, BLACK, "%.2f", JUDGE_Data.current);
         ST7735_Print(5, 3, GREEN, BLACK, "%d", JUDGE_Data.remainLife);
         ST7735_Print(5, 4, GREEN, BLACK, "%d", ADIS16_Data.omega);
-        ST7735_Print(5, 5, GREEN, BLACK, "%d", ADIS16_Data.theta);
+        ST7735_Print(5, 5, GREEN, BLACK, "%.2f", ADIS16_Data.theta);
     }
 }
 
@@ -114,7 +115,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *handle) {
         LED_Toggle(LED0);
     }
 
-    if (tick % 20 == 0)
+    if (tick % 4 == 0)
         ADIS16_Update();
 
     // check DBUS connection

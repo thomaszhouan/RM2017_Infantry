@@ -3,6 +3,8 @@
 #include "common.h"
 #include "board_info.h"
 #include "adis16.h"
+#include "dwt.h"
+#include <string.h>
 
 /* ADIS16 register address */
 #define ADIS16_FLASH              0x01
@@ -16,6 +18,8 @@
 #define ADIS16_SENS               0x39
 #define ADIS16_SMPL               0x37
 
+#define MIN_OMEGA                 10
+
 #define CHIP_SELECT()             HAL_GPIO_WritePin(ADIS16_CS_PORT, ADIS16_CS_PIN, GPIO_PIN_RESET)
 #define CHIP_DESELECT()           HAL_GPIO_WritePin(ADIS16_CS_PORT, ADIS16_CS_PIN, GPIO_PIN_SET)
 
@@ -25,9 +29,16 @@ static uint16_t ADIS16_Read(uint8_t addr);
 static uint16_t ADIS16_SPI_IO(uint16_t data);
 
 static int16_t ADIS16_GetOmega(void);
-static int16_t ADIS16_GetTheta(void);
+static uint16_t ADIS16_GetTheta(void);
+
+static float omegaIntegral;
 
 void ADIS16_Init(void) {
+    ADIS16_Data.omega = 0;
+    ADIS16_Data.theta = 0;
+    ADIS16_Data.lastUpdateTick = 0;
+    omegaIntegral = 0.0f;
+
     ADIS16_SPI_Init();
 
     /* Reset */
@@ -39,31 +50,42 @@ void ADIS16_Init(void) {
 
     /* Filter settings */
     ADIS16_Write(ADIS16_SENS, 0x0404);
-    ADIS16_Write(ADIS16_SMPL, 0x0001);
+    ADIS16_Write(ADIS16_SMPL, 0x0001); // sample period: 3.906ms
     ADIS16_Write(ADIS16_COMD, 0x0008);
     HAL_Delay(100);
 }
 
 void ADIS16_Update(void) {
     uint32_t tick = HAL_GetTick();
-    if (tick - ADIS16_Data.lastUpdateTick >= 4) {
-        ADIS16_Data.lastUpdateTick = tick;
-        ADIS16_Data.omega = ADIS16_GetOmega();
-        ADIS16_Data.theta = ADIS16_GetTheta();
-    }
+    if (tick - ADIS16_Data.lastUpdateTick < 4)
+        return;
+
+    ADIS16_Data.lastUpdateTick = tick;
+    ADIS16_Data.omega = ADIS16_GetOmega();
+    ADIS16_Data.thetaHardware = ADIS16_GetTheta();
+
+    /* Integration */
+    int16_t delta = ADIS16_Data.omega;
+    if (ABS(delta) < MIN_OMEGA)
+        delta = 0;
+    omegaIntegral += delta;
+    if (omegaIntegral < 0) omegaIntegral += 1258065;
+    else if (omegaIntegral >= 1258065) omegaIntegral -= 1258065;
+    ADIS16_Data.theta = omegaIntegral * 0.07326f * 0.03906f;
 }
 
 void ADIS16_Calibrate(uint16_t sample) {
-    HAL_Delay(500);
+    HAL_Delay(2000);
 
     uint16_t originalOffset = ADIS16_Read(ADIS16_OFF);
     int32_t offsetSum = 0;
     for (uint16_t i = 0; i < sample; ++i) {
         offsetSum += ADIS16_GetOmega();
-        HAL_Delay(5);
+        HAL_Delay(4);
     }
 
-    int16_t offsetAverage = (int16_t)originalOffset-(int16_t)(offsetSum*4.0/sample);
+    // int16_t offsetAverage = (int16_t)originalOffset-(int16_t)(offsetSum*4.0/sample);
+    int16_t offsetAverage = (int16_t)originalOffset-(int16_t)(offsetSum*4.0f/sample);
     uint16_t data = 0x0000U | offsetAverage;
     ADIS16_Write(ADIS16_OFF, data);
     ADIS16_Write(ADIS16_COMD, 0x0008);
@@ -82,15 +104,9 @@ static int16_t ADIS16_GetOmega(void) {
     return ret;
 }
 
-static int16_t ADIS16_GetTheta(void) {
+static uint16_t ADIS16_GetTheta(void) {
     uint16_t buf = ADIS16_Read(ADIS16_ANGL);
-
-    // 14 bit to 16 bit sign extension
-    if (buf & 0x2000) buf |= 0xC000;
-    else buf &= 0x3FFF;
-
-    int16_t ret = 0x0000 | buf;
-    return ret;
+    return buf & 0x3FFFU;
 }
 
 static void ADIS16_SPI_Init(void) {
@@ -165,8 +181,7 @@ static uint16_t ADIS16_SPI_IO(uint16_t data) {
     uint16_t ret = ADIS16_SPI_HANDLE.Instance->DR;
     CHIP_DESELECT();
 
-    // delay
-    for (uint16_t i = 0; i < 1000; ++i)
-        ;
+    /* Minimum stall time = 9us */
+    DWT_DelayUs(10);
     return ret;
 }
