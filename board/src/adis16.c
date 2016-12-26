@@ -19,6 +19,9 @@
 #define ADIS16_SMPL               0x37
 
 #define MIN_OMEGA                 10
+#define TEMPERATURE_SCALE         0.1453f
+#define TEMPERATURE_OFFSET        25.0f
+#define BIAS_TEMP_COEFFICIENT     0.0051f
 
 #define CHIP_SELECT()             HAL_GPIO_WritePin(ADIS16_CS_PORT, ADIS16_CS_PIN, GPIO_PIN_RESET)
 #define CHIP_DESELECT()           HAL_GPIO_WritePin(ADIS16_CS_PORT, ADIS16_CS_PIN, GPIO_PIN_SET)
@@ -30,14 +33,21 @@ static uint16_t ADIS16_SPI_IO(uint16_t data);
 
 static int16_t ADIS16_GetOmega(void);
 static uint16_t ADIS16_GetTheta(void);
+static int16_t ADIS16_GetTemperature(void);
 
 static float omegaIntegral;
+static float initialTemperature;
+static int32_t omegaBuffer[64];
+static uint8_t omegaBufferId;
 
 void ADIS16_Init(void) {
     ADIS16_Data.omega = 0;
     ADIS16_Data.theta = 0;
+    ADIS16_Data.temperature = 25.0f;
     ADIS16_Data.lastUpdateTick = 0;
     omegaIntegral = 0.0f;
+    omegaBufferId = 0;
+    memset(omegaBuffer, 0, sizeof(omegaBuffer));
 
     ADIS16_SPI_Init();
 
@@ -61,11 +71,20 @@ void ADIS16_Update(void) {
         return;
 
     ADIS16_Data.lastUpdateTick = tick;
-    ADIS16_Data.omega = ADIS16_GetOmega();
-    ADIS16_Data.thetaHardware = ADIS16_GetTheta();
+    ADIS16_Data.omegaHW = ADIS16_GetOmega();
+    ADIS16_Data.thetaHW = ADIS16_GetTheta();
+    ADIS16_Data.temperatureHW = ADIS16_GetTemperature();
+    ADIS16_Data.temperature = TEMPERATURE_OFFSET +
+        ADIS16_Data.temperatureHW * TEMPERATURE_SCALE;
+
+    /* Omega filter */
+    ADIS16_Data.omega -= omegaBuffer[omegaBufferId];
+    ADIS16_Data.omega += (omegaBuffer[omegaBufferId] = ADIS16_Data.omegaHW);
+    omegaBufferId = (omegaBufferId+1)&0x3FU;
 
     /* Integration */
-    int16_t delta = ADIS16_Data.omega;
+    float delta = ADIS16_Data.omegaHW -
+        BIAS_TEMP_COEFFICIENT * (ADIS16_Data.temperature - initialTemperature);
     if (ABS(delta) < MIN_OMEGA)
         delta = 0;
     omegaIntegral += delta;
@@ -77,6 +96,8 @@ void ADIS16_Update(void) {
 void ADIS16_Calibrate(uint16_t sample) {
     HAL_Delay(2000);
 
+    initialTemperature = TEMPERATURE_OFFSET +
+        ADIS16_GetTemperature()*TEMPERATURE_SCALE;
     uint16_t originalOffset = ADIS16_Read(ADIS16_OFF);
     int32_t offsetSum = 0;
     for (uint16_t i = 0; i < sample; ++i) {
@@ -84,7 +105,6 @@ void ADIS16_Calibrate(uint16_t sample) {
         HAL_Delay(4);
     }
 
-    // int16_t offsetAverage = (int16_t)originalOffset-(int16_t)(offsetSum*4.0/sample);
     int16_t offsetAverage = (int16_t)originalOffset-(int16_t)(offsetSum*4.0f/sample);
     uint16_t data = 0x0000U | offsetAverage;
     ADIS16_Write(ADIS16_OFF, data);
@@ -93,6 +113,7 @@ void ADIS16_Calibrate(uint16_t sample) {
     HAL_Delay(100);
 }
 
+/* 14 bit signed */
 static int16_t ADIS16_GetOmega(void) {
     uint16_t buf = ADIS16_Read(ADIS16_VEL);
 
@@ -104,9 +125,19 @@ static int16_t ADIS16_GetOmega(void) {
     return ret;
 }
 
+/* 14 bit unsigned */
 static uint16_t ADIS16_GetTheta(void) {
     uint16_t buf = ADIS16_Read(ADIS16_ANGL);
     return buf & 0x3FFFU;
+}
+
+/* 12 bit signed */
+static int16_t ADIS16_GetTemperature(void) {
+    uint16_t buf = ADIS16_Read(ADIS16_TEMP);
+    if (buf & 0x0800) buf |= 0xF000;
+    else buf &= 0x0FFF;
+    int16_t ret = 0x0000 | buf;
+    return ret;
 }
 
 static void ADIS16_SPI_Init(void) {

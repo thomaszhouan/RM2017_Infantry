@@ -8,9 +8,14 @@
 #endif
 
 typedef struct {
-    int16_t omega;
+    int32_t omega;
     float theta;
-    uint32_t thetaHardware;
+    float temperature;
+
+    int16_t omegaHW;
+    uint32_t thetaHW;
+    int16_t temperatureHW;
+
     uint32_t lastUpdateTick;
 } ADIS16_DataTypeDef;
 
