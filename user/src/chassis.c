@@ -5,14 +5,17 @@
 #include "chassis.h"
 #include "dbus.h"
 #include "can.h"
+#include "adis16.h"
 #include <string.h>
-
-#define MAX_TARGET_VELOCITY 8200
 
 #define _ID(x) ((x)-CHASSIS_CAN_ID_OFFSET)
 
 /* 1: normal 0: reverse */
 static const char MOTOR_DIR[4] = {1, 0, 0, 1};
+static PID_Controller MotorController[4];
+static volatile int16_t MotorVelocityBuffer[4][2];
+static volatile uint8_t BufferId[4];
+static volatile int32_t ChassisOmegaOutput;
 
 #define _CLEAR(x) do { memset((void*)(x), 0, sizeof(x)); } while(0)
 
@@ -31,6 +34,7 @@ static void CHASSIS_ClearAll(void) {
     _CLEAR(TargetVelocity);
     _CLEAR(MotorOutput);
     _CLEAR(MeasureUpdated);
+    ChassisOmegaOutput = 0;
 }
 
 static void CHASSIS_CanInit(void) {
@@ -54,17 +58,30 @@ static void CHASSIS_CanInit(void) {
 void CHASSIS_Init(void) {
     CHASSIS_CanInit();
 
+    /* Motor controller */
     for (uint8_t id = 0; id < 4; ++id) {
+        PID_Reset(MotorController+id);
         MotorController[id].Kp = CHASSIS_KP;
         MotorController[id].Ki = CHASSIS_KI;
         MotorController[id].Kd = CHASSIS_KD;
         MotorController[id].MAX_Pout = CHASSIS_MAX_POUT;
-        MotorController[id].MAX_Iout = CHASSIS_MAX_IOUT;
+        MotorController[id].MAX_Integral = CHASSIS_MAX_INTEGRAL;
         MotorController[id].MAX_PIDout = CHASSIS_MAX_PIDOUT;
         MotorController[id].MIN_PIDout = CHASSIS_MIN_PIDOUT;
         MotorController[id].mode = CHASSIS_PID_MODE;
-        PID_Reset(MotorController+id);
     }
+
+    /* Chassis angle controller */
+    PID_Reset(&ChassisAngleController);
+    ChassisAngleController.Kp = 0.65f;
+    ChassisAngleController.Ki = 0.00f;
+    ChassisAngleController.Kd = 0.01f;
+    ChassisAngleController.MAX_Pout = 5000;
+    ChassisAngleController.MAX_Integral = 5000;
+    ChassisAngleController.MAX_PIDout = 5300;
+    ChassisAngleController.MIN_PIDout = 5;
+    ChassisAngleController.mode = kPositional;
+
     CHASSIS_ClearAll();
 
     HAL_CAN_Receive_IT(&CHASSIS_CAN_HANDLE, 0);
@@ -111,19 +128,25 @@ void CHASSIS_Control(void) {
     |
     0-- >x
 */
+#include "st7735.h"
 void CHASSIS_SetMotion(void) {
-    static int32_t velocityX = 0, velocityY = 0, omega = 0;
+    static int32_t velocityX = 0, velocityY = 0;
+    static int32_t targetOmega = 0;
     static int32_t tmpVelocity[4];
 
     /* low pass filter */
     velocityX = (velocityX*7+6*DBUS_Data.ch1)/8;
     velocityY = (velocityY*7+12*DBUS_Data.ch2)/8;
-    omega = (omega*7+8*DBUS_Data.ch3)/8;
+    targetOmega = (targetOmega*7+8*DBUS_Data.ch3)/8;
+    ChassisOmegaOutput = (int32_t)PID_Update(&ChassisAngleController,
+        targetOmega, ADIS16_Data.omega);
+    // ST7735_Print(0, 9, GREEN, BLACK, "%d %d", targetOmega, ChassisOmegaOutput);
+    // ChassisOmegaOutput = (ChassisOmegaOutput*7+8*DBUS_Data.ch3)/8;
 
-    tmpVelocity[0] = (int32_t)velocityY + velocityX + omega;
-    tmpVelocity[1] = (int32_t)velocityY - velocityX - omega;
-    tmpVelocity[2] = (int32_t)velocityY + velocityX - omega;
-    tmpVelocity[3] = (int32_t)velocityY - velocityX + omega;
+    tmpVelocity[0] = (int32_t)velocityY + velocityX + ChassisOmegaOutput;
+    tmpVelocity[1] = (int32_t)velocityY - velocityX - ChassisOmegaOutput;
+    tmpVelocity[2] = (int32_t)velocityY + velocityX - ChassisOmegaOutput;
+    tmpVelocity[3] = (int32_t)velocityY - velocityX + ChassisOmegaOutput;
 
     for (uint8_t i = 0; i < 4; ++i)
         CHASSIS_SetTargetVelocity(i+CHASSIS_CAN_ID_OFFSET, tmpVelocity[i]);
@@ -152,5 +175,6 @@ void CHASSIS_SendCmd(void) {
 void CHASSIS_SetFree(void) {
     for (uint8_t i = 0; i < 4; ++i)
         PID_Reset(MotorController+i);
+    PID_Reset(&ChassisAngleController);
     CHASSIS_ClearAll();
 }

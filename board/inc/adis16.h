@@ -8,11 +8,12 @@
 #endif
 
 typedef struct {
-    int32_t omega;
+    int32_t omega; // dir: clockwise
     float theta;
     float temperature;
 
     int16_t omegaHW;
+    int32_t omegaInternal;
     uint32_t thetaHW;
     int16_t temperatureHW;
 

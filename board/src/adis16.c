@@ -37,7 +37,9 @@ static int16_t ADIS16_GetTemperature(void);
 
 static float omegaIntegral;
 static float initialTemperature;
-static int32_t omegaBuffer[64];
+
+#define omegaBufferSize           4
+static int32_t omegaBuffer[omegaBufferSize];
 static uint8_t omegaBufferId;
 
 void ADIS16_Init(void) {
@@ -78,9 +80,10 @@ void ADIS16_Update(void) {
         ADIS16_Data.temperatureHW * TEMPERATURE_SCALE;
 
     /* Omega filter */
-    ADIS16_Data.omega -= omegaBuffer[omegaBufferId];
-    ADIS16_Data.omega += (omegaBuffer[omegaBufferId] = ADIS16_Data.omegaHW);
-    omegaBufferId = (omegaBufferId+1)&0x3FU;
+    ADIS16_Data.omegaInternal -= omegaBuffer[omegaBufferId];
+    ADIS16_Data.omegaInternal += (omegaBuffer[omegaBufferId] = ADIS16_Data.omegaHW);
+    omegaBufferId = (omegaBufferId+1)&(omegaBufferSize-1);
+    ADIS16_Data.omega = -(ADIS16_Data.omegaInternal / omegaBufferSize);
 
     /* Integration */
     float delta = ADIS16_Data.omegaHW -

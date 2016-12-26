@@ -23,14 +23,16 @@ int main(void) {
     ST7735_FillColor(BLACK);
     ST7735_Print(0, 0, GREEN, BLACK, "Gyro Calibrate");
 
+    ADIS16_Init();
+    ADIS16_Calibrate(512);
+
+
     LED_Init(LED0);
     BUZZER_Init();
     DBUS_Init();
     JUDGE_Init();
     CHASSIS_Init();
-    ADIS16_Init();
-    ADIS16_Calibrate(512);
-
+    
     JOYSTICK_Init(15, 0);
     for (Joystick_TypeDef pos = JUP; pos < JOYSTICKn; ++pos)
         JOYSTICK_CallbackInstall(pos, JOYSTICK_Handler);
@@ -67,7 +69,7 @@ int main(void) {
         ST7735_Print(5, 1, GREEN, BLACK, "%.2f", JUDGE_Data.voltage);
         ST7735_Print(5, 2, GREEN, BLACK, "%.2f", JUDGE_Data.current);
         ST7735_Print(5, 3, GREEN, BLACK, "%d", JUDGE_Data.remainLife);
-        ST7735_Print(5, 4, GREEN, BLACK, "%d", ADIS16_Data.omega/64);
+        ST7735_Print(5, 4, GREEN, BLACK, "%d", ADIS16_Data.omega);
         ST7735_Print(5, 5, GREEN, BLACK, "%.2f", ADIS16_Data.theta);
         ST7735_Print(5, 6, GREEN, BLACK, "%.2f", ADIS16_Data.temperature);
     }

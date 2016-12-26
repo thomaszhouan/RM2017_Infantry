@@ -11,12 +11,10 @@
 #endif
 
 CHASSIS_EXT volatile int32_t MotorVelocity[4], TargetVelocity[4];
-CHASSIS_EXT PID_Controller MotorController[4];
 CHASSIS_EXT volatile int16_t MotorAngle[4], MotorLastAngle[4];
-CHASSIS_EXT int16_t MotorVelocityBuffer[4][2];
-CHASSIS_EXT uint8_t BufferId[4];
 CHASSIS_EXT volatile int16_t MotorOutput[4];
 CHASSIS_EXT volatile char MeasureUpdated[4];
+CHASSIS_EXT PID_Controller ChassisAngleController;
 
 /*
     Initialize controllers and internal states.

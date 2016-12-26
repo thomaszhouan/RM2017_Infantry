@@ -43,20 +43,19 @@ float PID_Update(PID_Controller *pid, float target, float measure) {
         Iout = pid->Ki * pid->err[kNOW];
         Dout = pid->Kd * (pid->err[kNOW] - 2*pid->err[kLAST] + pid->err[kLLAST]);
 
-        Iout = PID_Trim(Iout, pid->MAX_Iout);
+        Iout = PID_Trim(Iout, pid->MAX_Integral * pid->Ki);
         pid->output += (Pout + Iout + Dout);
         pid->output = PID_Trim(pid->output, pid->MAX_PIDout);
     }
     else if (pid->mode == kPositional) {
         pid->errIntegral += pid->err[kNOW];
+        pid->errIntegral = PID_Trim(pid->errIntegral, pid->MAX_Integral);
 
         Pout = pid->Kp * pid->err[kNOW];
         Iout = pid->Ki * pid->errIntegral;
         Dout = pid->Kd * (pid->err[kNOW] - pid->err[kLAST]);
 
         Pout = PID_Trim(Pout, pid->MAX_Pout);
-        Iout = PID_Trim(Iout, pid->MAX_Iout);
-        pid->errIntegral = Iout / pid->Ki;
         pid->output = Pout + Iout + Dout;
         pid->output = PID_Trim(pid->output, pid->MAX_PIDout);
     }
