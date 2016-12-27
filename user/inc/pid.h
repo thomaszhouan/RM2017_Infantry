@@ -11,7 +11,8 @@ typedef enum {
 
 typedef enum {
     kIncremental,
-    kPositional
+    kPositional,
+    kIntegralDecay
 } PID_ModeTypeDef;
 
 // should be negative
@@ -20,6 +21,7 @@ typedef enum {
 typedef struct {
     /* set by user */
     float Kp, Ki, Kd;
+    float IDecayFactor;
     float MAX_Integral, MAX_Pout, MAX_PIDout, MIN_PIDout;
     PID_ModeTypeDef mode;
 

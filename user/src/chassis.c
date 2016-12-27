@@ -90,14 +90,15 @@ void CHASSIS_Init(void) {
 
     /* Chassis power controller */
     PID_Reset(&ChassisPowerController);
-    ChassisPowerController.Kp = 0.00f;
-    ChassisPowerController.Ki = 0.01f;
-    ChassisPowerController.Kd = 0.00f;
-    ChassisPowerController.MAX_Pout = 0;
+    ChassisPowerController.Kp = 0.005f;
+    ChassisPowerController.Ki = 0.010f;
+    ChassisPowerController.Kd = 0.000f;
+    ChassisPowerController.IDecayFactor = 0.7f;
+    ChassisPowerController.MAX_Pout = 100;
     ChassisPowerController.MAX_Integral = 100;
     ChassisPowerController.MAX_PIDout = 1;
     ChassisPowerController.MIN_PIDout = 0;
-    ChassisPowerController.mode = kPositional;
+    ChassisPowerController.mode = kIntegralDecay;
     ChassisPowerRatio = 1.0f;
 
     CHASSIS_ClearAll();
@@ -159,14 +160,14 @@ void CHASSIS_SetMotion(void) {
     static int32_t tmpVelocity[4];
 
     /* low pass filter */
-    velocityX = (velocityX*7+10*DBUS_Data.ch1)/8;
+    velocityX = (velocityX*7+18*DBUS_Data.ch1)/8;
     velocityY = (velocityY*7+12*DBUS_Data.ch2)/8;
     targetOmega = (targetOmega*7+16*DBUS_Data.ch3)/8;
     if (ADIS16_DataUpdated) {
         ADIS16_DataUpdated = 0;
-        // CHASSIS_RotationControl();
+        CHASSIS_RotationControl();
     }
-    ChassisOmegaOutput = (ChassisOmegaOutput*7+8*DBUS_Data.ch3)/8;
+    // ChassisOmegaOutput = (ChassisOmegaOutput*7+8*DBUS_Data.ch3)/8;
 
     tmpVelocity[0] = (int32_t)velocityY + velocityX + ChassisOmegaOutput;
     tmpVelocity[1] = (int32_t)velocityY - velocityX - ChassisOmegaOutput;
@@ -184,13 +185,10 @@ void CHASSIS_RotationControl(void) {
 
 void CHASSIS_PowerControl(void) {
     static float reducedRatio = 0.0f;
-    const static float Kp = 0.005f, Ki = 0.010f, Kd = 0.00f;
-    static float errIntegral = 0.0f, err = 0.0f, lastErr = 0.0f;
-    err = CHASSIS_ENERGY - JUDGE_Data.remainEnergy;
-    errIntegral = errIntegral * 0.7f + err;
-    reducedRatio = Kp * err + Ki * errIntegral + Kd * (err - lastErr);
-    if (reducedRatio < 0.0f) reducedRatio = 0.0f;
-    else if (reducedRatio > 1.0f) reducedRatio = 1.0f;
+    reducedRatio = PID_Update(&ChassisPowerController,
+        CHASSIS_ENERGY, JUDGE_Data.remainEnergy);
+    if (reducedRatio < 0.0f)
+        reducedRatio = 0.0f;
     ChassisPowerRatio = 1.0f - reducedRatio;
 }
 
