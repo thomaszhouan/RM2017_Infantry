@@ -4,6 +4,7 @@
 #include "board_info.h"
 #include "judge.h"
 #include "uart.h"
+#include "param.h"
 
 void JUDGE_Init(void) {
     UART_SimpleInitTypeDef UART_InitStruct;
@@ -28,12 +29,22 @@ void JUDGE_Init(void) {
     /* Enable Rx IDLE interrupt */
     __HAL_UART_ENABLE_IT(&JUDGE_UART_HANDLE, UART_IT_IDLE);
 
+    /* Data initialization */
     JUDGE_FrameCounter = 0;
     JUDGE_Data.voltage = 25.0f;
     JUDGE_Data.current = 0.0f;
     JUDGE_Data.remainLife = 1500;
+
+    JUDGE_Data.power = 0.0f;
+    JUDGE_Data.remainEnergy = 60.0f;
+    JUDGE_Data.powerUpdated = 0;
+
     JUDGE_Data.hitArmorId = -1; // not hit yet
     JUDGE_Data.lastHitTick = 0;
+
+    JUDGE_Data.shootNum = 0;
+    JUDGE_Data.shootSpeed = 0.0f;
+    JUDGE_Data.lastShootTick = 0;
 }
 
 void JUDGE_Decode(void) {
@@ -60,6 +71,8 @@ void JUDGE_Decode(void) {
         JUDGE_Data.current = FT.F;
 
         JUDGE_Data.remainLife = ((uint16_t)JUDGE_DataBuffer[11]<<8) | JUDGE_DataBuffer[10];
+
+        JUDGE_UpdatePower();
     }
     else if (frameByteCount == JUDGE_INFO_FRAME_LENGTH+JUDGE_BLOOD_FRAME_LENGTH &&
         Verify_CRC16_Check_Sum((uint8_t*)JUDGE_DataBuffer, JUDGE_BLOOD_FRAME_LENGTH)) {
@@ -87,6 +100,16 @@ void JUDGE_Decode(void) {
     __HAL_DMA_CLEAR_FLAG(&JUDGE_DMA_HANDLE, JUDGE_DMA_FLAG);
     __HAL_DMA_SET_COUNTER(&JUDGE_DMA_HANDLE, JUDGE_BUFFER_LENGTH);
     __HAL_DMA_ENABLE(&JUDGE_DMA_HANDLE);
+}
+
+void JUDGE_UpdatePower(void) {
+    JUDGE_Data.power = JUDGE_Data.voltage * JUDGE_Data.current;
+    JUDGE_Data.remainEnergy -= (JUDGE_Data.power-CHASSIS_MAX_POWER)*0.02f;
+    if (JUDGE_Data.remainEnergy > CHASSIS_ENERGY)
+        JUDGE_Data.remainEnergy = CHASSIS_ENERGY;
+    else if (JUDGE_Data.remainEnergy <= 0.0f)
+        JUDGE_Data.remainEnergy = 0.0f;
+    JUDGE_Data.powerUpdated = 1;
 }
 
 /*

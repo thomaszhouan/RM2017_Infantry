@@ -79,9 +79,13 @@ typedef union {
 } FormatTrans_TypeDef;
 
 typedef struct {
-    float voltage;
-    float current;
+    float voltage;              // V
+    float current;              // A
     uint16_t remainLife;
+
+    float power;                // W
+    float remainEnergy;         // J
+    uint8_t powerUpdated;
 
     int8_t hitArmorId;
     uint32_t lastHitTick;
@@ -97,6 +101,7 @@ JUDGE_EXT volatile uint32_t JUDGE_FrameCounter;
 
 void JUDGE_Init(void);
 void JUDGE_Decode(void);
+void JUDGE_UpdatePower(void);
 
 unsigned char Get_CRC8_Check_Sum(unsigned char *pchMessage,unsigned int dwLength,unsigned char ucCRC8);
 unsigned int Verify_CRC8_Check_Sum(unsigned char *pchMessage, unsigned int dwLength);

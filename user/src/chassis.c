@@ -6,6 +6,7 @@
 #include "dbus.h"
 #include "can.h"
 #include "adis16.h"
+#include "judge.h"
 #include <string.h>
 
 #define _ID(x) ((x)-CHASSIS_CAN_ID_OFFSET)
@@ -13,11 +14,14 @@
 /* 1: normal 0: reverse */
 static const char MOTOR_DIR[4] = {1, 0, 0, 1};
 static PID_Controller MotorController[4];
-static PID_Controller ChassisAngleController;
 static volatile int16_t MotorVelocityBuffer[4][2];
 static volatile uint8_t BufferId[4];
+
+static PID_Controller ChassisAngleController;
 static volatile int32_t ChassisOmegaOutput;
 static volatile int32_t targetOmega = 0;
+
+static PID_Controller ChassisPowerController;
 
 #define _CLEAR(x) do { memset((void*)(x), 0, sizeof(x)); } while(0)
 
@@ -75,14 +79,26 @@ void CHASSIS_Init(void) {
 
     /* Chassis angle controller */
     PID_Reset(&ChassisAngleController);
-    ChassisAngleController.Kp = 0.45f;
-    ChassisAngleController.Ki = 0.012f;
-    ChassisAngleController.Kd = 0.020f;
-    ChassisAngleController.MAX_Pout = 5000;
-    ChassisAngleController.MAX_Integral = 5000;
-    ChassisAngleController.MAX_PIDout = 5300;
-    ChassisAngleController.MIN_PIDout = 5;
-    ChassisAngleController.mode = kPositional;
+    ChassisAngleController.Kp = CHASSIS_OMEGA_KP;
+    ChassisAngleController.Ki = CHASSIS_OMEGA_KI;
+    ChassisAngleController.Kd = CHASSIS_OMEGA_KD;
+    ChassisAngleController.MAX_Pout = CHASSIS_OMEGA_MAX_POUT;
+    ChassisAngleController.MAX_Integral = CHASSIS_OMEGA_MAX_INTEGRAL;
+    ChassisAngleController.MAX_PIDout = CHASSIS_OMEGA_MAX_PIDOUT;
+    ChassisAngleController.MIN_PIDout = CHASSIS_OMEGA_MIN_PIDOUT;
+    ChassisAngleController.mode = CHASSIS_OMEGA_PID_MODE;
+
+    /* Chassis power controller */
+    PID_Reset(&ChassisPowerController);
+    ChassisPowerController.Kp = 0.00f;
+    ChassisPowerController.Ki = 0.01f;
+    ChassisPowerController.Kd = 0.00f;
+    ChassisPowerController.MAX_Pout = 0;
+    ChassisPowerController.MAX_Integral = 100;
+    ChassisPowerController.MAX_PIDout = 1;
+    ChassisPowerController.MIN_PIDout = 0;
+    ChassisPowerController.mode = kPositional;
+    ChassisPowerRatio = 1.0f;
 
     CHASSIS_ClearAll();
 
@@ -114,6 +130,13 @@ void CHASSIS_MotorControl(uint16_t motorId) {
     MotorOutput[id] = (int16_t)PID_Update(MotorController+id,
         TargetVelocity[id], MotorVelocity[id]/2);
 
+    if (JUDGE_Data.powerUpdated) {
+        JUDGE_Data.powerUpdated = 0;
+        CHASSIS_PowerControl();
+    }
+
+    MotorOutput[id] = (int16_t)(MotorOutput[id]*ChassisPowerRatio);
+    
     MeasureUpdated[id] = 0;
 }
 
@@ -136,15 +159,14 @@ void CHASSIS_SetMotion(void) {
     static int32_t tmpVelocity[4];
 
     /* low pass filter */
-    velocityX = (velocityX*7+6*DBUS_Data.ch1)/8;
+    velocityX = (velocityX*7+10*DBUS_Data.ch1)/8;
     velocityY = (velocityY*7+12*DBUS_Data.ch2)/8;
     targetOmega = (targetOmega*7+16*DBUS_Data.ch3)/8;
     if (ADIS16_DataUpdated) {
         ADIS16_DataUpdated = 0;
-        ChassisOmegaOutput = (int32_t)PID_Update(&ChassisAngleController,
-            targetOmega, ADIS16_Data.omega);
+        // CHASSIS_RotationControl();
     }
-    // ChassisOmegaOutput = (ChassisOmegaOutput*7+8*DBUS_Data.ch3)/8;
+    ChassisOmegaOutput = (ChassisOmegaOutput*7+8*DBUS_Data.ch3)/8;
 
     tmpVelocity[0] = (int32_t)velocityY + velocityX + ChassisOmegaOutput;
     tmpVelocity[1] = (int32_t)velocityY - velocityX - ChassisOmegaOutput;
@@ -158,6 +180,18 @@ void CHASSIS_SetMotion(void) {
 void CHASSIS_RotationControl(void) {
     ChassisOmegaOutput = (int32_t)PID_Update(&ChassisAngleController,
         targetOmega, ADIS16_Data.omega);
+}
+
+void CHASSIS_PowerControl(void) {
+    static float reducedRatio = 0.0f;
+    const static float Kp = 0.005f, Ki = 0.010f, Kd = 0.00f;
+    static float errIntegral = 0.0f, err = 0.0f, lastErr = 0.0f;
+    err = CHASSIS_ENERGY - JUDGE_Data.remainEnergy;
+    errIntegral = errIntegral * 0.7f + err;
+    reducedRatio = Kp * err + Ki * errIntegral + Kd * (err - lastErr);
+    if (reducedRatio < 0.0f) reducedRatio = 0.0f;
+    else if (reducedRatio > 1.0f) reducedRatio = 1.0f;
+    ChassisPowerRatio = 1.0f - reducedRatio;
 }
 
 void CHASSIS_SetTargetVelocity(uint16_t motorId, int32_t velocity) {

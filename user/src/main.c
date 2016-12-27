@@ -26,7 +26,6 @@ int main(void) {
     ADIS16_Init();
     ADIS16_Calibrate(512);
 
-
     LED_Init(LED0);
     BUZZER_Init();
     DBUS_Init();
@@ -40,10 +39,9 @@ int main(void) {
     ST7735_Print(0, 0, GREEN, BLACK, "RM2017 Infantry");
     ST7735_Print(0, 1, GREEN, BLACK, "Volt");
     ST7735_Print(0, 2, GREEN, BLACK, "Curr");
-    ST7735_Print(0, 3, GREEN, BLACK, "RL");
-    ST7735_Print(0, 4, GREEN, BLACK, "Omg");
-    ST7735_Print(0, 5, GREEN, BLACK, "The");
-    ST7735_Print(0, 6, GREEN, BLACK, "C");
+    ST7735_Print(0, 3, GREEN, BLACK, "Omg");
+    ST7735_Print(0, 4, GREEN, BLACK, "Ra");
+    ST7735_Print(0, 5, GREEN, BLACK, "E");
     
     // TIM2 init (1ms)
     __HAL_RCC_TIM2_CLK_ENABLE();
@@ -68,10 +66,9 @@ int main(void) {
         }
         ST7735_Print(5, 1, GREEN, BLACK, "%.2f", JUDGE_Data.voltage);
         ST7735_Print(5, 2, GREEN, BLACK, "%.2f", JUDGE_Data.current);
-        ST7735_Print(5, 3, GREEN, BLACK, "%d", JUDGE_Data.remainLife);
-        ST7735_Print(5, 4, GREEN, BLACK, "%d", ADIS16_Data.omega);
-        ST7735_Print(5, 5, GREEN, BLACK, "%.2f", ADIS16_Data.theta);
-        ST7735_Print(5, 6, GREEN, BLACK, "%.2f", ADIS16_Data.temperature);
+        ST7735_Print(5, 3, GREEN, BLACK, "%d", ADIS16_Data.omega);
+        ST7735_Print(5, 4, GREEN, BLACK, "%.2f", ChassisPowerRatio);
+        ST7735_Print(5, 5, GREEN, BLACK, "%.2f", JUDGE_Data.remainEnergy);
     }
 }
 
