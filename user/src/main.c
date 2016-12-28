@@ -40,6 +40,11 @@ int main(void) {
     ST7735_Print(0, 0, GREEN, BLACK, "RM2017 Infantry");
     ST7735_Print(0, 1, GREEN, BLACK, "Omg");
     ST7735_Print(0, 2, GREEN, BLACK, "The");
+    ST7735_Print(0, 3, GREEN, BLACK, "OO");
+    ST7735_Print(0, 4, GREEN, BLACK, "TO");
+    ST7735_Print(0, 5, GREEN, BLACK, "TA");
+    ST7735_Print(0, 6, GREEN, BLACK, "AE");
+    ST7735_Print(0, 7, GREEN, BLACK, "ABT");
     
     // TIM2 init (1ms)
     __HAL_RCC_TIM2_CLK_ENABLE();
@@ -77,6 +82,11 @@ int main(void) {
         }
         ST7735_Print(4, 1, GREEN, BLACK, "%d", ADIS16_Data.omega);
         ST7735_Print(4, 2, GREEN, BLACK, "%d", ADIS16_Data.theta);
+        ST7735_Print(4, 3, GREEN, BLACK, "%d", ChassisOmegaOutput);
+        ST7735_Print(4, 4, GREEN, BLACK, "%d", targetOmega);
+        ST7735_Print(4, 5, GREEN, BLACK, "%.2f", targetAngle);
+        ST7735_Print(4, 6, GREEN, BLACK, "%d", angleError);
+        ST7735_Print(4, 7, GREEN, BLACK, "%d", ADIS16_Data.absoluteTheta);
     }
 }
 
@@ -125,10 +135,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *handle) {
     if (tick % 500 == 0) {
         LED_Toggle(LED0);
     }
-
-    // if (tick % 4 == 0) {
-    //     ADIS16_Update();
-    // }
 
     // check DBUS connection
     if (tick % 20 == 0) {

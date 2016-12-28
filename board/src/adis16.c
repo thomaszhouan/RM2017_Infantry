@@ -41,6 +41,7 @@ void ADIS16_Init(void) {
     /* Data initialization */
     ADIS16_Data.omega = 0;
     ADIS16_Data.theta = 0;
+    ADIS16_Data.absoluteTheta = 0;
     ADIS16_Data.temperature = 25.0f;
     ADIS16_Data.lastUpdateTick = 0;
     ADIS16_DataUpdated = 0;
@@ -73,7 +74,8 @@ void ADIS16_Update(void) {
 
     delta = (ABS(ADIS16_Data.omega) < MIN_OMEGA) ? 0 : ADIS16_Data.omega;
     omegaIntegral += delta * (0.07326f * 0.0390625f);
-    ADIS16_Data.theta = (int32_t)omegaIntegral;
+    ADIS16_Data.absoluteTheta = ADIS16_Data.theta
+        = (int32_t)omegaIntegral;
     ADIS16_Data.theta %= 3600;
     if (ADIS16_Data.theta < 0) ADIS16_Data.theta += 3600;
 }

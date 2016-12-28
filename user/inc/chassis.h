@@ -17,6 +17,11 @@ CHASSIS_EXT volatile int16_t MotorOutput[4];
 CHASSIS_EXT volatile char MeasureUpdated[4];
 CHASSIS_EXT volatile float ChassisPowerRatio;
 
+CHASSIS_EXT volatile int32_t ChassisOmegaOutput;
+CHASSIS_EXT volatile float targetAngle;
+CHASSIS_EXT volatile int32_t targetOmega;
+CHASSIS_EXT volatile int32_t angleError;
+
 /*
     Initialize controllers and internal states.
 */

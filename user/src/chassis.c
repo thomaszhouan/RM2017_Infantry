@@ -17,9 +17,11 @@ static PID_Controller MotorController[4];
 static volatile int16_t MotorVelocityBuffer[4][2];
 static volatile uint8_t BufferId[4];
 
+static PID_Controller ChassisAngleController;
 static PID_Controller ChassisOmegaController;
-static volatile int32_t ChassisOmegaOutput;
-static volatile int32_t targetOmega = 0;
+// static volatile int32_t ChassisOmegaOutput;
+// static volatile float targetAngle = 0.0f;
+// static volatile int32_t targetOmega = 0;
 
 static PID_Controller ChassisPowerController;
 
@@ -47,6 +49,8 @@ static void CHASSIS_ClearAll(void) {
     _CLEAR(MotorOutput);
     _CLEAR(MeasureUpdated);
     ChassisOmegaOutput = 0;
+    targetOmega = 0;
+    angleError = 0;
 }
 
 static void CHASSIS_CanInit(void) {
@@ -94,21 +98,33 @@ void CHASSIS_Init(void) {
     ChassisOmegaController.MIN_PIDout = CHASSIS_OMEGA_MIN_PIDOUT;
     ChassisOmegaController.mode = CHASSIS_OMEGA_PID_MODE;
 
+    /* Chassis angle controller */
+    PID_Reset(&ChassisAngleController);
+    ChassisAngleController.Kp = 16.00f;
+    ChassisAngleController.Ki = 0.40f;
+    ChassisAngleController.Kd = 0.10f;
+    ChassisAngleController.MAX_Pout = 10000;
+    ChassisAngleController.MAX_Integral = 10000;
+    ChassisAngleController.MAX_PIDout = 15000;
+    ChassisAngleController.MIN_PIDout = 0;
+    ChassisAngleController.mode = kPositional;
+
     /* Chassis power controller */
     PID_Reset(&ChassisPowerController);
     ChassisPowerController.Kp = 0.005f;
-    ChassisPowerController.Ki = 0.008f;
+    ChassisPowerController.Ki = 0.006f;
     ChassisPowerController.Kd = 0.000f;
     ChassisPowerController.IDecayFactor = 0.7f;
     ChassisPowerController.MAX_Pout = 100;
     ChassisPowerController.MAX_Integral = 100;
-    ChassisPowerController.MAX_PIDout = 1;
+    ChassisPowerController.MAX_PIDout = 0.4;
     ChassisPowerController.MIN_PIDout = 0;
     ChassisPowerController.mode = kIntegralDecay;
     ChassisPowerRatio = 1.0f;
 
     CHASSIS_ClearAll();
     _CLEAR(MotorFeedbackCount);
+    targetAngle = 0.0f;
 
     HAL_CAN_Receive_IT(&CHASSIS_CAN_HANDLE, 0);
 }
@@ -163,7 +179,7 @@ void CHASSIS_Control(void) {
 void CHASSIS_SetMotion(void) {
     static int32_t velocityX = 0, velocityY = 0;
     static int32_t tmpVelocity[4];
-    static const int32_t maxDelta = 250;
+    static const int32_t maxDelta = 300;
 
     velocityX = 18 * DBUS_Data.ch1;
     velocityY = 12 * DBUS_Data.ch2;
@@ -175,24 +191,37 @@ void CHASSIS_SetMotion(void) {
         kSwitchUp: angle close loop (not supported now)
     */
     if (DBUS_Data.rightSwitchState == kSwitchDown) {
-        if (DBUS_LastData.rightSwitchState == kSwitchMiddle)
-            PID_Reset(&ChassisOmegaController);
-        ChassisOmegaOutput = (ChassisOmegaOutput*7+8*DBUS_Data.ch3)/8;
+        ChassisOmegaOutput = (ChassisOmegaOutput*7+5*DBUS_Data.ch3)/8;
     }
     else if (DBUS_Data.rightSwitchState == kSwitchMiddle) {
+        if (DBUS_LastData.rightSwitchState != kSwitchMiddle)
+            PID_Reset(&ChassisOmegaController);
         if (ADIS16_DataUpdated) {
             ADIS16_DataUpdated = 0;
-            targetOmega = 24 * DBUS_Data.ch3;
-            CHASSIS_RotationControl();
+            targetOmega = 16 * DBUS_Data.ch3;
+            
+            ChassisOmegaOutput = (int32_t)PID_Update(&ChassisOmegaController,
+                targetOmega, ADIS16_Data.omega);
         }
     }
     else { // DBUS_Data.rightSwitchState == kSwitchUp
-        /* temporary, same as kSwitchDown */
-        if (DBUS_LastData.rightSwitchState == kSwitchMiddle)
+        // testing angle close loop
+        if (DBUS_LastData.rightSwitchState != kSwitchUp) {
             PID_Reset(&ChassisOmegaController);
-        ChassisOmegaOutput = (ChassisOmegaOutput*7+8*DBUS_Data.ch3)/8;
+            PID_Reset(&ChassisAngleController);
+            targetAngle = ADIS16_Data.absoluteTheta;
+        }
+        targetAngle += 0.04f * DBUS_Data.ch3;
+        angleError = (int32_t)(targetAngle - ADIS16_Data.absoluteTheta);
+        angleError = CHASSIS_Trim(angleError, 300);
+        targetAngle = angleError + ADIS16_Data.absoluteTheta;
+        targetOmega = (int32_t)PID_Update(&ChassisAngleController,
+            0.0f, -angleError);
+        ChassisOmegaOutput = (int32_t)PID_Update(&ChassisOmegaController,
+                targetOmega, ADIS16_Data.omega);
     }
 
+    /* Mecanum wheel */
     tmpVelocity[0] = velocityY + velocityX + ChassisOmegaOutput;
     tmpVelocity[1] = velocityY - velocityX - ChassisOmegaOutput;
     tmpVelocity[2] = velocityY + velocityX - ChassisOmegaOutput;
@@ -214,7 +243,7 @@ void CHASSIS_RotationControl(void) {
 void CHASSIS_PowerControl(void) {
     static float reducedRatio = 0.0f;
     reducedRatio = PID_Update(&ChassisPowerController,
-        CHASSIS_ENERGY, JUDGE_Data.remainEnergy);
+        CHASSIS_ENERGY/2, JUDGE_Data.remainEnergy);
     if (reducedRatio < 0.0f)
         reducedRatio = 0.0f;
     ChassisPowerRatio = 1.0f - reducedRatio;
@@ -245,5 +274,6 @@ void CHASSIS_SetFree(void) {
     for (uint8_t i = 0; i < 4; ++i)
         PID_Reset(MotorController+i);
     PID_Reset(&ChassisOmegaController);
+    PID_Reset(&ChassisAngleController);
     CHASSIS_ClearAll();
 }
