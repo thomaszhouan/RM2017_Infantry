@@ -7,14 +7,14 @@
 
 #if defined(CHASSIS_USE_3510_19)
 /* CAN ID */
-#define CHASSIS_MASTER_ID                       0x200
-#define CHASSIS_CAN_ID_OFFSET                   0x201
+#define CHASSIS_MASTER_ID                       0x200U
+#define CHASSIS_CAN_ID_OFFSET                   0x201U
 #define FL_MOTOR_ID                             0x201U
 #define FR_MOTOR_ID                             0x202U
 #define BR_MOTOR_ID                             0x203U
 #define BL_MOTOR_ID                             0x204U
 
-#define MAX_TARGET_VELOCITY                     7200
+#define MAX_TARGET_VELOCITY                     8200
 
 /* 3510 motor PID parameter */
 #define CHASSIS_KP                              5.20f

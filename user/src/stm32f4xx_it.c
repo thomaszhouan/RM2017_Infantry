@@ -47,6 +47,7 @@
 #include "board_info.h"
 #include "dbus.h"
 #include "judge.h"
+#include "adis16.h"
 
 /** @addtogroup STM32F4xx_HAL_Examples
   * @{
@@ -334,6 +335,19 @@ void CAN2_TX_IRQHandler(void) {
 #ifdef USE_TIM2
 void TIM2_IRQHandler(void) {
     HAL_TIM_IRQHandler(&Tim2_Handle);
+}
+#endif
+
+/**
+  * @brief  This function handles TIM3 interrupt request.
+  * @param  None
+  * @retval None
+  */
+#ifdef USE_TIM3
+void TIM3_IRQHandler(void) {
+    // HAL_TIM_IRQHandler(&Tim3_Handle);
+    __HAL_TIM_CLEAR_IT(&Tim3_Handle, TIM_IT_UPDATE);
+    ADIS16_Update();
 }
 #endif
 

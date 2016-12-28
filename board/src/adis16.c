@@ -18,7 +18,7 @@
 #define ADIS16_SENS               0x39
 #define ADIS16_SMPL               0x37
 
-#define MIN_OMEGA                 10
+#define MIN_OMEGA                 5
 #define TEMPERATURE_SCALE         0.1453f
 #define TEMPERATURE_OFFSET        25.0f
 #define BIAS_TEMP_COEFFICIENT     0.0051f
@@ -34,6 +34,8 @@ static uint16_t ADIS16_SPI_IO(uint16_t data);
 static int16_t ADIS16_GetOmega(void);
 static uint16_t ADIS16_GetTheta(void);
 static int16_t ADIS16_GetTemperature(void);
+
+static float omegaIntegral = 0.0f;
 
 void ADIS16_Init(void) {
     /* Data initialization */
@@ -61,14 +63,19 @@ void ADIS16_Init(void) {
 }
 
 void ADIS16_Update(void) {
+    static float delta;
     uint32_t tick = HAL_GetTick();
-    if (tick - ADIS16_Data.lastUpdateTick < 4)
-        return;
     ADIS16_DataUpdated = 1;
 
     ADIS16_Data.lastUpdateTick = tick;
     ADIS16_Data.omegaHW = ADIS16_GetOmega();
     ADIS16_Data.omega = -ADIS16_Data.omegaHW;
+
+    delta = (ABS(ADIS16_Data.omega) < MIN_OMEGA) ? 0 : ADIS16_Data.omega;
+    omegaIntegral += delta * (0.07326f * 0.0390625f);
+    ADIS16_Data.theta = (int32_t)omegaIntegral;
+    ADIS16_Data.theta %= 3600;
+    if (ADIS16_Data.theta < 0) ADIS16_Data.theta += 3600;
 }
 
 void ADIS16_Calibrate(uint16_t sample) {

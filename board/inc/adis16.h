@@ -9,7 +9,7 @@
 
 typedef struct {
     int32_t omega; // dir: clockwise
-    float theta;
+    int32_t theta;
     float temperature;
 
     int16_t omegaHW;

@@ -21,6 +21,10 @@ HANDLE_EXT DMA_HandleTypeDef Uart3_TxDmaHandle, Uart3_RxDmaHandle;
 #define USE_TIM2
 HANDLE_EXT TIM_HandleTypeDef Tim2_Handle;
 
+// TIM3
+#define USE_TIM3
+HANDLE_EXT TIM_HandleTypeDef Tim3_Handle;
+
 // SPI1
 #define USE_SPI1
 HANDLE_EXT SPI_HandleTypeDef Spi1_Handle;

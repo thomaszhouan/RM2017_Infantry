@@ -17,7 +17,7 @@ static PID_Controller MotorController[4];
 static volatile int16_t MotorVelocityBuffer[4][2];
 static volatile uint8_t BufferId[4];
 
-static PID_Controller ChassisAngleController;
+static PID_Controller ChassisOmegaController;
 static volatile int32_t ChassisOmegaOutput;
 static volatile int32_t targetOmega = 0;
 
@@ -83,23 +83,23 @@ void CHASSIS_Init(void) {
         MotorController[id].mode = CHASSIS_PID_MODE;
     }
 
-    /* Chassis angle controller */
-    PID_Reset(&ChassisAngleController);
-    ChassisAngleController.Kp = CHASSIS_OMEGA_KP;
-    ChassisAngleController.Ki = CHASSIS_OMEGA_KI;
-    ChassisAngleController.Kd = CHASSIS_OMEGA_KD;
-    ChassisAngleController.MAX_Pout = CHASSIS_OMEGA_MAX_POUT;
-    ChassisAngleController.MAX_Integral = CHASSIS_OMEGA_MAX_INTEGRAL;
-    ChassisAngleController.MAX_PIDout = CHASSIS_OMEGA_MAX_PIDOUT;
-    ChassisAngleController.MIN_PIDout = CHASSIS_OMEGA_MIN_PIDOUT;
-    ChassisAngleController.mode = CHASSIS_OMEGA_PID_MODE;
+    /* Chassis omega controller */
+    PID_Reset(&ChassisOmegaController);
+    ChassisOmegaController.Kp = CHASSIS_OMEGA_KP;
+    ChassisOmegaController.Ki = CHASSIS_OMEGA_KI;
+    ChassisOmegaController.Kd = CHASSIS_OMEGA_KD;
+    ChassisOmegaController.MAX_Pout = CHASSIS_OMEGA_MAX_POUT;
+    ChassisOmegaController.MAX_Integral = CHASSIS_OMEGA_MAX_INTEGRAL;
+    ChassisOmegaController.MAX_PIDout = CHASSIS_OMEGA_MAX_PIDOUT;
+    ChassisOmegaController.MIN_PIDout = CHASSIS_OMEGA_MIN_PIDOUT;
+    ChassisOmegaController.mode = CHASSIS_OMEGA_PID_MODE;
 
     /* Chassis power controller */
     PID_Reset(&ChassisPowerController);
     ChassisPowerController.Kp = 0.005f;
     ChassisPowerController.Ki = 0.008f;
     ChassisPowerController.Kd = 0.000f;
-    ChassisPowerController.IDecayFactor = 0.9f;
+    ChassisPowerController.IDecayFactor = 0.7f;
     ChassisPowerController.MAX_Pout = 100;
     ChassisPowerController.MAX_Integral = 100;
     ChassisPowerController.MAX_PIDout = 1;
@@ -167,7 +167,6 @@ void CHASSIS_SetMotion(void) {
 
     velocityX = 18 * DBUS_Data.ch1;
     velocityY = 12 * DBUS_Data.ch2;
-    targetOmega = 20 * DBUS_Data.ch3;
 
     /*
         Chassis angle control mode (DBUS right switch):
@@ -177,19 +176,20 @@ void CHASSIS_SetMotion(void) {
     */
     if (DBUS_Data.rightSwitchState == kSwitchDown) {
         if (DBUS_LastData.rightSwitchState == kSwitchMiddle)
-            PID_Reset(&ChassisAngleController);
+            PID_Reset(&ChassisOmegaController);
         ChassisOmegaOutput = (ChassisOmegaOutput*7+8*DBUS_Data.ch3)/8;
     }
     else if (DBUS_Data.rightSwitchState == kSwitchMiddle) {
         if (ADIS16_DataUpdated) {
             ADIS16_DataUpdated = 0;
+            targetOmega = 24 * DBUS_Data.ch3;
             CHASSIS_RotationControl();
         }
     }
     else { // DBUS_Data.rightSwitchState == kSwitchUp
         /* temporary, same as kSwitchDown */
         if (DBUS_LastData.rightSwitchState == kSwitchMiddle)
-            PID_Reset(&ChassisAngleController);
+            PID_Reset(&ChassisOmegaController);
         ChassisOmegaOutput = (ChassisOmegaOutput*7+8*DBUS_Data.ch3)/8;
     }
 
@@ -207,7 +207,7 @@ void CHASSIS_SetMotion(void) {
 }
 
 void CHASSIS_RotationControl(void) {
-    ChassisOmegaOutput = (int32_t)PID_Update(&ChassisAngleController,
+    ChassisOmegaOutput = (int32_t)PID_Update(&ChassisOmegaController,
         targetOmega, ADIS16_Data.omega);
 }
 
@@ -244,6 +244,6 @@ void CHASSIS_SendCmd(void) {
 void CHASSIS_SetFree(void) {
     for (uint8_t i = 0; i < 4; ++i)
         PID_Reset(MotorController+i);
-    PID_Reset(&ChassisAngleController);
+    PID_Reset(&ChassisOmegaController);
     CHASSIS_ClearAll();
 }

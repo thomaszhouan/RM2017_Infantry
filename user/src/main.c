@@ -38,13 +38,8 @@ int main(void) {
         JOYSTICK_CallbackInstall(pos, JOYSTICK_Handler);
 
     ST7735_Print(0, 0, GREEN, BLACK, "RM2017 Infantry");
-    ST7735_Print(0, 1, GREEN, BLACK, "w1");
-    ST7735_Print(0, 2, GREEN, BLACK, "w2");
-    ST7735_Print(0, 3, GREEN, BLACK, "w3");
-    ST7735_Print(0, 4, GREEN, BLACK, "w4");
-    ST7735_Print(0, 5, GREEN, BLACK, "Ra");
-    ST7735_Print(0, 6, GREEN, BLACK, "Omg");
-    ST7735_Print(0, 7, GREEN, BLACK, "R");
+    ST7735_Print(0, 1, GREEN, BLACK, "Omg");
+    ST7735_Print(0, 2, GREEN, BLACK, "The");
     
     // TIM2 init (1ms)
     __HAL_RCC_TIM2_CLK_ENABLE();
@@ -57,6 +52,19 @@ int main(void) {
 
     HAL_NVIC_SetPriority(TIM2_IRQn, 6, 0);
     HAL_NVIC_EnableIRQ(TIM2_IRQn);
+
+    // TI3 init (256Hz) [256 * 125 = 32000]
+    __HAL_RCC_TIM3_CLK_ENABLE();
+    Tim3_Handle.Instance = TIM3;
+    Tim3_Handle.Init.Prescaler = (uint32_t) (((SystemCoreClock / 2) / 32000)-1);
+    Tim3_Handle.Init.CounterMode = TIM_COUNTERMODE_UP;
+    Tim3_Handle.Init.Period = 125-1;
+    Tim3_Handle.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+    HAL_TIM_Base_Init(&Tim3_Handle);
+
+    HAL_NVIC_SetPriority(TIM3_IRQn, 7, 0);
+    HAL_NVIC_EnableIRQ(TIM3_IRQn);
+    HAL_TIM_Base_Start_IT(&Tim3_Handle);
     
     // start TIM2
     HAL_TIM_Base_Start_IT(&Tim2_Handle);
@@ -67,13 +75,8 @@ int main(void) {
         else { // DBUS connection lost
             CHASSIS_SetFree();
         }
-        ST7735_Print(3, 1, GREEN, BLACK, "%4d %5d", MotorVelocity[0]/2, MotorOutput[0]);
-        ST7735_Print(3, 2, GREEN, BLACK, "%4d %5d", -MotorVelocity[1]/2, -MotorOutput[1]);
-        ST7735_Print(3, 3, GREEN, BLACK, "%4d %5d", -MotorVelocity[2]/2, -MotorOutput[2]);
-        ST7735_Print(3, 4, GREEN, BLACK, "%4d %5d", MotorVelocity[3]/2, MotorOutput[3]);
-        ST7735_Print(3, 5, GREEN, BLACK, "%.2f", ChassisPowerRatio);
-        ST7735_Print(3, 6, GREEN, BLACK, "%d", ADIS16_Data.omega);
-        ST7735_Print(3, 7, GREEN, BLACK, "%d", DBUS_Data.rightSwitchState);
+        ST7735_Print(4, 1, GREEN, BLACK, "%d", ADIS16_Data.omega);
+        ST7735_Print(4, 2, GREEN, BLACK, "%d", ADIS16_Data.theta);
     }
 }
 
@@ -116,14 +119,16 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *handle) {
     UNUSED(handle);
 
     ++tick;
-    if (tick == 1000) tick = 0;
+    if (tick == 1000) {
+        tick = 0;
+    }
     if (tick % 500 == 0) {
         LED_Toggle(LED0);
     }
 
-    if (tick % 4 == 0) {
-        ADIS16_Update();
-    }
+    // if (tick % 4 == 0) {
+    //     ADIS16_Update();
+    // }
 
     // check DBUS connection
     if (tick % 20 == 0) {
