@@ -14,7 +14,7 @@
 #define BR_MOTOR_ID                             0x203U
 #define BL_MOTOR_ID                             0x204U
 
-#define MAX_TARGET_VELOCITY                     8200
+#define MAX_TARGET_VELOCITY                     7200
 
 /* 3510 motor PID parameter */
 #define CHASSIS_KP                              5.20f

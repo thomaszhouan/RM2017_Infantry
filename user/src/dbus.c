@@ -14,8 +14,8 @@ void DBUS_Init(void) {
     DBUS_Data.ch2 = 0;
     DBUS_Data.ch3 = 0;
     DBUS_Data.ch4 = 0;
-    DBUS_Data.switch_left  = 2;
-    DBUS_Data.switch_right = 2;
+    DBUS_Data.leftSwitchState  = kSwitchDown;
+    DBUS_Data.rightSwitchState = kSwitchDown;
     DBUS_LastData = DBUS_Data;
     DBUS_FrameCount = 0;
     DBUS_LastFrameCount = 0;
@@ -52,8 +52,8 @@ void DBUS_Decode(void) {
     DBUS_Data.ch4 = (((uint32_t)DBUS_Buffer[4]>>1) | ((uint32_t)DBUS_Buffer[5]<<7)) & 0x07FF;
     DBUS_Data.ch4 -= 1024;
 
-    DBUS_Data.switch_left = (DBUS_Buffer[5]>>6) & 0x03;
-    DBUS_Data.switch_right = (DBUS_Buffer[5]>>4) & 0x03;
+    DBUS_Data.leftSwitchState = (DBUS_SwitchState)((DBUS_Buffer[5]>>6) & 0x03);
+    DBUS_Data.rightSwitchState = (DBUS_SwitchState)((DBUS_Buffer[5]>>4) & 0x03);
 
     DBUS_Data.mouse.x = ((uint32_t)DBUS_Buffer[6]) | ((uint32_t)DBUS_Buffer[7]<<8);
     DBUS_Data.mouse.y = ((uint32_t)DBUS_Buffer[8]) | ((uint32_t)DBUS_Buffer[9]<<8);
@@ -74,5 +74,9 @@ void DBUS_UpdateStatus(void) {
         DBUS_Status = kLost;
         _CLEAR(DBUS_Data);
         _CLEAR(DBUS_LastData);
+        DBUS_Data.leftSwitchState  = kSwitchDown;
+        DBUS_Data.rightSwitchState = kSwitchDown;
+        DBUS_LastData.leftSwitchState  = kSwitchDown;
+        DBUS_LastData.rightSwitchState = kSwitchDown;
     }
 }

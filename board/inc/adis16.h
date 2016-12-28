@@ -13,9 +13,9 @@ typedef struct {
     float temperature;
 
     int16_t omegaHW;
-    int32_t omegaInternal;
-    uint32_t thetaHW;
-    int16_t temperatureHW;
+    // int32_t omegaInternal;
+    // uint32_t thetaHW;
+    // int16_t temperatureHW;
 
     uint32_t lastUpdateTick;
 } ADIS16_DataTypeDef;

@@ -38,11 +38,11 @@ void CAN_Init(CAN_SimpleInitTypeDef *canInit) {
     handle->Init.BS1 = CAN_BS1_9TQ;
     handle->Init.BS2 = CAN_BS2_4TQ;
     handle->Init.TTCM = DISABLE;
-    handle->Init.ABOM = DISABLE;
+    handle->Init.ABOM = ENABLE;
     handle->Init.AWUM = DISABLE;
     handle->Init.NART = DISABLE;
     handle->Init.RFLM = DISABLE;
-    handle->Init.TXFP = ENABLE;
+    handle->Init.TXFP = DISABLE;
     handle->pTxMsg = canInit->CanTx;
     handle->pRxMsg = canInit->CanRx;
     HAL_CAN_Init(handle);

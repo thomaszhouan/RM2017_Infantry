@@ -35,22 +35,12 @@ static int16_t ADIS16_GetOmega(void);
 static uint16_t ADIS16_GetTheta(void);
 static int16_t ADIS16_GetTemperature(void);
 
-static float omegaIntegral;
-static float initialTemperature;
-
-#define omegaBufferSize           1
-static int32_t omegaBuffer[omegaBufferSize];
-static uint8_t omegaBufferId;
-
 void ADIS16_Init(void) {
     /* Data initialization */
     ADIS16_Data.omega = 0;
     ADIS16_Data.theta = 0;
     ADIS16_Data.temperature = 25.0f;
     ADIS16_Data.lastUpdateTick = 0;
-    omegaIntegral = 0.0f;
-    omegaBufferId = 0;
-    memset(omegaBuffer, 0, sizeof(omegaBuffer));
     ADIS16_DataUpdated = 0;
 
     /* Peripheral initialization */
@@ -78,33 +68,12 @@ void ADIS16_Update(void) {
 
     ADIS16_Data.lastUpdateTick = tick;
     ADIS16_Data.omegaHW = ADIS16_GetOmega();
-    ADIS16_Data.thetaHW = ADIS16_GetTheta();
-    ADIS16_Data.temperatureHW = ADIS16_GetTemperature();
-    ADIS16_Data.temperature = TEMPERATURE_OFFSET +
-        ADIS16_Data.temperatureHW * TEMPERATURE_SCALE;
-
-    /* Omega filter */
-    ADIS16_Data.omegaInternal -= omegaBuffer[omegaBufferId];
-    ADIS16_Data.omegaInternal += (omegaBuffer[omegaBufferId] = ADIS16_Data.omegaHW);
-    omegaBufferId = (omegaBufferId+1)&(omegaBufferSize-1);
-    ADIS16_Data.omega = -(ADIS16_Data.omegaInternal / omegaBufferSize);
-
-    /* Integration */
-    float delta = ADIS16_Data.omegaHW -
-        BIAS_TEMP_COEFFICIENT * (ADIS16_Data.temperature - initialTemperature);
-    if (ABS(delta) < MIN_OMEGA)
-        delta = 0;
-    omegaIntegral += delta;
-    if (omegaIntegral < 0) omegaIntegral += 1258065;
-    else if (omegaIntegral >= 1258065) omegaIntegral -= 1258065;
-    ADIS16_Data.theta = omegaIntegral * 0.07326f * 0.03906f;
+    ADIS16_Data.omega = -ADIS16_Data.omegaHW;
 }
 
 void ADIS16_Calibrate(uint16_t sample) {
     HAL_Delay(2000);
 
-    initialTemperature = TEMPERATURE_OFFSET +
-        ADIS16_GetTemperature()*TEMPERATURE_SCALE;
     uint16_t originalOffset = ADIS16_Read(ADIS16_OFF);
     int32_t offsetSum = 0;
     for (uint16_t i = 0; i < sample; ++i) {

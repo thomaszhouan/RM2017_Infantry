@@ -16,6 +16,7 @@ int main(void) {
     SystemClock_Config();
     HAL_NVIC_SetPriority(SysTick_IRQn, 5, 0);
     DWT_DelayInit();
+    HAL_Delay(200);
 
     // LCD
     ST7735_Init();
@@ -37,11 +38,13 @@ int main(void) {
         JOYSTICK_CallbackInstall(pos, JOYSTICK_Handler);
 
     ST7735_Print(0, 0, GREEN, BLACK, "RM2017 Infantry");
-    ST7735_Print(0, 1, GREEN, BLACK, "Volt");
-    ST7735_Print(0, 2, GREEN, BLACK, "Curr");
-    ST7735_Print(0, 3, GREEN, BLACK, "Omg");
-    ST7735_Print(0, 4, GREEN, BLACK, "Ra");
-    ST7735_Print(0, 5, GREEN, BLACK, "E");
+    ST7735_Print(0, 1, GREEN, BLACK, "w1");
+    ST7735_Print(0, 2, GREEN, BLACK, "w2");
+    ST7735_Print(0, 3, GREEN, BLACK, "w3");
+    ST7735_Print(0, 4, GREEN, BLACK, "w4");
+    ST7735_Print(0, 5, GREEN, BLACK, "Ra");
+    ST7735_Print(0, 6, GREEN, BLACK, "Omg");
+    ST7735_Print(0, 7, GREEN, BLACK, "R");
     
     // TIM2 init (1ms)
     __HAL_RCC_TIM2_CLK_ENABLE();
@@ -64,11 +67,13 @@ int main(void) {
         else { // DBUS connection lost
             CHASSIS_SetFree();
         }
-        ST7735_Print(5, 1, GREEN, BLACK, "%.2f", JUDGE_Data.voltage);
-        ST7735_Print(5, 2, GREEN, BLACK, "%.2f", JUDGE_Data.current);
-        ST7735_Print(5, 3, GREEN, BLACK, "%d", ADIS16_Data.omega);
-        ST7735_Print(5, 4, GREEN, BLACK, "%.2f", ChassisPowerRatio);
-        ST7735_Print(5, 5, GREEN, BLACK, "%.2f", JUDGE_Data.remainEnergy);
+        ST7735_Print(3, 1, GREEN, BLACK, "%4d %5d", MotorVelocity[0]/2, MotorOutput[0]);
+        ST7735_Print(3, 2, GREEN, BLACK, "%4d %5d", -MotorVelocity[1]/2, -MotorOutput[1]);
+        ST7735_Print(3, 3, GREEN, BLACK, "%4d %5d", -MotorVelocity[2]/2, -MotorOutput[2]);
+        ST7735_Print(3, 4, GREEN, BLACK, "%4d %5d", MotorVelocity[3]/2, MotorOutput[3]);
+        ST7735_Print(3, 5, GREEN, BLACK, "%.2f", ChassisPowerRatio);
+        ST7735_Print(3, 6, GREEN, BLACK, "%d", ADIS16_Data.omega);
+        ST7735_Print(3, 7, GREEN, BLACK, "%d", DBUS_Data.rightSwitchState);
     }
 }
 

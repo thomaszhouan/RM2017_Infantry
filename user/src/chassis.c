@@ -31,6 +31,12 @@ static int32_t CHASSIS_Trim(int32_t val, int32_t lim) {
     return val;
 }
 
+static int32_t CHASSIS_Clamp(int32_t val, int32_t min, int32_t max) {
+    if (val < min) return min;
+    else if (val > max) return max;
+    else return val;
+}
+
 static void CHASSIS_ClearAll(void) {
     _CLEAR(MotorAngle);
     _CLEAR(MotorLastAngle);
@@ -91,9 +97,9 @@ void CHASSIS_Init(void) {
     /* Chassis power controller */
     PID_Reset(&ChassisPowerController);
     ChassisPowerController.Kp = 0.005f;
-    ChassisPowerController.Ki = 0.010f;
+    ChassisPowerController.Ki = 0.008f;
     ChassisPowerController.Kd = 0.000f;
-    ChassisPowerController.IDecayFactor = 0.7f;
+    ChassisPowerController.IDecayFactor = 0.9f;
     ChassisPowerController.MAX_Pout = 100;
     ChassisPowerController.MAX_Integral = 100;
     ChassisPowerController.MAX_PIDout = 1;
@@ -102,6 +108,7 @@ void CHASSIS_Init(void) {
     ChassisPowerRatio = 1.0f;
 
     CHASSIS_ClearAll();
+    _CLEAR(MotorFeedbackCount);
 
     HAL_CAN_Receive_IT(&CHASSIS_CAN_HANDLE, 0);
 }
@@ -112,6 +119,7 @@ void CHASSIS_UpdateMeasure(uint16_t motorId) {
     MotorLastAngle[id] = MotorAngle[id];
     MotorAngle[id] = ((uint16_t)data[0]<<8) | ((uint16_t)data[1]);
     int16_t newVelocity = ((uint16_t)data[2]<<8) | ((uint16_t)data[3]);
+    ++MotorFeedbackCount[id];
 
     /* overflow protection */
     if (TargetVelocity[id] > 10 && newVelocity < -3000) newVelocity += 16384;
@@ -129,19 +137,16 @@ void CHASSIS_MotorControl(uint16_t motorId) {
     uint16_t id = _ID(motorId);
     if (!MeasureUpdated[id]) return;
     MotorOutput[id] = (int16_t)PID_Update(MotorController+id,
-        TargetVelocity[id], MotorVelocity[id]/2);
-
-    if (JUDGE_Data.powerUpdated) {
-        JUDGE_Data.powerUpdated = 0;
-        CHASSIS_PowerControl();
-    }
-
-    MotorOutput[id] = (int16_t)(MotorOutput[id]*ChassisPowerRatio);
+        ChassisPowerRatio*TargetVelocity[id], MotorVelocity[id]/2);
     
     MeasureUpdated[id] = 0;
 }
 
 void CHASSIS_Control(void) {
+    if (JUDGE_Data.powerUpdated) {
+        JUDGE_Data.powerUpdated = 0;
+        CHASSIS_PowerControl();
+    }
     CHASSIS_MotorControl(FL_MOTOR_ID);
     CHASSIS_MotorControl(FR_MOTOR_ID);
     CHASSIS_MotorControl(BR_MOTOR_ID);
@@ -158,24 +163,47 @@ void CHASSIS_Control(void) {
 void CHASSIS_SetMotion(void) {
     static int32_t velocityX = 0, velocityY = 0;
     static int32_t tmpVelocity[4];
+    static const int32_t maxDelta = 250;
 
-    /* low pass filter */
-    velocityX = (velocityX*7+18*DBUS_Data.ch1)/8;
-    velocityY = (velocityY*7+12*DBUS_Data.ch2)/8;
-    targetOmega = (targetOmega*7+16*DBUS_Data.ch3)/8;
-    if (ADIS16_DataUpdated) {
-        ADIS16_DataUpdated = 0;
-        CHASSIS_RotationControl();
+    velocityX = 18 * DBUS_Data.ch1;
+    velocityY = 12 * DBUS_Data.ch2;
+    targetOmega = 20 * DBUS_Data.ch3;
+
+    /*
+        Chassis angle control mode (DBUS right switch):
+        kSwitchDown: open loop
+        kSwitchMiddle: omega close loop
+        kSwitchUp: angle close loop (not supported now)
+    */
+    if (DBUS_Data.rightSwitchState == kSwitchDown) {
+        if (DBUS_LastData.rightSwitchState == kSwitchMiddle)
+            PID_Reset(&ChassisAngleController);
+        ChassisOmegaOutput = (ChassisOmegaOutput*7+8*DBUS_Data.ch3)/8;
     }
-    // ChassisOmegaOutput = (ChassisOmegaOutput*7+8*DBUS_Data.ch3)/8;
+    else if (DBUS_Data.rightSwitchState == kSwitchMiddle) {
+        if (ADIS16_DataUpdated) {
+            ADIS16_DataUpdated = 0;
+            CHASSIS_RotationControl();
+        }
+    }
+    else { // DBUS_Data.rightSwitchState == kSwitchUp
+        /* temporary, same as kSwitchDown */
+        if (DBUS_LastData.rightSwitchState == kSwitchMiddle)
+            PID_Reset(&ChassisAngleController);
+        ChassisOmegaOutput = (ChassisOmegaOutput*7+8*DBUS_Data.ch3)/8;
+    }
 
-    tmpVelocity[0] = (int32_t)velocityY + velocityX + ChassisOmegaOutput;
-    tmpVelocity[1] = (int32_t)velocityY - velocityX - ChassisOmegaOutput;
-    tmpVelocity[2] = (int32_t)velocityY + velocityX - ChassisOmegaOutput;
-    tmpVelocity[3] = (int32_t)velocityY - velocityX + ChassisOmegaOutput;
+    tmpVelocity[0] = velocityY + velocityX + ChassisOmegaOutput;
+    tmpVelocity[1] = velocityY - velocityX - ChassisOmegaOutput;
+    tmpVelocity[2] = velocityY + velocityX - ChassisOmegaOutput;
+    tmpVelocity[3] = velocityY - velocityX + ChassisOmegaOutput;
 
-    for (uint8_t i = 0; i < 4; ++i)
+    for (uint8_t i = 0; i < 4; ++i) {
+        int32_t tmp = MOTOR_DIR[i] ? TargetVelocity[i] : -TargetVelocity[i];
+        tmpVelocity[i] = CHASSIS_Clamp(tmpVelocity[i],
+            tmp-maxDelta, tmp+maxDelta);
         CHASSIS_SetTargetVelocity(i+CHASSIS_CAN_ID_OFFSET, tmpVelocity[i]);
+    }
 }
 
 void CHASSIS_RotationControl(void) {
@@ -190,6 +218,7 @@ void CHASSIS_PowerControl(void) {
     if (reducedRatio < 0.0f)
         reducedRatio = 0.0f;
     ChassisPowerRatio = 1.0f - reducedRatio;
+    // ChassisPowerRatio = 1.0f;
 }
 
 void CHASSIS_SetTargetVelocity(uint16_t motorId, int32_t velocity) {

@@ -23,6 +23,12 @@
 #define KEY_S       0x0002
 #define KEY_W       0x0001
 
+typedef enum {
+    kSwitchUp     = 1,
+    kSwitchDown   = 2,
+    kSwitchMiddle = 3
+} DBUS_SwitchState;
+
 /*
     DBUS decode type
 */
@@ -40,8 +46,8 @@ typedef struct {
         Range: [1..3]
         1: Up  2: Down  3: Middle
     */
-    uint8_t switch_left;
-    uint8_t switch_right;
+    DBUS_SwitchState leftSwitchState;
+    DBUS_SwitchState rightSwitchState;
     
     struct {
         /*
