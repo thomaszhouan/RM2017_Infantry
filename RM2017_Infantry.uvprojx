@@ -386,6 +386,11 @@
               <FilePath>.\user\src\dbus.c</FilePath>
             </File>
             <File>
+              <FileName>gimbal.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\user\src\gimbal.c</FilePath>
+            </File>
+            <File>
               <FileName>judge.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\user\src\judge.c</FilePath>
@@ -534,6 +539,11 @@
               <FileName>common.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\board\src\common.c</FilePath>
+            </File>
+            <File>
+              <FileName>dwt.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\board\src\dwt.c</FilePath>
             </File>
             <File>
               <FileName>gpio.c</FileName>

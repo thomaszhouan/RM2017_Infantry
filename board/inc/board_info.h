@@ -163,6 +163,7 @@ typedef enum {
 #define LCD_SDAT_PIN                            GPIO_PIN_7
 
 /*----------ADIS16----------*/
+#define USE_GYRO                                0
 #define ADIS16_SPI_NUM                          3
 #define ADIS16_SPI_INSTANCE                     EVALUATOR2(SPI, ADIS16_SPI_NUM)
 #define ADIS16_SPI_HANDLE                       EVALUATOR3(Spi, ADIS16_SPI_NUM, _Handle)
@@ -206,5 +207,11 @@ typedef enum {
 #define CHASSIS_CAN_TX                          EVALUATOR3(Can, CHASSIS_CAN_ID, _TxMsg)
 #define CHASSIS_CAN_RX                          EVALUATOR3(Can, CHASSIS_CAN_ID, _RxMsg)
 #define CHASSIS_CAN_HANDLE                      EVALUATOR3(Can, CHASSIS_CAN_ID, _Handle)
+
+#define GIMBAL_CAN_ID                           1
+#define GIMBAL_CAN_INSTANCE                     EVALUATOR2(CAN, GIMBAL_CAN_ID)
+#define GIMBAL_CAN_TX                           EVALUATOR3(Can, GIMBAL_CAN_ID, _TxMsg)
+#define GIMBAL_CAN_RX                           EVALUATOR3(Can, GIMBAL_CAN_ID, _RxMsg)
+#define GIMBAL_CAN_HANDLE                       EVALUATOR3(Can, GIMBAL_CAN_ID, _Handle)
 
 #endif // BOARD_INFO_H

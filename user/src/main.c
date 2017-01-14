@@ -5,6 +5,8 @@
 void JOYSTICK_Handler(uint16_t GPIO_Pin);
 void Error_Handler(void);
 
+volatile uint32_t PitchCnt = 0;
+
 int main(void) {
     /* STM32F4xx HAL library initialization:
        - Configure the Flash prefetch, instruction and Data caches
@@ -24,27 +26,26 @@ int main(void) {
     ST7735_FillColor(BLACK);
     ST7735_Print(0, 0, GREEN, BLACK, "Gyro Calibrate");
 
+#if (USE_GYRO==1)
     ADIS16_Init();
     ADIS16_Calibrate(512);
+#endif // USE_GYRO
 
     LED_Init(LED0);
     BUZZER_Init();
     DBUS_Init();
     JUDGE_Init();
-    CHASSIS_Init();
+    // CHASSIS_Init();
+    GIMBAL_Init();
     
     JOYSTICK_Init(15, 0);
     for (Joystick_TypeDef pos = JUP; pos < JOYSTICKn; ++pos)
         JOYSTICK_CallbackInstall(pos, JOYSTICK_Handler);
 
     ST7735_Print(0, 0, GREEN, BLACK, "RM2017 Infantry");
-    ST7735_Print(0, 1, GREEN, BLACK, "Omg");
-    ST7735_Print(0, 2, GREEN, BLACK, "The");
-    ST7735_Print(0, 3, GREEN, BLACK, "OO");
-    ST7735_Print(0, 4, GREEN, BLACK, "TO");
-    ST7735_Print(0, 5, GREEN, BLACK, "TA");
-    ST7735_Print(0, 6, GREEN, BLACK, "AE");
-    ST7735_Print(0, 7, GREEN, BLACK, "ABT");
+    ST7735_Print(0, 1, GREEN, BLACK, "Pos");
+    ST7735_Print(0, 2, GREEN, BLACK, "RI");
+    ST7735_Print(0, 3, GREEN, BLACK, "GI");
     
     // TIM2 init (1ms)
     __HAL_RCC_TIM2_CLK_ENABLE();
@@ -58,6 +59,7 @@ int main(void) {
     HAL_NVIC_SetPriority(TIM2_IRQn, 6, 0);
     HAL_NVIC_EnableIRQ(TIM2_IRQn);
 
+#if (USE_GYRO==1)
     // TI3 init (256Hz) [256 * 125 = 32000]
     __HAL_RCC_TIM3_CLK_ENABLE();
     Tim3_Handle.Instance = TIM3;
@@ -70,6 +72,7 @@ int main(void) {
     HAL_NVIC_SetPriority(TIM3_IRQn, 7, 0);
     HAL_NVIC_EnableIRQ(TIM3_IRQn);
     HAL_TIM_Base_Start_IT(&Tim3_Handle);
+#endif // USE_GYRO
     
     // start TIM2
     HAL_TIM_Base_Start_IT(&Tim2_Handle);
@@ -80,13 +83,9 @@ int main(void) {
         else { // DBUS connection lost
             CHASSIS_SetFree();
         }
-        ST7735_Print(4, 1, GREEN, BLACK, "%d", ADIS16_Data.omega);
-        ST7735_Print(4, 2, GREEN, BLACK, "%d", ADIS16_Data.theta);
-        ST7735_Print(4, 3, GREEN, BLACK, "%d", ChassisOmegaOutput);
-        ST7735_Print(4, 4, GREEN, BLACK, "%d", targetOmega);
-        ST7735_Print(4, 5, GREEN, BLACK, "%.2f", targetAngle);
-        ST7735_Print(4, 6, GREEN, BLACK, "%d", angleError);
-        ST7735_Print(4, 7, GREEN, BLACK, "%d", ADIS16_Data.absoluteTheta);
+        ST7735_Print(4, 1, GREEN, BLACK, "%d", GimbalPosition[1]);
+        ST7735_Print(4, 2, GREEN, BLACK, "%d", GimbalRealCurrent[1]);
+        ST7735_Print(4, 3, GREEN, BLACK, "%d", GimbalGivenCurrent[1]);
     }
 }
 
@@ -157,6 +156,15 @@ void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef *handle) {
         }
 
         // enable interrupt directly to speed up
+        __HAL_CAN_ENABLE_IT(handle, CAN_IT_FMP0);
+    }
+    else { // handle == &GIMBAL_CAN_HANDLE
+        ++PitchCnt;
+        switch (GIMBAL_CAN_RX.StdId) {
+            case GIMBAL_YAW_ID: case GIMBAL_PITCH_ID: {
+                GIMBAL_UpdateMeasure(GIMBAL_CAN_RX.StdId);
+            } break;
+        }
         __HAL_CAN_ENABLE_IT(handle, CAN_IT_FMP0);
     }
 }

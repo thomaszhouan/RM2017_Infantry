@@ -345,7 +345,6 @@ void TIM2_IRQHandler(void) {
   */
 #ifdef USE_TIM3
 void TIM3_IRQHandler(void) {
-    // HAL_TIM_IRQHandler(&Tim3_Handle);
     __HAL_TIM_CLEAR_IT(&Tim3_Handle, TIM_IT_UPDATE);
     ADIS16_Update();
 }

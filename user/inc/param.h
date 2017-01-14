@@ -1,6 +1,7 @@
 #ifndef PARAM_H
 #define PARAM_H
 
+/* CHASSIS param */
 #define CHASSIS_MAX_POWER                       80
 #define CHASSIS_ENERGY                          60
 #define CHASSIS_USE_3510_19
@@ -27,11 +28,11 @@
 #define CHASSIS_PID_MODE                        kPositional
 
 /* chassis angle control parameter */
-#define CHASSIS_OMEGA_KP                        0.45f
-#define CHASSIS_OMEGA_KI                        0.012f
-#define CHASSIS_OMEGA_KD                        0.020f
+#define CHASSIS_OMEGA_KP                        0.00f
+#define CHASSIS_OMEGA_KI                        0.10f
+#define CHASSIS_OMEGA_KD                        0.00f
 #define CHASSIS_OMEGA_MAX_POUT                  5000
-#define CHASSIS_OMEGA_MAX_INTEGRAL              5000
+#define CHASSIS_OMEGA_MAX_INTEGRAL              35000
 #define CHASSIS_OMEGA_MAX_PIDOUT                5300
 #define CHASSIS_OMEGA_MIN_PIDOUT                5
 #define CHASSIS_OMEGA_PID_MODE                  kPositional
@@ -41,5 +42,15 @@
 #elif defined(CHASSIS_USE_RM35)
 
 #endif // chassis motor parameter
+
+/* GIMBAL param */
+#define GIMBAL_MASTER_ID                        0x1FFU
+#define GIMBAL_CALIB_ID                         0x3F0U
+#define GIMBAL_MOTOR_CNT                        4
+#define GIMBAL_CAN_ID_OFFSET                    0x205U
+#define GIMBAL_YAW_ID                           0x205U
+#define GIMBAL_PITCH_ID                         0x206U
+#define GIMBAL_ROLL_ID                          0x207U
+#define GIMBAL_RESV_ID                          0x208U
 
 #endif // PARAM_H

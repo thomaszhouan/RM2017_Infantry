@@ -100,9 +100,9 @@ void CHASSIS_Init(void) {
 
     /* Chassis angle controller */
     PID_Reset(&ChassisAngleController);
-    ChassisAngleController.Kp = 16.00f;
-    ChassisAngleController.Ki = 0.40f;
-    ChassisAngleController.Kd = 0.10f;
+    ChassisAngleController.Kp = 10.0f;//16.00f;
+    ChassisAngleController.Ki = 0.0f;//0.40f;
+    ChassisAngleController.Kd = 9.0f;//0.10f;
     ChassisAngleController.MAX_Pout = 10000;
     ChassisAngleController.MAX_Integral = 10000;
     ChassisAngleController.MAX_PIDout = 15000;
@@ -117,7 +117,7 @@ void CHASSIS_Init(void) {
     ChassisPowerController.IDecayFactor = 0.7f;
     ChassisPowerController.MAX_Pout = 100;
     ChassisPowerController.MAX_Integral = 100;
-    ChassisPowerController.MAX_PIDout = 0.4;
+    ChassisPowerController.MAX_PIDout = 0.7;
     ChassisPowerController.MIN_PIDout = 0;
     ChassisPowerController.mode = kIntegralDecay;
     ChassisPowerRatio = 1.0f;
@@ -243,7 +243,7 @@ void CHASSIS_RotationControl(void) {
 void CHASSIS_PowerControl(void) {
     static float reducedRatio = 0.0f;
     reducedRatio = PID_Update(&ChassisPowerController,
-        CHASSIS_ENERGY/2, JUDGE_Data.remainEnergy);
+        CHASSIS_ENERGY, JUDGE_Data.remainEnergy);
     if (reducedRatio < 0.0f)
         reducedRatio = 0.0f;
     ChassisPowerRatio = 1.0f - reducedRatio;
