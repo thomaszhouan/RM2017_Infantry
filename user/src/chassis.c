@@ -181,37 +181,65 @@ void CHASSIS_SetMotion(void) {
     static int32_t tmpVelocity[4];
     static const int32_t maxDelta = 300;
 
-    velocityX = 18 * DBUS_Data.ch1;
-    velocityY = 12 * DBUS_Data.ch2;
+    int16_t vxData, vyData, rotData;
+
+    /*
+        Controller / KM control
+        kSwitchDown: controller used
+        kSwitchMiddle: keyboard + mouse used
+    */
+    if (DBUS_Data.leftSwitchState == kSwitchDown) {
+        vxData = DBUS_Data.ch1;
+        vyData = DBUS_Data.ch2;
+        rotData = DBUS_Data.ch3;
+    }
+    else if (DBUS_Data.leftSwitchState == kSwitchMiddle) {
+        if (DBUS_IsKeyPressed(KEY_D)) vxData = 660;
+        else if (DBUS_IsKeyPressed(KEY_A)) vxData = -660;
+        else vxData = 0;
+        if (DBUS_IsKeyPressed(KEY_W)) vyData = 660;
+        else if (DBUS_IsKeyPressed(KEY_S)) vyData = -660;
+        else vyData = 0;
+        if (DBUS_IsKeyPressed(KEY_E)) rotData = 660;
+        else if (DBUS_IsKeyPressed(KEY_Q)) rotData = -660;
+        else rotData = 0;
+    }
+    else { // DBUS_Data.leftSwitchState == kSwitchUp
+        vxData = 0;
+        vyData = 0;
+        rotData = 0;
+    }
+
+    velocityX = 18 * vxData;
+    velocityY = 12 * vyData;
 
     /*
         Chassis angle control mode (DBUS right switch):
         kSwitchDown: open loop
         kSwitchMiddle: omega close loop
-        kSwitchUp: angle close loop (not supported now)
+        kSwitchUp: angle close loop
     */
     if (DBUS_Data.rightSwitchState == kSwitchDown) {
-        ChassisOmegaOutput = (ChassisOmegaOutput*7+5*DBUS_Data.ch3)/8;
+        ChassisOmegaOutput = (ChassisOmegaOutput*7+5*rotData)/8;
     }
     else if (DBUS_Data.rightSwitchState == kSwitchMiddle) {
         if (DBUS_LastData.rightSwitchState != kSwitchMiddle)
             PID_Reset(&ChassisOmegaController);
         if (ADIS16_DataUpdated) {
             ADIS16_DataUpdated = 0;
-            targetOmega = 16 * DBUS_Data.ch3;
+            targetOmega = 16 * rotData;
             
             ChassisOmegaOutput = (int32_t)PID_Update(&ChassisOmegaController,
                 targetOmega, ADIS16_Data.omega);
         }
     }
     else { // DBUS_Data.rightSwitchState == kSwitchUp
-        // testing angle close loop
         if (DBUS_LastData.rightSwitchState != kSwitchUp) {
             PID_Reset(&ChassisOmegaController);
             PID_Reset(&ChassisAngleController);
             targetAngle = ADIS16_Data.absoluteTheta;
         }
-        targetAngle += 0.04f * DBUS_Data.ch3;
+        targetAngle += 0.04f * rotData;
         angleError = (int32_t)(targetAngle - ADIS16_Data.absoluteTheta);
         angleError = CHASSIS_Trim(angleError, 300);
         targetAngle = angleError + ADIS16_Data.absoluteTheta;

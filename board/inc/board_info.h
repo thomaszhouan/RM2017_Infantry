@@ -119,6 +119,10 @@ typedef enum {
                                                      else if (_id==UART3) UART3_DMA_CLK_DISABLE();\
                                                    } while(0)
 
+/*----------Monitor (UART)----------*/
+#define USE_MONITOR
+#define MONITOR_UART_NUM                        3
+
 /*----------Joystick----------*/
 typedef enum {
     JUP = 0,
@@ -163,7 +167,7 @@ typedef enum {
 #define LCD_SDAT_PIN                            GPIO_PIN_7
 
 /*----------ADIS16----------*/
-#define USE_GYRO                                0
+#define USE_GYRO                                1
 #define ADIS16_SPI_NUM                          3
 #define ADIS16_SPI_INSTANCE                     EVALUATOR2(SPI, ADIS16_SPI_NUM)
 #define ADIS16_SPI_HANDLE                       EVALUATOR3(Spi, ADIS16_SPI_NUM, _Handle)

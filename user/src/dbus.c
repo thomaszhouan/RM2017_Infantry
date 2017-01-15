@@ -6,6 +6,9 @@
 #include "uart.h"
 #include <string.h>
 
+// 70 ms
+#define TIMEOUT    10
+
 #define _CLEAR(x) do { memset((void*)(&x), 0, sizeof(x)); } while(0)
 
 void DBUS_Init(void) {
@@ -19,6 +22,7 @@ void DBUS_Init(void) {
     DBUS_LastData = DBUS_Data;
     DBUS_FrameCount = 0;
     DBUS_LastFrameCount = 0;
+    DBUS_Data.key.key_code = 0;
 
     UART_SimpleInitTypeDef UART_InitStruct;
     UART_InitStruct.Instance               = DBUS_UART;
@@ -79,4 +83,10 @@ void DBUS_UpdateStatus(void) {
         DBUS_LastData.leftSwitchState  = kSwitchDown;
         DBUS_LastData.rightSwitchState = kSwitchDown;
     }
+}
+
+uint8_t DBUS_IsKeyPressed(uint32_t key) {
+    if ((DBUS_Data.key.key_code & key) ||
+        (DBUS_LastData.key.key_code & key)) return 1;
+    else return 0;
 }

@@ -5,7 +5,7 @@
 void JOYSTICK_Handler(uint16_t GPIO_Pin);
 void Error_Handler(void);
 
-volatile uint32_t PitchCnt = 0;
+char message[256];
 
 int main(void) {
     /* STM32F4xx HAL library initialization:
@@ -35,8 +35,9 @@ int main(void) {
     BUZZER_Init();
     DBUS_Init();
     JUDGE_Init();
-    // CHASSIS_Init();
+    CHASSIS_Init();
     GIMBAL_Init();
+    MONITOR_Init();
     
     JOYSTICK_Init(15, 0);
     for (Joystick_TypeDef pos = JUP; pos < JOYSTICKn; ++pos)
@@ -44,8 +45,12 @@ int main(void) {
 
     ST7735_Print(0, 0, GREEN, BLACK, "RM2017 Infantry");
     ST7735_Print(0, 1, GREEN, BLACK, "Pos");
-    ST7735_Print(0, 2, GREEN, BLACK, "RI");
-    ST7735_Print(0, 3, GREEN, BLACK, "GI");
+    ST7735_Print(0, 2, GREEN, BLACK, "RV");
+    ST7735_Print(0, 3, GREEN, BLACK, "Omg");
+    ST7735_Print(0, 4, GREEN, BLACK, "W");
+    ST7735_Print(0, 5, GREEN, BLACK, "S");
+    ST7735_Print(0, 6, GREEN, BLACK, "A");
+    ST7735_Print(0, 7, GREEN, BLACK, "D");
     
     // TIM2 init (1ms)
     __HAL_RCC_TIM2_CLK_ENABLE();
@@ -82,10 +87,17 @@ int main(void) {
         }
         else { // DBUS connection lost
             CHASSIS_SetFree();
+            GIMBAL_SetFree();
         }
-        ST7735_Print(4, 1, GREEN, BLACK, "%d", GimbalPosition[1]);
-        ST7735_Print(4, 2, GREEN, BLACK, "%d", GimbalRealCurrent[1]);
-        ST7735_Print(4, 3, GREEN, BLACK, "%d", GimbalGivenCurrent[1]);
+        ST7735_Print(4, 1, GREEN, BLACK, "%d", GimbalPosition[0]);
+        ST7735_Print(4, 2, GREEN, BLACK, "%d", GimbalVelocity[0]);
+        ST7735_Print(4, 3, GREEN, BLACK, "%d", ADIS16_Data.omega);
+        ST7735_Print(4, 4, GREEN, BLACK, "%d", DBUS_IsKeyPressed(KEY_W));
+        ST7735_Print(4, 5, GREEN, BLACK, "%d", DBUS_IsKeyPressed(KEY_S));
+        ST7735_Print(4, 6, GREEN, BLACK, "%d", DBUS_IsKeyPressed(KEY_A));
+        ST7735_Print(4, 7, GREEN, BLACK, "%d", DBUS_IsKeyPressed(KEY_D));
+        sprintf(message, "%d %d\n", GimbalPosition[0], GimbalVelocity[0]);
+        MONITOR_Send((uint8_t*)message, strlen(message));
     }
 }
 
@@ -142,8 +154,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *handle) {
 
     if (DBUS_Status == kConnected) {
         CHASSIS_Control();
+        GIMBAL_Control();
     }
     CHASSIS_SendCmd();
+    GIMBAL_SendCmd();
 }
 
 void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef *handle) {
@@ -159,7 +173,6 @@ void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef *handle) {
         __HAL_CAN_ENABLE_IT(handle, CAN_IT_FMP0);
     }
     else { // handle == &GIMBAL_CAN_HANDLE
-        ++PitchCnt;
         switch (GIMBAL_CAN_RX.StdId) {
             case GIMBAL_YAW_ID: case GIMBAL_PITCH_ID: {
                 GIMBAL_UpdateMeasure(GIMBAL_CAN_RX.StdId);

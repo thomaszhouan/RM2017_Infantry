@@ -99,5 +99,6 @@ DBUS_EXT volatile uint32_t DBUS_FrameCount, DBUS_LastFrameCount;
 void DBUS_Init(void);
 void DBUS_Decode(void);
 void DBUS_UpdateStatus(void);
+uint8_t DBUS_IsKeyPressed(uint32_t key);
 
 #endif // DBUS_H

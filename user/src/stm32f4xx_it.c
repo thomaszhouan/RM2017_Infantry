@@ -266,6 +266,10 @@ void USART3_IRQHandler(void) {
     tmp = USART3->DR;
     tmp = USART3->SR;
     UNUSED(tmp);
+
+#ifdef USE_MONITOR
+    HAL_UART_IRQHandler(&Uart3_Handle);
+#endif // USE_MONITOR
 }
 
 /**

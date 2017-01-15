@@ -16,5 +16,6 @@
 #include "adis16.h"
 #include "dwt.h"
 #include "gimbal.h"
+#include "monitor.h"
 
 #endif // MAIN_H
