@@ -401,6 +401,16 @@
               <FilePath>.\user\src\main.c</FilePath>
             </File>
             <File>
+              <FileName>monitor.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\user\src\monitor.c</FilePath>
+            </File>
+            <File>
+              <FileName>mpu6050.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\user\src\mpu6050.c</FilePath>
+            </File>
+            <File>
               <FileName>pid.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\user\src\pid.c</FilePath>
@@ -474,6 +484,11 @@
               <FileName>stm32f4xx_hal_gpio.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\firmware\src\stm32f4xx_hal_gpio.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f4xx_hal_i2c.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\firmware\src\stm32f4xx_hal_i2c.c</FilePath>
             </File>
             <File>
               <FileName>stm32f4xx_hal_rcc.c</FileName>

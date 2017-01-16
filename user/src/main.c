@@ -38,6 +38,7 @@ int main(void) {
     CHASSIS_Init();
     GIMBAL_Init();
     MONITOR_Init();
+    MPU6050_Init();
     
     JOYSTICK_Init(15, 0);
     for (Joystick_TypeDef pos = JUP; pos < JOYSTICKn; ++pos)
@@ -46,11 +47,6 @@ int main(void) {
     ST7735_Print(0, 0, GREEN, BLACK, "RM2017 Infantry");
     ST7735_Print(0, 1, GREEN, BLACK, "Pos");
     ST7735_Print(0, 2, GREEN, BLACK, "RV");
-    ST7735_Print(0, 3, GREEN, BLACK, "Omg");
-    ST7735_Print(0, 4, GREEN, BLACK, "W");
-    ST7735_Print(0, 5, GREEN, BLACK, "S");
-    ST7735_Print(0, 6, GREEN, BLACK, "A");
-    ST7735_Print(0, 7, GREEN, BLACK, "D");
     
     // TIM2 init (1ms)
     __HAL_RCC_TIM2_CLK_ENABLE();
@@ -91,12 +87,8 @@ int main(void) {
         }
         ST7735_Print(4, 1, GREEN, BLACK, "%d", GimbalPosition[0]);
         ST7735_Print(4, 2, GREEN, BLACK, "%d", GimbalVelocity[0]);
-        ST7735_Print(4, 3, GREEN, BLACK, "%d", ADIS16_Data.omega);
-        ST7735_Print(4, 4, GREEN, BLACK, "%d", DBUS_IsKeyPressed(KEY_W));
-        ST7735_Print(4, 5, GREEN, BLACK, "%d", DBUS_IsKeyPressed(KEY_S));
-        ST7735_Print(4, 6, GREEN, BLACK, "%d", DBUS_IsKeyPressed(KEY_A));
-        ST7735_Print(4, 7, GREEN, BLACK, "%d", DBUS_IsKeyPressed(KEY_D));
-        sprintf(message, "%d %d\n", GimbalPosition[0], GimbalVelocity[0]);
+        sprintf(message, "%d %d %d\n",
+            MPU6050_GyroData[0], MPU6050_GyroData[1], MPU6050_GyroData[2]);
         MONITOR_Send((uint8_t*)message, strlen(message));
     }
 }
@@ -128,6 +120,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *handle) {
     if (handle == &DBUS_UART_HANDLE) {
         DBUS_Decode();
         CHASSIS_SetMotion();
+        GIMBAL_SetMotion();
     }
 }
 
@@ -152,12 +145,15 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *handle) {
         DBUS_UpdateStatus();
     }
 
+    if (tick % 5 == 1)
+        MPU6050_ReadGyroData();
+
     if (DBUS_Status == kConnected) {
         CHASSIS_Control();
-        GIMBAL_Control();
+        // GIMBAL_Control();
     }
     CHASSIS_SendCmd();
-    GIMBAL_SendCmd();
+    // GIMBAL_SendCmd();
 }
 
 void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef *handle) {

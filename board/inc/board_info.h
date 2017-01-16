@@ -45,6 +45,10 @@ HANDLE_EXT CAN_HandleTypeDef Can2_Handle;
 HANDLE_EXT CanRxMsgTypeDef Can2_RxMsg;
 HANDLE_EXT CanTxMsgTypeDef Can2_TxMsg;
 
+// I2C1
+#define USE_I2C1
+HANDLE_EXT I2C_HandleTypeDef I2c1_Handle;
+
 /*----------LED----------*/
 typedef enum {
     LED0 = 0,
@@ -167,7 +171,7 @@ typedef enum {
 #define LCD_SDAT_PIN                            GPIO_PIN_7
 
 /*----------ADIS16----------*/
-#define USE_GYRO                                1
+#define USE_GYRO                                0
 #define ADIS16_SPI_NUM                          3
 #define ADIS16_SPI_INSTANCE                     EVALUATOR2(SPI, ADIS16_SPI_NUM)
 #define ADIS16_SPI_HANDLE                       EVALUATOR3(Spi, ADIS16_SPI_NUM, _Handle)

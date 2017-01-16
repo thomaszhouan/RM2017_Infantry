@@ -11,7 +11,10 @@
 
 #define _CLEAR(x) do { memset((void*)(x), 0, sizeof(x)); } while(0)
 
-static PID_Controller GimbalController[4];
+/* 1: normal 0: reverse */
+static const char MOTOR_DIR[GIMBAL_MOTOR_CNT] = {0, 1, 1, 1};
+static PID_Controller GimbalVelController[GIMBAL_MOTOR_CNT];
+static uint16_t MeasureUpdated[GIMBAL_MOTOR_CNT];
 
 static int32_t GIMBAL_Trim(int32_t val, int32_t lim) {
     if (val > lim) val = lim;
@@ -46,12 +49,23 @@ static void GIMBAL_ClearAll(void) {
     _CLEAR(GimbalGivenCurrent);
     _CLEAR(GimbalPositionBuffer);
     _CLEAR(GimbalPositionBufferId);
+    _CLEAR(TargetVelocity);
 }
 
 void GIMBAL_Init(void) {
     GIMBAL_CANInit();
 
     GIMBAL_ClearAll();
+    for (uint8_t i = 0; i < GIMBAL_MOTOR_CNT; ++i)
+        PID_Reset(GimbalVelController+i);
+    GimbalVelController[YAW].Kp = 100.00f;
+    GimbalVelController[YAW].Ki = 2.50f;
+    GimbalVelController[YAW].Kd = 0.00f;
+    GimbalVelController[YAW].MAX_Pout = 10000;
+    GimbalVelController[YAW].MAX_Integral = 500;
+    GimbalVelController[YAW].MAX_PIDout = 5000;
+    GimbalVelController[YAW].MIN_PIDout = 0;
+    GimbalVelController[YAW].mode = kPositional;
 
     HAL_CAN_Receive_IT(&GIMBAL_CAN_HANDLE, 0);
 }
@@ -79,6 +93,7 @@ void GIMBAL_UpdateMeasure(uint16_t motorId) {
     // int16_t tmp_v1 = GimbalPosition[id] - GimbalLastPosition[id];
     // int16_t tmp_v2 = tmp_v1 + 8192;
     // GimbalVelocity[id] = (ABS(tmp_v1) < ABS(tmp_v2)) ? tmp_v1 : tmp_v2;
+    MeasureUpdated[id] = 1;
 }
 
 void GIMBAL_SendCmd(void) {
@@ -95,10 +110,33 @@ void GIMBAL_SendCmd(void) {
     HAL_CAN_Transmit_IT(&GIMBAL_CAN_HANDLE);
 }
 
+void GIMBAL_MotorControl(uint16_t motorId) {
+    uint16_t id = _ID(motorId);
+    if (!MeasureUpdated[id]) return;
+    GimbalOutput[id] = (int16_t)PID_Update(GimbalVelController+id,
+        TargetVelocity[id], GimbalVelocity[id]);
+    if (!MOTOR_DIR[id]) GimbalOutput[id] = -GimbalOutput[id];
+
+    MeasureUpdated[id] = 0;
+}
+
 void GIMBAL_Control(void) {
-    GimbalOutput[0] = DBUS_Data.ch3*7;
+    GIMBAL_MotorControl(GIMBAL_YAW_ID);
+    GIMBAL_MotorControl(GIMBAL_PITCH_ID);
+}
+
+/*
+    +ve direction
+    YAW: CW
+    PITCH:
+*/
+void GIMBAL_SetMotion(void) {
+    TargetVelocity[YAW] = (int16_t)(-DBUS_Data.ch3*0.05f);
+    TargetVelocity[YAW] = GIMBAL_Trim(TargetVelocity[YAW], MAX_YAW_VELOCITY);
 }
 
 void GIMBAL_SetFree(void) {
+    for (uint8_t i = 0; i < GIMBAL_MOTOR_CNT; ++i)
+        PID_Reset(GimbalVelController+i);
     GIMBAL_ClearAll();
 }

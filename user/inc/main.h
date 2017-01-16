@@ -17,5 +17,6 @@
 #include "dwt.h"
 #include "gimbal.h"
 #include "monitor.h"
+#include "mpu6050.h"
 
 #endif // MAIN_H

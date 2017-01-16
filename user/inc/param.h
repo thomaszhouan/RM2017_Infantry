@@ -52,5 +52,9 @@
 #define GIMBAL_PITCH_ID                         0x206U
 #define GIMBAL_ROLL_ID                          0x207U
 #define GIMBAL_RESV_ID                          0x208U
+#define YAW                                     (GIMBAL_YAW_ID-GIMBAL_CAN_ID_OFFSET)
+#define PITCH                                   (GIMBAL_PITCH_ID-GIMBAL_CAN_ID_OFFSET)
+#define ROLL                                    (GIMBAL_ROLL_ID-GIMBAL_CAN_ID_OFFSET)
+#define GIMBAL_ReSV                             (GIMBAL_RESV_ID-GIMBAL_CAN_ID_OFFSET)
 
 #endif // PARAM_H

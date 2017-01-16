@@ -16,6 +16,7 @@ static const char MOTOR_DIR[4] = {1, 0, 0, 1};
 static PID_Controller MotorController[4];
 static volatile int16_t MotorVelocityBuffer[4][2];
 static volatile uint8_t BufferId[4];
+static volatile int32_t MotorVelocity[4], TargetVelocity[4];
 
 static PID_Controller ChassisAngleController;
 static PID_Controller ChassisOmegaController;
