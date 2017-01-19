@@ -1,11 +1,7 @@
-#ifndef DBUS_H
-#define DBUS_H
+#ifndef DRIVER_DBUS_H
+#define DRIVER_DBUS_H
 
 #include "stm32f4xx.h"
-
-#define DBUS_UART                               EVALUATOR2(UART, DBUS_UART_NUM)
-#define DBUS_UART_HANDLE                        EVALUATOR3(Uart, DBUS_UART_NUM, _Handle)
-#define DBUS_DMA_HANDLE                         EVALUATOR3(Uart, DBUS_UART_NUM, _RxDmaHandle)
 
 #define DBUS_BUFFER_SIZE                        18U
 
@@ -103,4 +99,4 @@ void DBUS_Decode(void);
 void DBUS_UpdateStatus(void);
 uint8_t DBUS_IsKeyPressed(uint32_t key);
 
-#endif // DBUS_H
+#endif

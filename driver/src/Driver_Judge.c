@@ -1,6 +1,6 @@
 #define JUDGE_FILE
 
-#include "judge.h"
+#include "Driver_Judge.h"
 #include "param.h"
 
 void JUDGE_Init(void) {

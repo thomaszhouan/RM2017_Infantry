@@ -30,16 +30,16 @@ void BSP_NVIC_InitConfig(void) {
     // TIM2
     NVIC_InitStructure.NVIC_IRQChannel                      =   TIM2_IRQn;
     NVIC_InitStructure.NVIC_IRQChannelCmd                   =   ENABLE;
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority    =   5;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority    =   3;
     NVIC_InitStructure.NVIC_IRQChannelSubPriority           =   0;
     NVIC_Init(&NVIC_InitStructure);
 
-    // // TIM3
-    // NVIC_InitStructure.NVIC_IRQChannel                      =   TIM3_IRQn;
-    // NVIC_InitStructure.NVIC_IRQChannelCmd                   =   ENABLE;
-    // NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority    =   6;
-    // NVIC_InitStructure.NVIC_IRQChannelSubPriority           =   0;
-    // NVIC_Init(&NVIC_InitStructure);
+    // TIM3
+    NVIC_InitStructure.NVIC_IRQChannel                      =   TIM3_IRQn;
+    NVIC_InitStructure.NVIC_IRQChannelCmd                   =   ENABLE;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority    =   13;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority           =   0;
+    NVIC_Init(&NVIC_InitStructure);
 
     // // USART1
     // NVIC_InitStructure.NVIC_IRQChannel                      =   USART1_IRQn;

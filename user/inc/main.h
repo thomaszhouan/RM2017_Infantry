@@ -9,4 +9,7 @@
 #include "BSP_NVIC.h"
 #include "BSP_UART.h"
 
+#include "Driver_Led.h"
+#include "Driver_ST7735.h"
+
 #endif // MAIN_H

@@ -1,11 +1,7 @@
-#ifndef JUDGE_H
-#define JUDGE_H
+#ifndef DRIVER_JUDGE_H
+#define DRIVER_JUDGE_H
 
 #include "stm32f4xx.h"
-
-#define JUDGE_UART              EVALUATOR2(UART, JUDGE_UART_NUM)
-#define JUDGE_UART_HANDLE       EVALUATOR3(Uart, JUDGE_UART_NUM, _Handle)
-#define JUDGE_DMA_HANDLE        EVALUATOR3(Uart, JUDGE_UART_NUM, _RxDmaHandle)
 
 #define JUDGE_BUFFER_LENGTH           150
 #define JUDGE_INFO_FRAME_LENGTH       46
@@ -112,4 +108,4 @@ uint16_t Get_CRC16_Check_Sum(uint8_t *pchMessage,uint32_t dwLength,uint16_t wCRC
 uint32_t Verify_CRC16_Check_Sum(uint8_t *pchMessage, uint32_t dwLength);
 void Append_CRC16_Check_Sum(uint8_t * pchMessage,uint32_t dwLength);
 
-#endif // JUDGE_H
+#endif

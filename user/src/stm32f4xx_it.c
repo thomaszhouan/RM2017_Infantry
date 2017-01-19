@@ -43,8 +43,9 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_it.h"
-#include "dbus.h"
-#include "judge.h"
+#include "Driver_Dbus.h"
+#include "Driver_Judge.h"
+#include "Driver_Led.h"
 #include "chassis.h"
 #include "gimbal.h"
 
@@ -279,8 +280,7 @@ void TIM2_IRQHandler(void) {
     ++tick;
     if (tick == 1000) tick = 0;
 
-    if (tick % 500 == 0)
-        GPIO_ToggleBits(GPIOB, GPIO_Pin_3);
+    if (tick % 500 == 0) LED_Toggle();
 }
 
 /**
