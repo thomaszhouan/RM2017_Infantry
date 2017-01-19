@@ -26,8 +26,9 @@ typedef struct {
     MPU6050_GyroScale gfs;
 } MPU6050_ConfigTypeDef;
 
-MPU6050_EXT volatile int16_t MPU6050_GyroData[3];
-MPU6050_EXT volatile int16_t MPU6050_AccelData[3];
+MPU6050_EXT volatile int16_t MPU6050_RawGyroData[3];
+MPU6050_EXT volatile int32_t MPU6050_GyroData[3];
+MPU6050_EXT volatile int16_t MPU6050_RawAccelData[3];
 
 void MPU6050_Init(void);
 void MPU6050_Config(MPU6050_ConfigTypeDef *config);

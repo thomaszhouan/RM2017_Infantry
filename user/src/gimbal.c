@@ -5,6 +5,7 @@
 #include "gimbal.h"
 #include "can.h"
 #include "dbus.h"
+#include "mpu6050.h"
 #include <string.h>
 
 #define _ID(x) ((x)-GIMBAL_CAN_ID_OFFSET)
@@ -41,14 +42,13 @@ static void GIMBAL_CANInit(void) {
 }
 
 static void GIMBAL_ClearAll(void) {
-    _CLEAR(GimbalPosition);
+    GimbalPosition[0] = 7800;
     _CLEAR(GimbalLastPosition);
+    _CLEAR(GimbalRoundCount);
     _CLEAR(GimbalOutput);
     _CLEAR(GimbalVelocity);
     _CLEAR(GimbalRealCurrent);
     _CLEAR(GimbalGivenCurrent);
-    _CLEAR(GimbalPositionBuffer);
-    _CLEAR(GimbalPositionBufferId);
     _CLEAR(TargetVelocity);
 }
 
@@ -58,13 +58,14 @@ void GIMBAL_Init(void) {
     GIMBAL_ClearAll();
     for (uint8_t i = 0; i < GIMBAL_MOTOR_CNT; ++i)
         PID_Reset(GimbalVelController+i);
-    GimbalVelController[YAW].Kp = 100.00f;
-    GimbalVelController[YAW].Ki = 2.50f;
+    GimbalVelController[YAW].Kp = 0.145f;
+    GimbalVelController[YAW].Ki = 0.10f;//0.04f;
     GimbalVelController[YAW].Kd = 0.00f;
-    GimbalVelController[YAW].MAX_Pout = 10000;
-    GimbalVelController[YAW].MAX_Integral = 500;
+    GimbalVelController[YAW].MAX_Pout = 2000;
+    GimbalVelController[YAW].MAX_Integral = 1000;
     GimbalVelController[YAW].MAX_PIDout = 5000;
     GimbalVelController[YAW].MIN_PIDout = 0;
+    // GimbalVelController[YAW].IDecayFactor = 0.9;
     GimbalVelController[YAW].mode = kPositional;
 
     HAL_CAN_Receive_IT(&GIMBAL_CAN_HANDLE, 0);
@@ -78,21 +79,18 @@ void GIMBAL_UpdateMeasure(uint16_t motorId) {
     GimbalRealCurrent[id] = ((uint16_t)data[2]<<8)|((uint16_t)data[3]);
     GimbalGivenCurrent[id] = ((uint16_t)data[4]<<8)|((uint16_t)data[5]);
 
-    for (uint8_t i = 0; i < POSITION_BUFFER_SIZE-1; ++i)
-        GimbalPositionBuffer[id][i] = GimbalPositionBuffer[id][i+1];
-    GimbalPositionBuffer[id][POSITION_BUFFER_SIZE-1] = GimbalPosition[id];
-    int32_t sum = 0, tmp_v;
-    for (uint8_t i = 0; i < POSITION_BUFFER_SIZE/2; ++i) {
-        tmp_v = GimbalPositionBuffer[id][i+POSITION_BUFFER_SIZE/2]-GimbalPositionBuffer[id][i];
-        if (tmp_v > 4000) tmp_v -= 8192;
-        else if (tmp_v < -4000) tmp_v += 8192;
-        sum += tmp_v;
+    GimbalVelocity[id] = GimbalPosition[id] - GimbalLastPosition[id];
+    if (GimbalVelocity[id] > 5000) {
+        --GimbalRoundCount[id];
+        GimbalPosition[id] -= 8192;
+        GimbalVelocity[id] -= 8192;
     }
-    GimbalVelocity[id] = (sum * 4) / (POSITION_BUFFER_SIZE * POSITION_BUFFER_SIZE);
+    else if (GimbalVelocity[id] < -5000) {
+        ++GimbalRoundCount[id];
+        GimbalPosition[id] += 8192;
+        GimbalVelocity[id] += 8192;
+    }
 
-    // int16_t tmp_v1 = GimbalPosition[id] - GimbalLastPosition[id];
-    // int16_t tmp_v2 = tmp_v1 + 8192;
-    // GimbalVelocity[id] = (ABS(tmp_v1) < ABS(tmp_v2)) ? tmp_v1 : tmp_v2;
     MeasureUpdated[id] = 1;
 }
 
@@ -113,9 +111,14 @@ void GIMBAL_SendCmd(void) {
 void GIMBAL_MotorControl(uint16_t motorId) {
     uint16_t id = _ID(motorId);
     if (!MeasureUpdated[id]) return;
-    GimbalOutput[id] = (int16_t)PID_Update(GimbalVelController+id,
-        TargetVelocity[id], GimbalVelocity[id]);
-    if (!MOTOR_DIR[id]) GimbalOutput[id] = -GimbalOutput[id];
+    // GimbalOutput[id] = DBUS_Data.ch3;
+    GimbalOutput[id] = -(int16_t)PID_Update(GimbalVelController+id,
+        TargetVelocity[id], MPU6050_GyroData[2]);
+
+    if (GimbalPosition[0] > 9800 && GimbalOutput[0] < 0)
+        GimbalOutput[0] = 0;
+    else if (GimbalPosition[0] < 5400 && GimbalOutput[0] > 0)
+        GimbalOutput[0] = 0;
 
     MeasureUpdated[id] = 0;
 }
@@ -131,8 +134,7 @@ void GIMBAL_Control(void) {
     PITCH:
 */
 void GIMBAL_SetMotion(void) {
-    TargetVelocity[YAW] = (int16_t)(-DBUS_Data.ch3*0.05f);
-    TargetVelocity[YAW] = GIMBAL_Trim(TargetVelocity[YAW], MAX_YAW_VELOCITY);
+    TargetVelocity[0] = -DBUS_Data.ch3 * 4;
 }
 
 void GIMBAL_SetFree(void) {

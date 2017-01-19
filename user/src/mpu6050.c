@@ -156,6 +156,9 @@
 /***********Device base address*************/
 
 #define MPU6050_ADDR                        0xD0
+#define MPU6050_GYRO_OFFSET_X               0
+#define MPU6050_GYRO_OFFSET_Y               0
+#define MPU6050_GYRO_OFFSET_Z               -11
 
 static void MPU6050_WriteReg(uint8_t addr, uint8_t data) {
     HAL_I2C_Mem_Write(&I2c1_Handle, MPU6050_ADDR,
@@ -190,7 +193,7 @@ void MPU6050_Init(void) {
     /* I2C */
     __HAL_RCC_I2C1_CLK_ENABLE();
     I2c1_Handle.Instance = I2C1;
-    I2c1_Handle.Init.ClockSpeed = 50*1000;
+    I2c1_Handle.Init.ClockSpeed = 400*1000;
     I2c1_Handle.Init.DutyCycle = I2C_DUTYCYCLE_2;
     I2c1_Handle.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
     I2c1_Handle.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
@@ -213,7 +216,7 @@ void MPU6050_Init(void) {
 
     MPU6050_ConfigTypeDef MPU6050_ConfigStruct;
     MPU6050_ConfigStruct.afs = kAFS_4G;
-    MPU6050_ConfigStruct.gfs = kGFS_250DPS;
+    MPU6050_ConfigStruct.gfs = kGFS_1000DPS;
     MPU6050_Config(&MPU6050_ConfigStruct);
 }
 
@@ -237,17 +240,21 @@ void MPU6050_ReadGyroData(void) {
     static uint8_t buffer[6];
     HAL_I2C_Mem_Read(&I2c1_Handle, MPU6050_ADDR, GYRO_XOUT_H, 1, buffer, 6, 1000);
 
-    MPU6050_GyroData[0] = ((uint16_t)buffer[0]<<8)+buffer[1];
-    MPU6050_GyroData[1] = ((uint16_t)buffer[2]<<8)+buffer[3];
-    MPU6050_GyroData[2] = ((uint16_t)buffer[4]<<8)+buffer[5];
+    MPU6050_RawGyroData[0] = ((uint16_t)buffer[0]<<8)+buffer[1];
+    MPU6050_RawGyroData[1] = ((uint16_t)buffer[2]<<8)+buffer[3];
+    MPU6050_RawGyroData[2] = ((uint16_t)buffer[4]<<8)+buffer[5];
+    MPU6050_GyroData[0] = MPU6050_RawGyroData[0] - MPU6050_GYRO_OFFSET_X;
+    MPU6050_GyroData[1] = MPU6050_RawGyroData[1] - MPU6050_GYRO_OFFSET_Y;
+    MPU6050_GyroData[2] = (MPU6050_GyroData[2]*3+
+        MPU6050_RawGyroData[2] - MPU6050_GYRO_OFFSET_Z)/4;
 }
 
 void MPU6050_ReadAccelData(void) {
     static uint8_t buffer[6];
     HAL_I2C_Mem_Read(&I2c1_Handle, MPU6050_ADDR, ACCEL_XOUT_H, 1, buffer, 6, 1000);
 
-    MPU6050_AccelData[0] = ((uint16_t)buffer[0]<<8)+buffer[1];
-    MPU6050_AccelData[1] = ((uint16_t)buffer[2]<<8)+buffer[3];
-    MPU6050_AccelData[2] = ((uint16_t)buffer[4]<<8)+buffer[5];
+    MPU6050_RawAccelData[0] = ((uint16_t)buffer[0]<<8)+buffer[1];
+    MPU6050_RawAccelData[1] = ((uint16_t)buffer[2]<<8)+buffer[3];
+    MPU6050_RawAccelData[2] = ((uint16_t)buffer[4]<<8)+buffer[5];
 }
 

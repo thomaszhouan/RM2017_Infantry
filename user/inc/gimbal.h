@@ -15,8 +15,7 @@
 
 GIMBAL_EXT volatile int16_t GimbalOutput[GIMBAL_MOTOR_CNT]; // [-5000, 5000]
 GIMBAL_EXT volatile int16_t GimbalPosition[GIMBAL_MOTOR_CNT], GimbalLastPosition[GIMBAL_MOTOR_CNT]; // [0, 8191]
-GIMBAL_EXT volatile int32_t GimbalPositionBuffer[GIMBAL_MOTOR_CNT][POSITION_BUFFER_SIZE];
-GIMBAL_EXT volatile int8_t GimbalPositionBufferId[GIMBAL_MOTOR_CNT];
+GIMBAL_EXT volatile int16_t GimbalRoundCount[GIMBAL_MOTOR_CNT];
 GIMBAL_EXT volatile int16_t GimbalRealCurrent[GIMBAL_MOTOR_CNT]; // [-13000, 13000]
 GIMBAL_EXT volatile int16_t GimbalGivenCurrent[GIMBAL_MOTOR_CNT]; // [-5000, 5000]
 GIMBAL_EXT volatile int32_t GimbalVelocity[GIMBAL_MOTOR_CNT];

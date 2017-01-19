@@ -1,13 +1,7 @@
 #define DBUS_FILE
 
-#include "common.h"
-#include "board_info.h"
 #include "dbus.h"
-#include "uart.h"
 #include <string.h>
-
-// 70 ms
-#define TIMEOUT    10
 
 #define _CLEAR(x) do { memset((void*)(&x), 0, sizeof(x)); } while(0)
 
@@ -23,23 +17,6 @@ void DBUS_Init(void) {
     DBUS_FrameCount = 0;
     DBUS_LastFrameCount = 0;
     DBUS_Data.key.key_code = 0;
-
-    UART_SimpleInitTypeDef UART_InitStruct;
-    UART_InitStruct.Instance               = DBUS_UART;
-    UART_InitStruct.UartHandle             = &DBUS_UART_HANDLE;
-    UART_InitStruct.DmaHandleTx            = NULL;
-    UART_InitStruct.DmaHandleRx            = &DBUS_DMA_HANDLE;
-    UART_InitStruct.Baudrate               = 100000;
-    UART_InitStruct.Parity                 = UART_PARITY_EVEN;
-    UART_InitStruct.PreemptionPriority     = 15;
-    UART_InitStruct.SubPriority            = 0;
-    UART_InitStruct.DMA_Rx_Mode            = DMA_CIRCULAR;
-    UART_InitStruct.DMA_PreemptionPriority = 12;
-    UART_InitStruct.DMA_SubPriority        = 0;
-    UART_Init(&UART_InitStruct);
-
-    /* detect the first frame */
-    __HAL_UART_ENABLE_IT(&DBUS_UART_HANDLE, UART_IT_IDLE);
 }
 
 void DBUS_Decode(void) {

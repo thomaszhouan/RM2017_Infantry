@@ -43,11 +43,10 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_it.h"
-#include "common.h"
-#include "board_info.h"
 #include "dbus.h"
 #include "judge.h"
-#include "adis16.h"
+#include "chassis.h"
+#include "gimbal.h"
 
 /** @addtogroup STM32F4xx_HAL_Examples
   * @{
@@ -168,7 +167,6 @@ void PendSV_Handler(void)
   */
 void SysTick_Handler(void)
 {
-  HAL_IncTick();
 }
 
 /******************************************************************************/
@@ -179,56 +177,12 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
-  * @brief  This function handles External line 0 interrupt request.
-  * @param  None
-  * @retval None
-  */
-void EXTI0_IRQHandler(void) {
-    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_0);
-}
-
-/**
-  * @brief  This function handles External line 1 interrupt request.
-  * @param  None
-  * @retval None
-  */
-void EXTI1_IRQHandler(void) {
-    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_1);
-}
-
-/**
-  * @brief  This function handles External line 15:10 interrupt request.
-  * @param  None
-  * @retval None
-  */
-void EXTI15_10_IRQHandler(void) {
-    uint32_t pin;
-    if (__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_10)!=RESET) pin = GPIO_PIN_10;
-    else if (__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_11)!=RESET) pin = GPIO_PIN_11;
-    else if (__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_12)!=RESET) pin = GPIO_PIN_12;
-    else if (__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_13)!=RESET) pin = GPIO_PIN_13;
-    else if (__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_14)!=RESET) pin = GPIO_PIN_14;
-    else if (__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_15)!=RESET) pin = GPIO_PIN_15;
-
-    HAL_GPIO_EXTI_IRQHandler(pin);
-}
-
-#ifdef USE_USART1
-/**
   * @brief  This function handles UART1 interrupt request.  
   * @param  None
   * @retval None
   */
 void USART1_IRQHandler(void) {
-    /* clear IDLE line interrupt flag */
-    uint8_t tmp;
-    tmp = USART1->DR;
-    tmp = USART1->SR;
-    __HAL_UART_DISABLE_IT(&Uart1_Handle, UART_IT_IDLE);
 
-    /* start DMA */
-    HAL_UART_Receive_DMA(&DBUS_UART_HANDLE, (uint8_t*)DBUS_Buffer, DBUS_BUFFER_SIZE);
-    UNUSED(tmp);
 }
 
 /**
@@ -237,7 +191,7 @@ void USART1_IRQHandler(void) {
   * @retval None   
   */
 void DMA2_Stream5_IRQHandler(void) {
-    HAL_DMA_IRQHandler(Uart1_Handle.hdmarx);
+
 }
 
 /**
@@ -246,30 +200,16 @@ void DMA2_Stream5_IRQHandler(void) {
   * @retval None   
   */
 void DMA2_Stream7_IRQHandler(void) {
-    HAL_DMA_IRQHandler(Uart1_Handle.hdmatx);
-}
-#endif // USE_USART1
 
-#ifdef USE_USART3
+}
+
 /**
   * @brief  This function handles UART3 interrupt request.  
   * @param  None
   * @retval None
   */
 void USART3_IRQHandler(void) {
-    if (__HAL_UART_GET_FLAG(&Uart3_Handle, UART_FLAG_IDLE)==SET) {
-        JUDGE_Decode();
-    }
 
-    /* clear IDLE line interrupt flag */
-    uint8_t tmp;
-    tmp = USART3->DR;
-    tmp = USART3->SR;
-    UNUSED(tmp);
-
-#ifdef USE_MONITOR
-    HAL_UART_IRQHandler(&Uart3_Handle);
-#endif // USE_MONITOR
 }
 
 /**
@@ -278,7 +218,7 @@ void USART3_IRQHandler(void) {
   * @retval None   
   */
 void DMA1_Stream1_IRQHandler(void) {
-    HAL_DMA_IRQHandler(Uart3_Handle.hdmarx);
+
 }
 
 /**
@@ -287,18 +227,15 @@ void DMA1_Stream1_IRQHandler(void) {
   * @retval None   
   */
 void DMA1_Stream3_IRQHandler(void) {
-    HAL_DMA_IRQHandler(Uart3_Handle.hdmatx);
 }
-#endif // USE_USART3
 
-#ifdef USE_CAN1
 /**
   * @brief  This function handles CAN1 RX0 interrupt request.
   * @param  None
   * @retval None   
   */
 void CAN1_RX0_IRQHandler(void) {
-    HAL_CAN_IRQHandler(&Can1_Handle);
+
 }
 
 /**
@@ -307,18 +244,16 @@ void CAN1_RX0_IRQHandler(void) {
   * @retval None   
   */
 void CAN1_TX_IRQHandler(void) {
-    HAL_CAN_IRQHandler(&Can1_Handle);
-}
-#endif // USE_CAN1
 
-#ifdef USE_CAN2
+}
+
 /**
   * @brief  This function handles CAN2 RX0 interrupt request.
   * @param  None
   * @retval None   
   */
 void CAN2_RX0_IRQHandler(void) {
-    HAL_CAN_IRQHandler(&Can2_Handle);
+
 }
 
 /**
@@ -327,32 +262,36 @@ void CAN2_RX0_IRQHandler(void) {
   * @retval None   
   */
 void CAN2_TX_IRQHandler(void) {
-    HAL_CAN_IRQHandler(&Can2_Handle);
+
 }
-#endif // USE_CAN2
 
 /**
   * @brief  This function handles TIM2 interrupt request.
   * @param  None
   * @retval None
   */
-#ifdef USE_TIM2
 void TIM2_IRQHandler(void) {
-    HAL_TIM_IRQHandler(&Tim2_Handle);
+    static uint32_t tick = 0;
+
+    TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
+    TIM_ClearFlag(TIM2, TIM_FLAG_Update);
+
+    ++tick;
+    if (tick == 1000) tick = 0;
+
+    if (tick % 500 == 0)
+        GPIO_ToggleBits(GPIOB, GPIO_Pin_3);
 }
-#endif
 
 /**
   * @brief  This function handles TIM3 interrupt request.
   * @param  None
   * @retval None
   */
-#ifdef USE_TIM3
+
 void TIM3_IRQHandler(void) {
-    __HAL_TIM_CLEAR_IT(&Tim3_Handle, TIM_IT_UPDATE);
-    ADIS16_Update();
+
 }
-#endif
 
 /**
   * @brief  This function handles PPP interrupt request.

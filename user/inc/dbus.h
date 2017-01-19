@@ -1,6 +1,8 @@
 #ifndef DBUS_H
 #define DBUS_H
 
+#include "stm32f4xx.h"
+
 #define DBUS_UART                               EVALUATOR2(UART, DBUS_UART_NUM)
 #define DBUS_UART_HANDLE                        EVALUATOR3(Uart, DBUS_UART_NUM, _Handle)
 #define DBUS_DMA_HANDLE                         EVALUATOR3(Uart, DBUS_UART_NUM, _RxDmaHandle)

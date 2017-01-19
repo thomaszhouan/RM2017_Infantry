@@ -1,34 +1,9 @@
 #define JUDGE_FILE
 
-#include "common.h"
-#include "board_info.h"
 #include "judge.h"
-#include "uart.h"
 #include "param.h"
 
 void JUDGE_Init(void) {
-    UART_SimpleInitTypeDef UART_InitStruct;
-    UART_InitStruct.Instance               = JUDGE_UART;
-    UART_InitStruct.UartHandle             = &JUDGE_UART_HANDLE;
-    UART_InitStruct.DmaHandleTx            = NULL;
-    UART_InitStruct.DmaHandleRx            = &JUDGE_DMA_HANDLE;
-    UART_InitStruct.Baudrate               = 115200;
-    UART_InitStruct.Parity                 = UART_PARITY_NONE;
-    UART_InitStruct.PreemptionPriority     = 13;
-    UART_InitStruct.SubPriority            = 0;
-    UART_InitStruct.DMA_Rx_Mode            = DMA_NORMAL;
-    UART_InitStruct.DMA_PreemptionPriority = 13;
-    UART_InitStruct.DMA_SubPriority        = 0;
-    UART_Init(&UART_InitStruct);
-
-    /* Enable DMA request */
-    SET_BIT(JUDGE_UART_HANDLE.Instance->CR3, USART_CR3_DMAR);
-    HAL_DMA_Start(&JUDGE_DMA_HANDLE, (uint32_t)&(JUDGE_UART_HANDLE.Instance->DR),
-        (uint32_t)JUDGE_DataBuffer, JUDGE_BUFFER_LENGTH);
-
-    /* Enable Rx IDLE interrupt */
-    __HAL_UART_ENABLE_IT(&JUDGE_UART_HANDLE, UART_IT_IDLE);
-
     /* Data initialization */
     JUDGE_FrameCounter = 0;
     JUDGE_Data.voltage = 25.0f;
@@ -50,56 +25,56 @@ void JUDGE_Init(void) {
 void JUDGE_Decode(void) {
     static volatile FormatTrans_TypeDef FT;
 
-    __HAL_DMA_DISABLE(&JUDGE_DMA_HANDLE);
+    // __HAL_DMA_DISABLE(&JUDGE_DMA_HANDLE);
 
-    uint32_t frameByteCount = JUDGE_BUFFER_LENGTH - __HAL_DMA_GET_COUNTER(&JUDGE_DMA_HANDLE);
+    // uint32_t frameByteCount = JUDGE_BUFFER_LENGTH - __HAL_DMA_GET_COUNTER(&JUDGE_DMA_HANDLE);
 
-    if (frameByteCount == JUDGE_INFO_FRAME_LENGTH &&
-        Verify_CRC16_Check_Sum((uint8_t*)JUDGE_DataBuffer, JUDGE_INFO_FRAME_LENGTH)) {
-        ++JUDGE_FrameCounter;
+    // if (frameByteCount == JUDGE_INFO_FRAME_LENGTH &&
+    //     Verify_CRC16_Check_Sum((uint8_t*)JUDGE_DataBuffer, JUDGE_INFO_FRAME_LENGTH)) {
+    //     ++JUDGE_FrameCounter;
 
-        FT.U[0] = JUDGE_DataBuffer[12];
-        FT.U[1] = JUDGE_DataBuffer[13];
-        FT.U[2] = JUDGE_DataBuffer[14];
-        FT.U[3] = JUDGE_DataBuffer[15];
-        JUDGE_Data.voltage = FT.F;
+    //     FT.U[0] = JUDGE_DataBuffer[12];
+    //     FT.U[1] = JUDGE_DataBuffer[13];
+    //     FT.U[2] = JUDGE_DataBuffer[14];
+    //     FT.U[3] = JUDGE_DataBuffer[15];
+    //     JUDGE_Data.voltage = FT.F;
 
-        FT.U[0] = JUDGE_DataBuffer[16];
-        FT.U[1] = JUDGE_DataBuffer[17];
-        FT.U[2] = JUDGE_DataBuffer[18];
-        FT.U[3] = JUDGE_DataBuffer[19];
-        JUDGE_Data.current = FT.F;
+    //     FT.U[0] = JUDGE_DataBuffer[16];
+    //     FT.U[1] = JUDGE_DataBuffer[17];
+    //     FT.U[2] = JUDGE_DataBuffer[18];
+    //     FT.U[3] = JUDGE_DataBuffer[19];
+    //     JUDGE_Data.current = FT.F;
 
-        JUDGE_Data.remainLife = ((uint16_t)JUDGE_DataBuffer[11]<<8) | JUDGE_DataBuffer[10];
+    //     JUDGE_Data.remainLife = ((uint16_t)JUDGE_DataBuffer[11]<<8) | JUDGE_DataBuffer[10];
 
-        JUDGE_UpdatePower();
-    }
-    else if (frameByteCount == JUDGE_INFO_FRAME_LENGTH+JUDGE_BLOOD_FRAME_LENGTH &&
-        Verify_CRC16_Check_Sum((uint8_t*)JUDGE_DataBuffer, JUDGE_BLOOD_FRAME_LENGTH)) {
-        ++JUDGE_FrameCounter;
+    //     JUDGE_UpdatePower();
+    // }
+    // else if (frameByteCount == JUDGE_INFO_FRAME_LENGTH+JUDGE_BLOOD_FRAME_LENGTH &&
+    //     Verify_CRC16_Check_Sum((uint8_t*)JUDGE_DataBuffer, JUDGE_BLOOD_FRAME_LENGTH)) {
+    //     ++JUDGE_FrameCounter;
 
-        /* blood change due to bullet */
-        if ((JUDGE_DataBuffer[6]>>4) == 0x0) {
-            JUDGE_Data.hitArmorId = JUDGE_DataBuffer[6]&0x0F;
-            JUDGE_Data.lastHitTick = HAL_GetTick();
-        }
-    }
-    else if (frameByteCount == JUDGE_INFO_FRAME_LENGTH+JUDGE_SHOOT_FRAME_LENGTH &&
-        Verify_CRC16_Check_Sum((uint8_t*)JUDGE_DataBuffer, JUDGE_SHOOT_FRAME_LENGTH)) {
-        ++JUDGE_FrameCounter;
+    //     /* blood change due to bullet */
+    //     if ((JUDGE_DataBuffer[6]>>4) == 0x0) {
+    //         JUDGE_Data.hitArmorId = JUDGE_DataBuffer[6]&0x0F;
+    //         JUDGE_Data.lastHitTick = HAL_GetTick();
+    //     }
+    // }
+    // else if (frameByteCount == JUDGE_INFO_FRAME_LENGTH+JUDGE_SHOOT_FRAME_LENGTH &&
+    //     Verify_CRC16_Check_Sum((uint8_t*)JUDGE_DataBuffer, JUDGE_SHOOT_FRAME_LENGTH)) {
+    //     ++JUDGE_FrameCounter;
 
-        ++JUDGE_Data.shootNum;
-        FT.U[0] = JUDGE_DataBuffer[6];
-        FT.U[1] = JUDGE_DataBuffer[7];
-        FT.U[2] = JUDGE_DataBuffer[8];
-        FT.U[3] = JUDGE_DataBuffer[9];
-        JUDGE_Data.shootSpeed = FT.F;
-        JUDGE_Data.lastShootTick = HAL_GetTick();
-    }
+    //     ++JUDGE_Data.shootNum;
+    //     FT.U[0] = JUDGE_DataBuffer[6];
+    //     FT.U[1] = JUDGE_DataBuffer[7];
+    //     FT.U[2] = JUDGE_DataBuffer[8];
+    //     FT.U[3] = JUDGE_DataBuffer[9];
+    //     JUDGE_Data.shootSpeed = FT.F;
+    //     JUDGE_Data.lastShootTick = HAL_GetTick();
+    // }
 
-    __HAL_DMA_CLEAR_FLAG(&JUDGE_DMA_HANDLE, JUDGE_DMA_FLAG);
-    __HAL_DMA_SET_COUNTER(&JUDGE_DMA_HANDLE, JUDGE_BUFFER_LENGTH);
-    __HAL_DMA_ENABLE(&JUDGE_DMA_HANDLE);
+    // __HAL_DMA_CLEAR_FLAG(&JUDGE_DMA_HANDLE, JUDGE_DMA_FLAG);
+    // __HAL_DMA_SET_COUNTER(&JUDGE_DMA_HANDLE, JUDGE_BUFFER_LENGTH);
+    // __HAL_DMA_ENABLE(&JUDGE_DMA_HANDLE);
 }
 
 void JUDGE_UpdatePower(void) {

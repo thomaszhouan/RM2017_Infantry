@@ -1,22 +1,12 @@
 #ifndef MAIN_H
 #define MAIN_H
 
-#include "common.h"
-#include "board_info.h"
-#include "led.h"
-#include "buzzer.h"
-#include "joystick.h"
-#include "uart.h"
-#include "dbus.h"
-#include "st7735.h"
-#include "can.h"
-#include "chassis.h"
-#include "param.h"
-#include "judge.h"
-#include "adis16.h"
-#include "dwt.h"
-#include "gimbal.h"
-#include "monitor.h"
-#include "mpu6050.h"
+#include "BSP_CAN.h"
+#include "BSP_TIM.h"
+#include "BSP_DMA.h"
+#include "BSP_SPI.h"
+#include "BSP_GPIO.h"
+#include "BSP_NVIC.h"
+#include "BSP_UART.h"
 
 #endif // MAIN_H
