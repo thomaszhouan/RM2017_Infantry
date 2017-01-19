@@ -19,4 +19,11 @@
 #define ST7735_DC_PORT                          GPIOC
 #define ST7735_DC_PIN                           GPIO_Pin_5
 
+// USART1 (DBUS)
+#define USART1_PORT                             GPIOB
+#define USART1_PIN                              (GPIO_Pin_6 | GPIO_Pin_7)
+#define USART1_AF_CONFIG()                      do { GPIO_PinAFConfig(GPIOB, GPIO_PinSource6, GPIO_AF_USART1);\
+                                                     GPIO_PinAFConfig(GPIOB, GPIO_PinSource7, GPIO_AF_USART1);\
+                                                } while(0)
+
 #endif

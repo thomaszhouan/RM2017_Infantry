@@ -1,8 +1,8 @@
-#ifndef CHASSIS_H
-#define CHASSIS_H
+#ifndef DRIVER_CHASSIS_H
+#define DRIVER_CHASSIS_H
 
+#include "stm32f4xx.h"
 #include "pid.h"
-#include "param.h"
 
 #ifndef CHASSIS_FILE
     #define CHASSIS_EXT extern
@@ -15,6 +15,7 @@ CHASSIS_EXT volatile int16_t MotorAngle[4], MotorLastAngle[4];
 CHASSIS_EXT volatile int16_t MotorOutput[4];
 CHASSIS_EXT volatile char MeasureUpdated[4];
 CHASSIS_EXT volatile float ChassisPowerRatio;
+CHASSIS_EXT volatile int32_t MotorVelocity[4], TargetVelocity[4];
 
 CHASSIS_EXT volatile int32_t ChassisOmegaOutput;
 CHASSIS_EXT volatile float targetAngle;
@@ -29,7 +30,7 @@ void CHASSIS_Init(void);
 /*
     Update motor angle & velocity.
 */
-void CHASSIS_UpdateMeasure(uint16_t motorId);
+void CHASSIS_UpdateMeasure(uint16_t motorId, uint8_t *data);
 
 /*
     Update the controller if angle/velocity updated.
@@ -72,4 +73,4 @@ void CHASSIS_SendCmd(void);
 */
 void CHASSIS_SetFree(void);
 
-#endif // CHASSIS_H
+#endif

@@ -1,10 +1,10 @@
 /*
-    pid.c
+    PID.c
     Generic PID controller.
 */
 
-#include "pid.h"
-#include "common.h"
+#include "PID.h"
+#include "Driver_Common.h"
 #include <string.h>
 
 /*

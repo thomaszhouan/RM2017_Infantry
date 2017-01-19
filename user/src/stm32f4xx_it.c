@@ -42,12 +42,13 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
+#include "stm32f4xx.h"
 #include "stm32f4xx_it.h"
+#include "Driver_Chassis.h"
+#include "Driver_Common.h"
 #include "Driver_Dbus.h"
 #include "Driver_Judge.h"
 #include "Driver_Led.h"
-#include "chassis.h"
-#include "gimbal.h"
 
 /** @addtogroup STM32F4xx_HAL_Examples
   * @{
@@ -183,25 +184,24 @@ void SysTick_Handler(void)
   * @retval None
   */
 void USART1_IRQHandler(void) {
+    static uint8_t dum;
+    dum = USART1->DR;
+    dum = USART1->SR;
 
-}
+    DMA_Cmd(DMA2_Stream2, DISABLE);
 
-/**
-  * @brief  This function handles USART1 DMA RX interrupt request.  
-  * @param  None
-  * @retval None   
-  */
-void DMA2_Stream5_IRQHandler(void) {
+    if(DMA2_Stream2->NDTR == 0) {
+        DBUS_Decode();
+        CHASSIS_SetMotion();
+    }
+    
+    DMA_ClearFlag(DMA2_Stream2, DMA_FLAG_TCIF2);
+    while(DMA_GetCmdStatus(DMA2_Stream2) != DISABLE)
+        ;
+    DMA_SetCurrDataCounter(DMA2_Stream2, DBUS_BUFFER_SIZE);
+    DMA_Cmd(DMA2_Stream2, ENABLE);
 
-}
-
-/**
-  * @brief  This function handles USART1 DMA TX interrupt request.
-  * @param  None
-  * @retval None   
-  */
-void DMA2_Stream7_IRQHandler(void) {
-
+    UNUSED(dum);
 }
 
 /**
@@ -214,29 +214,12 @@ void USART3_IRQHandler(void) {
 }
 
 /**
-  * @brief  This function handles USART3 DMA RX interrupt request.  
-  * @param  None
-  * @retval None   
-  */
-void DMA1_Stream1_IRQHandler(void) {
-
-}
-
-/**
-  * @brief  This function handles USART3 DMA TX interrupt request.
-  * @param  None
-  * @retval None   
-  */
-void DMA1_Stream3_IRQHandler(void) {
-}
-
-/**
   * @brief  This function handles CAN1 RX0 interrupt request.
   * @param  None
   * @retval None   
   */
 void CAN1_RX0_IRQHandler(void) {
-
+    CAN_ITConfig(CAN1, CAN_IT_FMP0, ENABLE);
 }
 
 /**
@@ -254,16 +237,16 @@ void CAN1_TX_IRQHandler(void) {
   * @retval None   
   */
 void CAN2_RX0_IRQHandler(void) {
+    static CanRxMsg CanRxData;
+    CAN_Receive(CAN2, CAN_FIFO0, &CanRxData);
 
-}
-
-/**
-  * @brief  This function handles CAN2 TX interrupt request.
-  * @param  None
-  * @retval None   
-  */
-void CAN2_TX_IRQHandler(void) {
-
+    switch(CanRxData.StdId) {
+        case 0x201: case 0x202:
+        case 0x203: case 0x204: {
+            CHASSIS_UpdateMeasure(CanRxData.StdId, CanRxData.Data);
+        } break;
+    }
+    CAN_ITConfig(CAN2, CAN_IT_FMP0, ENABLE);
 }
 
 /**
@@ -281,6 +264,15 @@ void TIM2_IRQHandler(void) {
     if (tick == 1000) tick = 0;
 
     if (tick % 500 == 0) LED_Toggle();
+
+    if (tick % 20 == 0) {
+        DBUS_UpdateStatus();
+    }
+
+    if (DBUS_Status == kConnected) {
+        CHASSIS_Control();
+    }
+    CHASSIS_SendCmd();
 }
 
 /**
@@ -290,7 +282,8 @@ void TIM2_IRQHandler(void) {
   */
 
 void TIM3_IRQHandler(void) {
-
+    TIM_ClearITPendingBit(TIM3, TIM_IT_Update);
+    TIM_ClearFlag(TIM3, TIM_FLAG_Update);
 }
 
 /**

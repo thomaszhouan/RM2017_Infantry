@@ -1,12 +1,10 @@
 #define CHASSIS_FILE
 
-#include "common.h"
-#include "board_info.h"
-#include "chassis.h"
-#include "dbus.h"
-#include "can.h"
-#include "adis16.h"
-#include "judge.h"
+#include "Driver_ADIS16.h"
+#include "Driver_Chassis.h"
+#include "Driver_Dbus.h"
+#include "Driver_Judge.h"
+#include "Param.h"
 #include <string.h>
 
 #define _ID(x) ((x)-CHASSIS_CAN_ID_OFFSET)
@@ -16,7 +14,8 @@ static const char MOTOR_DIR[4] = {1, 0, 0, 1};
 static PID_Controller MotorController[4];
 static volatile int16_t MotorVelocityBuffer[4][2];
 static volatile uint8_t BufferId[4];
-static volatile int32_t MotorVelocity[4], TargetVelocity[4];
+
+static CanTxMsg ChassisCanTx;
 
 static PID_Controller ChassisAngleController;
 static PID_Controller ChassisOmegaController;
@@ -54,26 +53,11 @@ static void CHASSIS_ClearAll(void) {
     angleError = 0;
 }
 
-static void CHASSIS_CanInit(void) {
-    // CAN
-    CAN_SimpleInitTypeDef CAN_InitStruct;
-    CAN_InitStruct.id                 = CHASSIS_CAN_ID;
-    CAN_InitStruct.CanHandle          = &CHASSIS_CAN_HANDLE;
-    CAN_InitStruct.CanRx              = &CHASSIS_CAN_RX;
-    CAN_InitStruct.CanTx              = &CHASSIS_CAN_TX;
-    CAN_InitStruct.PreemptionPriority = 9;
-    CAN_InitStruct.SubPriority        = 0;
-    CAN_Init(&CAN_InitStruct);
-
-    // CAN Tx
-    CHASSIS_CAN_TX.StdId = CHASSIS_MASTER_ID;
-    CHASSIS_CAN_TX.IDE   = CAN_ID_STD;
-    CHASSIS_CAN_TX.RTR   = CAN_RTR_DATA;
-    CHASSIS_CAN_TX.DLC   = 8;
-}
-
 void CHASSIS_Init(void) {
-    CHASSIS_CanInit();
+    ChassisCanTx.StdId = 0x200;
+    ChassisCanTx.IDE = CAN_Id_Standard;
+    ChassisCanTx.RTR = CAN_RTR_Data;
+    ChassisCanTx.DLC = 8;
 
     /* Motor controller */
     for (uint8_t id = 0; id < 4; ++id) {
@@ -126,13 +110,10 @@ void CHASSIS_Init(void) {
     CHASSIS_ClearAll();
     _CLEAR(MotorFeedbackCount);
     targetAngle = 0.0f;
-
-    HAL_CAN_Receive_IT(&CHASSIS_CAN_HANDLE, 0);
 }
 
-void CHASSIS_UpdateMeasure(uint16_t motorId) {
+void CHASSIS_UpdateMeasure(uint16_t motorId, uint8_t *data) {
     uint16_t id = _ID(motorId);
-    uint8_t *data = CHASSIS_CAN_RX.Data;
     MotorLastAngle[id] = MotorAngle[id];
     MotorAngle[id] = ((uint16_t)data[0]<<8) | ((uint16_t)data[1]);
     int16_t newVelocity = ((uint16_t)data[2]<<8) | ((uint16_t)data[3]);
@@ -287,7 +268,8 @@ void CHASSIS_SetTargetVelocity(uint16_t motorId, int32_t velocity) {
 }
 
 void CHASSIS_SendCmd(void) {
-    static uint8_t *data = CHASSIS_CAN_TX.Data;
+    static uint8_t *data = ChassisCanTx.Data;
+
     data[0] = (MotorOutput[0]&0xFF00)>>8;
     data[1] = MotorOutput[0]&0x00FF;
     data[2] = (MotorOutput[1]&0xFF00)>>8;
@@ -296,7 +278,7 @@ void CHASSIS_SendCmd(void) {
     data[5] = MotorOutput[2]&0x00FF;
     data[6] = (MotorOutput[3]&0xFF00)>>8;
     data[7] = MotorOutput[3]&0x00FF;
-    HAL_CAN_Transmit_IT(&CHASSIS_CAN_HANDLE);
+    CAN_Transmit(CAN2, &ChassisCanTx);
 }
 
 void CHASSIS_SetFree(void) {

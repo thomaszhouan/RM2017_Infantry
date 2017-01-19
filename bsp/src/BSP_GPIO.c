@@ -34,25 +34,24 @@ void BSP_GPIO_InitConfig(void) {
     // GPIO_PinAFConfig(GPIOA, GPIO_PinSource11, GPIO_AF_CAN1);
     // GPIO_PinAFConfig(GPIOA, GPIO_PinSource12, GPIO_AF_CAN1);
 
-    // // CAN2 (PB12 PB13)
-    // GPIO_InitStructure.GPIO_Mode   =   GPIO_Mode_AF;
-    // GPIO_InitStructure.GPIO_OType  =   GPIO_OType_PP;
-    // GPIO_InitStructure.GPIO_Pin    =   GPIO_Pin_12 | GPIO_Pin_13;
-    // GPIO_InitStructure.GPIO_PuPd   =   GPIO_PuPd_UP;
-    // GPIO_InitStructure.GPIO_Speed  =   GPIO_Speed_100MHz;
-    // GPIO_Init(GPIOB, &GPIO_InitStructure);
-    // GPIO_PinAFConfig(GPIOB, GPIO_PinSource12, GPIO_AF_CAN2);
-    // GPIO_PinAFConfig(GPIOB, GPIO_PinSource13, GPIO_AF_CAN2);
+    // CAN2 (PB12 PB13)
+    GPIO_InitStructure.GPIO_Mode   =   GPIO_Mode_AF;
+    GPIO_InitStructure.GPIO_OType  =   GPIO_OType_PP;
+    GPIO_InitStructure.GPIO_Pin    =   GPIO_Pin_12 | GPIO_Pin_13;
+    GPIO_InitStructure.GPIO_PuPd   =   GPIO_PuPd_UP;
+    GPIO_InitStructure.GPIO_Speed  =   GPIO_Speed_100MHz;
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
+    GPIO_PinAFConfig(GPIOB, GPIO_PinSource12, GPIO_AF_CAN2);
+    GPIO_PinAFConfig(GPIOB, GPIO_PinSource13, GPIO_AF_CAN2);
 
-    // // USART1 (PB6 PB7)
-    // GPIO_InitStructure.GPIO_Mode   =   GPIO_Mode_AF;
-    // GPIO_InitStructure.GPIO_OType  =   GPIO_OType_PP;
-    // GPIO_InitStructure.GPIO_Pin    =   GPIO_Pin_6 | GPIO_Pin_7;
-    // GPIO_InitStructure.GPIO_PuPd   =   GPIO_PuPd_UP;
-    // GPIO_InitStructure.GPIO_Speed   =   GPIO_Speed_100MHz;
-    // GPIO_Init(GPIOB, &GPIO_InitStructure);
-    // GPIO_PinAFConfig(GPIOB, GPIO_PinSource6, GPIO_AF_USART1);
-    // GPIO_PinAFConfig(GPIOB, GPIO_PinSource7, GPIO_AF_USART1);
+    // USART1 (PB6 PB7)
+    GPIO_InitStructure.GPIO_Mode   =   GPIO_Mode_AF;
+    GPIO_InitStructure.GPIO_OType  =   GPIO_OType_PP;
+    GPIO_InitStructure.GPIO_Pin    =   USART1_PIN;
+    GPIO_InitStructure.GPIO_PuPd   =   GPIO_PuPd_UP;
+    GPIO_InitStructure.GPIO_Speed  =   GPIO_Speed_100MHz;
+    GPIO_Init(USART1_PORT, &GPIO_InitStructure);
+    USART1_AF_CONFIG();
 
     // // USART3 (PB10 PB11)
     // GPIO_InitStructure.GPIO_Mode   =   GPIO_Mode_AF;
