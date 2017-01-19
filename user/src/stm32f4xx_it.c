@@ -224,15 +224,6 @@ void CAN1_RX0_IRQHandler(void) {
 }
 
 /**
-  * @brief  This function handles CAN1 TX interrupt request.
-  * @param  None
-  * @retval None   
-  */
-void CAN1_TX_IRQHandler(void) {
-
-}
-
-/**
   * @brief  This function handles CAN2 RX0 interrupt request.
   * @param  None
   * @retval None   

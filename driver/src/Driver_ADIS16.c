@@ -45,9 +45,6 @@ void ADIS16_Init(void) {
     ADIS16_Data.temperature = 25.0f;
     ADIS16_DataUpdated = 0;
 
-    // /* Peripheral initialization */
-    // ADIS16_SPI_Init();
-
     /* Reset */
     ADIS16_Write(ADIS16_COMD, 0x0080);
     BSP_DWT_DelayMs(50);
@@ -121,40 +118,6 @@ static int16_t ADIS16_GetTemperature(void) {
     int16_t ret = 0x0000 | buf;
     return ret;
 }
-
-// static void ADIS16_SPI_Init(void) {
-//     // GPIO Init
-//     ADIS16_GPIO_CLK_ENABLE();
-//     GPIO_InitTypeDef GPIO_InitStruct;
-
-//     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
-//     GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
-//     GPIO_InitStruct.Pin = ADIS16_CS_PIN;
-//     HAL_GPIO_Init(ADIS16_CS_PORT, &GPIO_InitStruct);
-//     HAL_GPIO_WritePin(ADIS16_CS_PORT, ADIS16_CS_PIN, GPIO_PIN_SET);
-
-//     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-//     GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
-//     GPIO_InitStruct.Pin = ADIS16_SPI_PIN;
-//     GPIO_InitStruct.Alternate = GPIO_AF6_SPI3;
-//     HAL_GPIO_Init(ADIS16_SPI_PORT, &GPIO_InitStruct);
-
-//     // SPI Init
-//     ADIS16_SPI_CLK_ENABLE();
-//     ADIS16_SPI_HANDLE.Instance = ADIS16_SPI_INSTANCE;
-//     ADIS16_SPI_HANDLE.Init.Mode = SPI_MODE_MASTER;
-//     ADIS16_SPI_HANDLE.Init.Direction = SPI_DIRECTION_2LINES;
-//     ADIS16_SPI_HANDLE.Init.DataSize = SPI_DATASIZE_16BIT;
-//     ADIS16_SPI_HANDLE.Init.CLKPolarity = SPI_POLARITY_HIGH;
-//     ADIS16_SPI_HANDLE.Init.CLKPhase = SPI_PHASE_2EDGE;
-//     ADIS16_SPI_HANDLE.Init.NSS = SPI_NSS_SOFT;
-//     ADIS16_SPI_HANDLE.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;
-//     ADIS16_SPI_HANDLE.Init.FirstBit = SPI_FIRSTBIT_MSB;
-//     ADIS16_SPI_HANDLE.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
-//     HAL_SPI_DeInit(&ADIS16_SPI_HANDLE);
-//     HAL_SPI_Init(&ADIS16_SPI_HANDLE);
-//     __HAL_SPI_ENABLE(&ADIS16_SPI_HANDLE);
-// }
 
 /*
        addr-1          addr  
