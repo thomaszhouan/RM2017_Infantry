@@ -74,9 +74,9 @@ void CHASSIS_Init(void) {
 
     /* Chassis omega controller */
     PID_Reset(&ChassisOmegaController);
-    ChassisOmegaController.Kp = 0.10f;//CHASSIS_OMEGA_KP;
-    ChassisOmegaController.Ki = 0.00f;//CHASSIS_OMEGA_KI;
-    ChassisOmegaController.Kd = 0.00f;//CHASSIS_OMEGA_KD;
+    ChassisOmegaController.Kp = CHASSIS_OMEGA_KP;
+    ChassisOmegaController.Ki = CHASSIS_OMEGA_KI;
+    ChassisOmegaController.Kd = CHASSIS_OMEGA_KD;
     ChassisOmegaController.MAX_Pout = CHASSIS_OMEGA_MAX_POUT;
     ChassisOmegaController.MAX_Integral = CHASSIS_OMEGA_MAX_INTEGRAL;
     ChassisOmegaController.MAX_PIDout = CHASSIS_OMEGA_MAX_PIDOUT;
@@ -85,7 +85,7 @@ void CHASSIS_Init(void) {
 
     /* Chassis angle controller */
     PID_Reset(&ChassisAngleController);
-    ChassisAngleController.Kp = 10.0f;//16.00f;
+    ChassisAngleController.Kp = 5.0f;//16.00f;
     ChassisAngleController.Ki = 0.0f;//0.40f;
     ChassisAngleController.Kd = 0.0f;//9.00f//0.10f;
     ChassisAngleController.MAX_Pout = 10000;
@@ -163,7 +163,7 @@ void CHASSIS_SetMotion(void) {
     static int32_t tmpVelocity[4];
     static const int32_t maxDelta = 300;
 
-    int16_t vxData, vyData, rotData;
+    static int16_t vxData, vyData, rotData;
 
     /*
         Controller / KM control
@@ -209,7 +209,7 @@ void CHASSIS_SetMotion(void) {
             PID_Reset(&ChassisOmegaController);
         if (ADIS16_DataUpdated) {
             ADIS16_DataUpdated = 0;
-            targetOmega = 16 * rotData;
+            targetOmega = 4 * rotData;
             
             ChassisOmegaOutput = (int32_t)PID_Update(&ChassisOmegaController,
                 targetOmega, ADIS16_Data.omega);

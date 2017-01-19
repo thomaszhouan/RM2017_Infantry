@@ -37,12 +37,11 @@ void BSP_GPIO_InitConfig(void) {
     // CAN2 (PB12 PB13)
     GPIO_InitStructure.GPIO_Mode   =   GPIO_Mode_AF;
     GPIO_InitStructure.GPIO_OType  =   GPIO_OType_PP;
-    GPIO_InitStructure.GPIO_Pin    =   GPIO_Pin_12 | GPIO_Pin_13;
+    GPIO_InitStructure.GPIO_Pin    =   CAN2_PIN;
     GPIO_InitStructure.GPIO_PuPd   =   GPIO_PuPd_UP;
     GPIO_InitStructure.GPIO_Speed  =   GPIO_Speed_100MHz;
-    GPIO_Init(GPIOB, &GPIO_InitStructure);
-    GPIO_PinAFConfig(GPIOB, GPIO_PinSource12, GPIO_AF_CAN2);
-    GPIO_PinAFConfig(GPIOB, GPIO_PinSource13, GPIO_AF_CAN2);
+    GPIO_Init(CAN2_PORT, &GPIO_InitStructure);
+    CAN2_AF_CONFIG();
 
     // USART1 (PB6 PB7)
     GPIO_InitStructure.GPIO_Mode   =   GPIO_Mode_AF;
@@ -84,14 +83,20 @@ void BSP_GPIO_InitConfig(void) {
     GPIO_InitStructure.GPIO_Pin    =   ST7735_DC_PIN;
     GPIO_Init(ST7735_DC_PORT, &GPIO_InitStructure);
 
-    // // SPI3 (PC10 PC11 PC12)
-    // GPIO_InitStructure.GPIO_Mode   =   GPIO_Mode_AF;
-    // GPIO_InitStructure.GPIO_OType  =   GPIO_OType_PP;
-    // GPIO_InitStructure.GPIO_Pin    =   GPIO_Pin_10 | GPIO_Pin_11 | GPIO_Pin_12;
-    // GPIO_InitStructure.GPIO_PuPd   =   GPIO_PuPd_UP;
-    // GPIO_InitStructure.GPIO_Speed  =   GPIO_Speed_100MHz;
-    // GPIO_Init(GPIOC, &GPIO_InitStructure);
-    // GPIO_PinAFConfig(GPIOC, GPIO_PinSource10, GPIO_AF_SPI3);
-    // GPIO_PinAFConfig(GPIOC, GPIO_PinSource11, GPIO_AF_SPI3);
-    // GPIO_PinAFConfig(GPIOC, GPIO_PinSource12, GPIO_AF_SPI3);
+    // ADIS16
+    GPIO_InitStructure.GPIO_Mode   =   GPIO_Mode_AF;
+    GPIO_InitStructure.GPIO_OType  =   GPIO_OType_PP;
+    GPIO_InitStructure.GPIO_Pin    =   ADIS16_SPI_PIN;
+    GPIO_InitStructure.GPIO_PuPd   =   GPIO_PuPd_UP;
+    GPIO_InitStructure.GPIO_Speed  =   GPIO_Speed_100MHz;
+    GPIO_Init(ADIS16_SPI_PORT, &GPIO_InitStructure);
+    ADIS16_AF_CONFIG();
+
+    GPIO_InitStructure.GPIO_Mode   =   GPIO_Mode_OUT;
+    GPIO_InitStructure.GPIO_OType  =   GPIO_OType_OD;
+    GPIO_InitStructure.GPIO_Pin    =   ADIS16_CS_PIN;
+    GPIO_InitStructure.GPIO_PuPd   =   GPIO_PuPd_NOPULL;
+    GPIO_InitStructure.GPIO_Speed  =   GPIO_Speed_2MHz;
+    GPIO_Init(ADIS16_CS_PORT, &GPIO_InitStructure);
+    GPIO_SetBits(ADIS16_CS_PORT, ADIS16_CS_PIN);
 }

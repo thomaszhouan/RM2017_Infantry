@@ -16,15 +16,15 @@ void BSP_TIM_InitConfig(void) {
     TIM_TimeBaseInitStructure.TIM_ClockDivision =   TIM_CKD_DIV1;
     TIM_TimeBaseInitStructure.TIM_CounterMode   =   TIM_CounterMode_Up;
     TIM_TimeBaseInitStructure.TIM_Period        =   1000;
-    TIM_TimeBaseInitStructure.TIM_Prescaler     =   84-1; // 1MHz clock
+    TIM_TimeBaseInitStructure.TIM_Prescaler     =   (uint32_t) (((SystemCoreClock / 2) / 1000000)-1); // 1MHz clock
     TIM_TimeBaseInit(TIM2, &TIM_TimeBaseInitStructure);
         
-    // // TIM3 (gyro update 256Hz)
-    // TIM_TimeBaseInitStructure.TIM_ClockDivision =   TIM_CKD_DIV1;
-    // TIM_TimeBaseInitStructure.TIM_CounterMode   =   TIM_CounterMode_Up;
-    // TIM_TimeBaseInitStructure.TIM_Period        =   125;
-    // TIM_TimeBaseInitStructure.TIM_Prescaler     =   (uint32_t) (((SystemCoreClock / 2) / 32000)-1);
-    // TIM_TimeBaseInit(TIM3, &TIM_TimeBaseInitStructure);
+    // TIM3 (gyro update 256Hz)
+    TIM_TimeBaseInitStructure.TIM_ClockDivision =   TIM_CKD_DIV1;
+    TIM_TimeBaseInitStructure.TIM_CounterMode   =   TIM_CounterMode_Up;
+    TIM_TimeBaseInitStructure.TIM_Period        =   125;
+    TIM_TimeBaseInitStructure.TIM_Prescaler     =   (uint32_t) (((SystemCoreClock / 2) / 32000)-1);
+    TIM_TimeBaseInit(TIM3, &TIM_TimeBaseInitStructure);
 }
 
 void BSP_TIM_Start(void) {

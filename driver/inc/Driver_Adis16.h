@@ -18,8 +18,6 @@ typedef struct {
     // int32_t omegaInternal;
     // uint32_t thetaHW;
     // int16_t temperatureHW;
-
-    uint32_t lastUpdateTick;
 } ADIS16_DataTypeDef;
 
 ADIS16_EXT volatile ADIS16_DataTypeDef ADIS16_Data;

@@ -44,6 +44,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx.h"
 #include "stm32f4xx_it.h"
+#include "Driver_ADIS16.h"
 #include "Driver_Chassis.h"
 #include "Driver_Common.h"
 #include "Driver_Dbus.h"
@@ -284,6 +285,8 @@ void TIM2_IRQHandler(void) {
 void TIM3_IRQHandler(void) {
     TIM_ClearITPendingBit(TIM3, TIM_IT_Update);
     TIM_ClearFlag(TIM3, TIM_FLAG_Update);
+
+    ADIS16_Update();
 }
 
 /**

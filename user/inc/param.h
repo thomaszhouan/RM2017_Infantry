@@ -28,8 +28,8 @@
 #define CHASSIS_PID_MODE                        kPositional
 
 /* chassis angle control parameter */
-#define CHASSIS_OMEGA_KP                        0.00f
-#define CHASSIS_OMEGA_KI                        0.10f
+#define CHASSIS_OMEGA_KP                        0.20f
+#define CHASSIS_OMEGA_KI                        0.12f
 #define CHASSIS_OMEGA_KD                        0.00f
 #define CHASSIS_OMEGA_MAX_POUT                  5000
 #define CHASSIS_OMEGA_MAX_INTEGRAL              35000
