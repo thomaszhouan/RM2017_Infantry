@@ -1,6 +1,6 @@
 #include "main.h"
 
-extern uint32_t UnknownId, Counter;
+extern volatile uint32_t UnknownId, Counter;
 int main(void) {
     BSP_GPIO_InitConfig();
     BSP_CAN_InitConfig();

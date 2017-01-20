@@ -245,11 +245,13 @@ void CAN1_RX0_IRQHandler(void) {
   * @param  None
   * @retval None   
   */
-uint32_t Counter = 0;
-uint32_t UnknownId = 0;
+volatile uint32_t Counter = 0;
+volatile uint32_t UnknownId = 0;
 void CAN2_RX0_IRQHandler(void) {
     static CanRxMsg CanRxData;
     CAN_Receive(CAN2, CAN_FIFO0, &CanRxData);
+    UnknownId = CanRxData.StdId;
+    ++Counter;
 
     switch(CanRxData.StdId) {
         case FL_MOTOR_ID: case FR_MOTOR_ID:
