@@ -17,7 +17,6 @@ static volatile uint8_t BufferId[4];
 
 static CanTxMsg ChassisCanTx;
 
-static PID_Controller ChassisAngleController;
 static PID_Controller ChassisOmegaController;
 // static volatile int32_t ChassisOmegaOutput;
 // static volatile float targetAngle = 0.0f;
@@ -82,17 +81,6 @@ void CHASSIS_Init(void) {
     ChassisOmegaController.MAX_PIDout = CHASSIS_OMEGA_MAX_PIDOUT;
     ChassisOmegaController.MIN_PIDout = CHASSIS_OMEGA_MIN_PIDOUT;
     ChassisOmegaController.mode = CHASSIS_OMEGA_PID_MODE;
-
-    /* Chassis angle controller */
-    PID_Reset(&ChassisAngleController);
-    ChassisAngleController.Kp = 5.0f;//16.00f;
-    ChassisAngleController.Ki = 0.0f;//0.40f;
-    ChassisAngleController.Kd = 0.0f;//9.00f//0.10f;
-    ChassisAngleController.MAX_Pout = 10000;
-    ChassisAngleController.MAX_Integral = 10000;
-    ChassisAngleController.MAX_PIDout = 15000;
-    ChassisAngleController.MIN_PIDout = 0;
-    ChassisAngleController.mode = kPositional;
 
     /* Chassis power controller */
     PID_Reset(&ChassisPowerController);
@@ -216,19 +204,7 @@ void CHASSIS_SetMotion(void) {
         }
     }
     else { // DBUS_Data.rightSwitchState == kSwitchUp
-        if (DBUS_LastData.rightSwitchState != kSwitchUp) {
-            PID_Reset(&ChassisOmegaController);
-            PID_Reset(&ChassisAngleController);
-            targetAngle = ADIS16_Data.absoluteTheta;
-        }
-        targetAngle += 0.04f * rotData;
-        angleError = (int32_t)(targetAngle - ADIS16_Data.absoluteTheta);
-        angleError = CHASSIS_Trim(angleError, 300);
-        targetAngle = angleError + ADIS16_Data.absoluteTheta;
-        targetOmega = (int32_t)PID_Update(&ChassisAngleController,
-            0.0f, -angleError);
-        ChassisOmegaOutput = (int32_t)PID_Update(&ChassisOmegaController,
-                targetOmega, ADIS16_Data.omega);
+        ChassisOmegaOutput = 5000;
     }
 
     /* Mecanum wheel */
@@ -285,6 +261,5 @@ void CHASSIS_SetFree(void) {
     for (uint8_t i = 0; i < 4; ++i)
         PID_Reset(MotorController+i);
     PID_Reset(&ChassisOmegaController);
-    PID_Reset(&ChassisAngleController);
     CHASSIS_ClearAll();
 }
