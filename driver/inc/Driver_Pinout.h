@@ -26,6 +26,13 @@
                                                      GPIO_PinAFConfig(GPIOB, GPIO_PinSource7, GPIO_AF_USART1);\
                                                 } while(0)
 
+// USART3 (Judge)
+#define USART3_PORT                             GPIOB
+#define USART3_PIN                              (GPIO_Pin_10 | GPIO_Pin_11)
+#define USART3_AF_CONFIG()                      do { GPIO_PinAFConfig(GPIOB, GPIO_PinSource10, GPIO_AF_USART3);\
+                                                     GPIO_PinAFConfig(GPIOB, GPIO_PinSource11, GPIO_AF_USART3);\
+                                                } while(0)
+
 // CAN2 (Chassis)
 #define CAN2_PORT                               GPIOB
 #define CAN2_PIN                                (GPIO_Pin_12 | GPIO_Pin_13)

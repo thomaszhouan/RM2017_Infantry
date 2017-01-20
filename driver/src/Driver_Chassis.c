@@ -90,15 +90,15 @@ void CHASSIS_Init(void) {
 
     /* Chassis power controller */
     PID_Reset(&ChassisPowerController);
-    ChassisPowerController.Kp = 0.005f;
-    ChassisPowerController.Ki = 0.006f;
-    ChassisPowerController.Kd = 0.000f;
-    ChassisPowerController.IDecayFactor = 0.7f;
-    ChassisPowerController.MAX_Pout = 100;
-    ChassisPowerController.MAX_Integral = 100;
-    ChassisPowerController.MAX_PIDout = 0.7;
-    ChassisPowerController.MIN_PIDout = 0;
-    ChassisPowerController.mode = kIntegralDecay;
+    ChassisPowerController.Kp = CHASSIS_POWER_KP;
+    ChassisPowerController.Ki = CHASSIS_POWER_KI;
+    ChassisPowerController.Kd = CHASSIS_POWER_KD;
+    ChassisPowerController.IDecayFactor = CHASSIS_POWER_IDECAY_FACTOR;
+    ChassisPowerController.MAX_Pout = CHASSIS_POWER_MAX_POUT;
+    ChassisPowerController.MAX_Integral = CHASSIS_POWER_MAX_INTEGRAL;
+    ChassisPowerController.MAX_PIDout = CHASSIS_POWER_MAX_PIDOUT;
+    ChassisPowerController.MIN_PIDout = CHASSIS_POWER_MIN_PIDOUT;
+    ChassisPowerController.mode = CHASSIS_POWER_PID_MODE;
     ChassisPowerRatio = 1.0f;
 
     CHASSIS_ClearAll();

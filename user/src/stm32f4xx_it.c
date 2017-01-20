@@ -245,6 +245,8 @@ void CAN1_RX0_IRQHandler(void) {
   * @param  None
   * @retval None   
   */
+uint32_t Counter = 0;
+uint32_t UnknownId = 0;
 void CAN2_RX0_IRQHandler(void) {
     static CanRxMsg CanRxData;
     CAN_Receive(CAN2, CAN_FIFO0, &CanRxData);
@@ -254,6 +256,10 @@ void CAN2_RX0_IRQHandler(void) {
         case BR_MOTOR_ID: case BL_MOTOR_ID: {
             CHASSIS_UpdateMeasure(CanRxData.StdId, CanRxData.Data);
         } break;
+        default: {
+            UnknownId = CanRxData.StdId;
+            ++Counter;
+        }
     }
     CAN_ITConfig(CAN2, CAN_IT_FMP0, ENABLE);
 }

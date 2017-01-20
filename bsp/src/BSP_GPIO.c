@@ -15,7 +15,7 @@ void BSP_GPIO_InitConfig(void) {
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD, ENABLE);
 
-    // LED
+    // Led
     GPIO_InitStructure.GPIO_Mode   =   GPIO_Mode_OUT;
     GPIO_InitStructure.GPIO_OType  =   GPIO_OType_PP;
     GPIO_InitStructure.GPIO_Pin    =   LED_PIN;
@@ -23,6 +23,16 @@ void BSP_GPIO_InitConfig(void) {
     GPIO_InitStructure.GPIO_Speed  =   GPIO_Speed_2MHz;
     GPIO_Init(LED_PORT, &GPIO_InitStructure);
     GPIO_SetBits(LED_PORT, LED_PIN);
+
+    // Buzzer
+    GPIO_InitStructure.GPIO_Mode   =   GPIO_Mode_AF;
+    GPIO_InitStructure.GPIO_OType  =   GPIO_OType_PP;
+    GPIO_InitStructure.GPIO_Pin    =   GPIO_Pin_1;
+    GPIO_InitStructure.GPIO_PuPd   =   GPIO_PuPd_NOPULL;
+    GPIO_InitStructure.GPIO_Speed  =   GPIO_Speed_100MHz;
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
+    GPIO_PinAFConfig(GPIOB, GPIO_PinSource1, GPIO_AF_TIM8);
+    GPIO_ResetBits(GPIOB, GPIO_Pin_1);
 
     // // CAN1 (PA11 PA12)
     // GPIO_InitStructure.GPIO_Mode   =   GPIO_Mode_AF;
@@ -55,12 +65,11 @@ void BSP_GPIO_InitConfig(void) {
     // USART3 (Judge)
     GPIO_InitStructure.GPIO_Mode   =   GPIO_Mode_AF;
     GPIO_InitStructure.GPIO_OType  =   GPIO_OType_PP;
-    GPIO_InitStructure.GPIO_Pin    =   GPIO_Pin_10 | GPIO_Pin_11;
+    GPIO_InitStructure.GPIO_Pin    =   USART3_PIN;
     GPIO_InitStructure.GPIO_PuPd   =   GPIO_PuPd_UP;
     GPIO_InitStructure.GPIO_Speed  =   GPIO_Speed_100MHz;
-    GPIO_Init(GPIOB, &GPIO_InitStructure);
-    GPIO_PinAFConfig(GPIOB, GPIO_PinSource10, GPIO_AF_USART3);
-    GPIO_PinAFConfig(GPIOB, GPIO_PinSource11, GPIO_AF_USART3);
+    GPIO_Init(USART3_PORT, &GPIO_InitStructure);
+    USART3_AF_CONFIG();
 
     // ST7735
     GPIO_InitStructure.GPIO_Mode   =   GPIO_Mode_AF;

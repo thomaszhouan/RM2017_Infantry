@@ -37,6 +37,17 @@
 #define CHASSIS_OMEGA_MIN_PIDOUT                5
 #define CHASSIS_OMEGA_PID_MODE                  kPositional
 
+/* chassis power control parameter */
+#define CHASSIS_POWER_KP                        0.005f
+#define CHASSIS_POWER_KI                        0.006f
+#define CHASSIS_POWER_KD                        0.000f
+#define CHASSIS_POWER_IDECAY_FACTOR             0.7f
+#define CHASSIS_POWER_MAX_POUT                  100
+#define CHASSIS_POWER_MAX_INTEGRAL              100
+#define CHASSIS_POWER_MAX_PIDOUT                0.7
+#define CHASSIS_POWER_MIN_PIDOUT                0
+#define CHASSIS_POWER_PID_MODE                  kIntegralDecay
+
 #elif defined(CHASSIS_USE_EC60)
 
 #elif defined(CHASSIS_USE_RM35)
