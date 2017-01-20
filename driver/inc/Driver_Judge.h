@@ -8,7 +8,7 @@
 #define JUDGE_BLOOD_FRAME_LENGTH      11
 #define JUDGE_SHOOT_FRAME_LENGTH      24
 
-#define JUDGE_FRAME_HEADER        0xA5
+#define JUDGE_FRAME_HEADER            0xA5
 
 #ifndef JUDGE_FILE
     #define JUDGE_EXT extern
@@ -98,7 +98,7 @@ JUDGE_EXT volatile JUDGE_DecodeTypeDef JUDGE_Data;
 JUDGE_EXT volatile uint32_t JUDGE_FrameCounter;
 
 void JUDGE_Init(void);
-void JUDGE_Decode(void);
+void JUDGE_Decode(uint32_t length);
 void JUDGE_UpdatePower(void);
 
 unsigned char Get_CRC8_Check_Sum(unsigned char *pchMessage,unsigned int dwLength,unsigned char ucCRC8);

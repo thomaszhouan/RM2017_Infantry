@@ -1,5 +1,6 @@
 #define JUDGE_FILE
 
+#include "stm32f4xx_it.h"
 #include "Driver_Judge.h"
 #include "param.h"
 
@@ -22,59 +23,53 @@ void JUDGE_Init(void) {
     JUDGE_Data.lastShootTick = 0;
 }
 
-void JUDGE_Decode(void) {
+void JUDGE_Decode(uint32_t length) {
     static volatile FormatTrans_TypeDef FT;
 
-    // __HAL_DMA_DISABLE(&JUDGE_DMA_HANDLE);
+    uint32_t frameByteCount = JUDGE_BUFFER_LENGTH - length;
 
-    // uint32_t frameByteCount = JUDGE_BUFFER_LENGTH - __HAL_DMA_GET_COUNTER(&JUDGE_DMA_HANDLE);
+    if (frameByteCount == JUDGE_INFO_FRAME_LENGTH &&
+        Verify_CRC16_Check_Sum((uint8_t*)JUDGE_DataBuffer, JUDGE_INFO_FRAME_LENGTH)) {
+        ++JUDGE_FrameCounter;
 
-    // if (frameByteCount == JUDGE_INFO_FRAME_LENGTH &&
-    //     Verify_CRC16_Check_Sum((uint8_t*)JUDGE_DataBuffer, JUDGE_INFO_FRAME_LENGTH)) {
-    //     ++JUDGE_FrameCounter;
+        FT.U[0] = JUDGE_DataBuffer[12];
+        FT.U[1] = JUDGE_DataBuffer[13];
+        FT.U[2] = JUDGE_DataBuffer[14];
+        FT.U[3] = JUDGE_DataBuffer[15];
+        JUDGE_Data.voltage = FT.F;
 
-    //     FT.U[0] = JUDGE_DataBuffer[12];
-    //     FT.U[1] = JUDGE_DataBuffer[13];
-    //     FT.U[2] = JUDGE_DataBuffer[14];
-    //     FT.U[3] = JUDGE_DataBuffer[15];
-    //     JUDGE_Data.voltage = FT.F;
+        FT.U[0] = JUDGE_DataBuffer[16];
+        FT.U[1] = JUDGE_DataBuffer[17];
+        FT.U[2] = JUDGE_DataBuffer[18];
+        FT.U[3] = JUDGE_DataBuffer[19];
+        JUDGE_Data.current = FT.F;
 
-    //     FT.U[0] = JUDGE_DataBuffer[16];
-    //     FT.U[1] = JUDGE_DataBuffer[17];
-    //     FT.U[2] = JUDGE_DataBuffer[18];
-    //     FT.U[3] = JUDGE_DataBuffer[19];
-    //     JUDGE_Data.current = FT.F;
+        JUDGE_Data.remainLife = ((uint16_t)JUDGE_DataBuffer[11]<<8) | JUDGE_DataBuffer[10];
 
-    //     JUDGE_Data.remainLife = ((uint16_t)JUDGE_DataBuffer[11]<<8) | JUDGE_DataBuffer[10];
+        JUDGE_UpdatePower();
+    }
+    else if (frameByteCount == JUDGE_INFO_FRAME_LENGTH+JUDGE_BLOOD_FRAME_LENGTH &&
+        Verify_CRC16_Check_Sum((uint8_t*)JUDGE_DataBuffer, JUDGE_BLOOD_FRAME_LENGTH)) {
+        ++JUDGE_FrameCounter;
 
-    //     JUDGE_UpdatePower();
-    // }
-    // else if (frameByteCount == JUDGE_INFO_FRAME_LENGTH+JUDGE_BLOOD_FRAME_LENGTH &&
-    //     Verify_CRC16_Check_Sum((uint8_t*)JUDGE_DataBuffer, JUDGE_BLOOD_FRAME_LENGTH)) {
-    //     ++JUDGE_FrameCounter;
+        /* blood change due to bullet */
+        if ((JUDGE_DataBuffer[6]>>4) == 0x0) {
+            JUDGE_Data.hitArmorId = JUDGE_DataBuffer[6]&0x0F;
+            JUDGE_Data.lastHitTick = GlobalTick;
+        }
+    }
+    else if (frameByteCount == JUDGE_INFO_FRAME_LENGTH+JUDGE_SHOOT_FRAME_LENGTH &&
+        Verify_CRC16_Check_Sum((uint8_t*)JUDGE_DataBuffer, JUDGE_SHOOT_FRAME_LENGTH)) {
+        ++JUDGE_FrameCounter;
 
-    //     /* blood change due to bullet */
-    //     if ((JUDGE_DataBuffer[6]>>4) == 0x0) {
-    //         JUDGE_Data.hitArmorId = JUDGE_DataBuffer[6]&0x0F;
-    //         JUDGE_Data.lastHitTick = HAL_GetTick();
-    //     }
-    // }
-    // else if (frameByteCount == JUDGE_INFO_FRAME_LENGTH+JUDGE_SHOOT_FRAME_LENGTH &&
-    //     Verify_CRC16_Check_Sum((uint8_t*)JUDGE_DataBuffer, JUDGE_SHOOT_FRAME_LENGTH)) {
-    //     ++JUDGE_FrameCounter;
-
-    //     ++JUDGE_Data.shootNum;
-    //     FT.U[0] = JUDGE_DataBuffer[6];
-    //     FT.U[1] = JUDGE_DataBuffer[7];
-    //     FT.U[2] = JUDGE_DataBuffer[8];
-    //     FT.U[3] = JUDGE_DataBuffer[9];
-    //     JUDGE_Data.shootSpeed = FT.F;
-    //     JUDGE_Data.lastShootTick = HAL_GetTick();
-    // }
-
-    // __HAL_DMA_CLEAR_FLAG(&JUDGE_DMA_HANDLE, JUDGE_DMA_FLAG);
-    // __HAL_DMA_SET_COUNTER(&JUDGE_DMA_HANDLE, JUDGE_BUFFER_LENGTH);
-    // __HAL_DMA_ENABLE(&JUDGE_DMA_HANDLE);
+        ++JUDGE_Data.shootNum;
+        FT.U[0] = JUDGE_DataBuffer[6];
+        FT.U[1] = JUDGE_DataBuffer[7];
+        FT.U[2] = JUDGE_DataBuffer[8];
+        FT.U[3] = JUDGE_DataBuffer[9];
+        JUDGE_Data.shootSpeed = FT.F;
+        JUDGE_Data.lastShootTick = GlobalTick;
+    }
 }
 
 void JUDGE_UpdatePower(void) {

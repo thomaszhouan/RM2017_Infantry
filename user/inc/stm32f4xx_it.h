@@ -39,9 +39,19 @@
 #ifndef __STM32F4xx_IT_H
 #define __STM32F4xx_IT_H
 
+#include "stm32f4xx.h"
+
 #ifdef __cplusplus
  extern "C" {
-#endif 
+#endif
+
+#ifdef STM32F4xx_IT_FILE
+    #define STM32F4xx_IT_EXT extern
+#else
+    #define STM32F4xx_IT_EXT
+#endif
+
+STM32F4xx_IT_EXT volatile uint32_t GlobalTick;
 
 /* Includes ------------------------------------------------------------------*/
 /* Exported types ------------------------------------------------------------*/

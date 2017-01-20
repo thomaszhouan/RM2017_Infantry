@@ -27,32 +27,31 @@ void BSP_NVIC_InitConfig(void) {
     NVIC_Init(&NVIC_InitStructure);
     CAN_ITConfig(CAN2, CAN_IT_FMP0, ENABLE);
 
-    // TIM2
+    // TIM2 (main control)
     NVIC_InitStructure.NVIC_IRQChannel                      =   TIM2_IRQn;
     NVIC_InitStructure.NVIC_IRQChannelCmd                   =   ENABLE;
     NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority    =   3;
     NVIC_InitStructure.NVIC_IRQChannelSubPriority           =   0;
     NVIC_Init(&NVIC_InitStructure);
 
-    // TIM3
+    // TIM3 (ADIS16 update)
     NVIC_InitStructure.NVIC_IRQChannel                      =   TIM3_IRQn;
     NVIC_InitStructure.NVIC_IRQChannelCmd                   =   ENABLE;
     NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority    =   13;
     NVIC_InitStructure.NVIC_IRQChannelSubPriority           =   0;
     NVIC_Init(&NVIC_InitStructure);
 
-    // USART1
+    // USART1 (DBUS)
     NVIC_InitStructure.NVIC_IRQChannel                      =   USART1_IRQn;
     NVIC_InitStructure.NVIC_IRQChannelCmd                   =   ENABLE;
     NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority    =   8;
     NVIC_InitStructure.NVIC_IRQChannelSubPriority           =   0;
     NVIC_Init(&NVIC_InitStructure);
 
-    // // USART3
-    // NVIC_InitStructure.NVIC_IRQChannel                      =   USART3_IRQn;
-    // NVIC_InitStructure.NVIC_IRQChannelCmd                   =   ENABLE;
-    // NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority    =   11;
-    // NVIC_InitStructure.NVIC_IRQChannelSubPriority           =   0;
-    // NVIC_Init(&NVIC_InitStructure);
-    // USART_ITConfig(USART3, USART_IT_IDLE, ENABLE);
+    // USART3 (Judge)
+    NVIC_InitStructure.NVIC_IRQChannel                      =   USART3_IRQn;
+    NVIC_InitStructure.NVIC_IRQChannelCmd                   =   ENABLE;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority    =   10;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority           =   0;
+    NVIC_Init(&NVIC_InitStructure);
 }

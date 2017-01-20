@@ -10,17 +10,8 @@
     #define CHASSIS_EXT
 #endif
 
-CHASSIS_EXT volatile uint32_t MotorFeedbackCount[4];
-CHASSIS_EXT volatile int16_t MotorAngle[4], MotorLastAngle[4];
-CHASSIS_EXT volatile int16_t MotorOutput[4];
-CHASSIS_EXT volatile char MeasureUpdated[4];
-CHASSIS_EXT volatile float ChassisPowerRatio;
-CHASSIS_EXT volatile int32_t MotorVelocity[4], TargetVelocity[4];
 
-CHASSIS_EXT volatile int32_t ChassisOmegaOutput;
-CHASSIS_EXT volatile float targetAngle;
-CHASSIS_EXT volatile int32_t targetOmega;
-CHASSIS_EXT volatile int32_t angleError;
+CHASSIS_EXT volatile float ChassisPowerRatio;
 
 /*
     Initialize controllers and internal states.

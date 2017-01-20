@@ -34,7 +34,7 @@ void BSP_GPIO_InitConfig(void) {
     // GPIO_PinAFConfig(GPIOA, GPIO_PinSource11, GPIO_AF_CAN1);
     // GPIO_PinAFConfig(GPIOA, GPIO_PinSource12, GPIO_AF_CAN1);
 
-    // CAN2 (PB12 PB13)
+    // CAN2 (Chassis)
     GPIO_InitStructure.GPIO_Mode   =   GPIO_Mode_AF;
     GPIO_InitStructure.GPIO_OType  =   GPIO_OType_PP;
     GPIO_InitStructure.GPIO_Pin    =   CAN2_PIN;
@@ -43,7 +43,7 @@ void BSP_GPIO_InitConfig(void) {
     GPIO_Init(CAN2_PORT, &GPIO_InitStructure);
     CAN2_AF_CONFIG();
 
-    // USART1 (PB6 PB7)
+    // USART1 (Dbus)
     GPIO_InitStructure.GPIO_Mode   =   GPIO_Mode_AF;
     GPIO_InitStructure.GPIO_OType  =   GPIO_OType_PP;
     GPIO_InitStructure.GPIO_Pin    =   USART1_PIN;
@@ -52,15 +52,15 @@ void BSP_GPIO_InitConfig(void) {
     GPIO_Init(USART1_PORT, &GPIO_InitStructure);
     USART1_AF_CONFIG();
 
-    // // USART3 (PB10 PB11)
-    // GPIO_InitStructure.GPIO_Mode   =   GPIO_Mode_AF;
-    // GPIO_InitStructure.GPIO_OType  =   GPIO_OType_PP;
-    // GPIO_InitStructure.GPIO_Pin    =   GPIO_Pin_10 | GPIO_Pin_11;
-    // GPIO_InitStructure.GPIO_PuPd   =   GPIO_PuPd_UP;
-    // GPIO_InitStructure.GPIO_Speed  =   GPIO_Speed_100MHz;
-    // GPIO_Init(GPIOB, &GPIO_InitStructure);
-    // GPIO_PinAFConfig(GPIOB, GPIO_PinSource10, GPIO_AF_USART3);
-    // GPIO_PinAFConfig(GPIOB, GPIO_PinSource11, GPIO_AF_USART3);
+    // USART3 (Judge)
+    GPIO_InitStructure.GPIO_Mode   =   GPIO_Mode_AF;
+    GPIO_InitStructure.GPIO_OType  =   GPIO_OType_PP;
+    GPIO_InitStructure.GPIO_Pin    =   GPIO_Pin_10 | GPIO_Pin_11;
+    GPIO_InitStructure.GPIO_PuPd   =   GPIO_PuPd_UP;
+    GPIO_InitStructure.GPIO_Speed  =   GPIO_Speed_100MHz;
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
+    GPIO_PinAFConfig(GPIOB, GPIO_PinSource10, GPIO_AF_USART3);
+    GPIO_PinAFConfig(GPIOB, GPIO_PinSource11, GPIO_AF_USART3);
 
     // ST7735
     GPIO_InitStructure.GPIO_Mode   =   GPIO_Mode_AF;

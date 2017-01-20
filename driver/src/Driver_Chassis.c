@@ -9,18 +9,25 @@
 
 #define _ID(x) ((x)-CHASSIS_CAN_ID_OFFSET)
 
-/* 1: normal 0: reverse */
-static const char MOTOR_DIR[4] = {1, 0, 0, 1};
-static PID_Controller MotorController[4];
-static volatile int16_t MotorVelocityBuffer[4][2];
-static volatile uint8_t BufferId[4];
-
 static CanTxMsg ChassisCanTx;
 
+/* 1: normal 0: reverse */
+static const char MOTOR_DIR[4] = {1, 0, 0, 1};
+
+/* motor speed pid */
+static volatile uint32_t MotorFeedbackCount[4];
+static volatile int16_t MotorAngle[4], MotorLastAngle[4];
+static volatile int32_t MotorVelocity[4], TargetVelocity[4];
+static volatile int16_t MotorVelocityBuffer[4][2];
+static volatile uint8_t BufferId[4];
+static volatile char MeasureUpdated[4];
+static volatile int16_t MotorOutput[4];
+static PID_Controller MotorController[4];
+
+/* chassis angle pid */
 static PID_Controller ChassisOmegaController;
-// static volatile int32_t ChassisOmegaOutput;
-// static volatile float targetAngle = 0.0f;
-// static volatile int32_t targetOmega = 0;
+static volatile int32_t ChassisOmegaOutput;
+static volatile int32_t targetOmega;
 
 static PID_Controller ChassisPowerController;
 
@@ -49,11 +56,10 @@ static void CHASSIS_ClearAll(void) {
     _CLEAR(MeasureUpdated);
     ChassisOmegaOutput = 0;
     targetOmega = 0;
-    angleError = 0;
 }
 
 void CHASSIS_Init(void) {
-    ChassisCanTx.StdId = 0x200;
+    ChassisCanTx.StdId = CHASSIS_MASTER_ID;
     ChassisCanTx.IDE = CAN_Id_Standard;
     ChassisCanTx.RTR = CAN_RTR_Data;
     ChassisCanTx.DLC = 8;
@@ -97,7 +103,6 @@ void CHASSIS_Init(void) {
 
     CHASSIS_ClearAll();
     _CLEAR(MotorFeedbackCount);
-    targetAngle = 0.0f;
 }
 
 void CHASSIS_UpdateMeasure(uint16_t motorId, uint8_t *data) {

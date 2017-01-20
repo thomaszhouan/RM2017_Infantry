@@ -41,9 +41,12 @@
   ******************************************************************************
   */
 
+#define STM32F4xx_IT_FILE
+
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx.h"
 #include "stm32f4xx_it.h"
+#include "Param.h"
 #include "Driver_ADIS16.h"
 #include "Driver_Chassis.h"
 #include "Driver_Common.h"
@@ -211,7 +214,21 @@ void USART1_IRQHandler(void) {
   * @retval None
   */
 void USART3_IRQHandler(void) {
+    static uint8_t dum;
+    dum = USART3->DR;
+    dum = USART3->SR;
 
+    DMA_Cmd(DMA1_Stream1, DISABLE);
+
+    JUDGE_Decode(DMA1_Stream1->NDTR);
+    
+    DMA_ClearFlag(DMA1_Stream1, DMA_FLAG_TCIF1);
+    while(DMA_GetCmdStatus(DMA1_Stream1) != DISABLE)
+        ;
+    DMA_SetCurrDataCounter(DMA1_Stream1, JUDGE_BUFFER_LENGTH);
+    DMA_Cmd(DMA1_Stream1, ENABLE);
+
+    UNUSED(dum);
 }
 
 /**
@@ -233,8 +250,8 @@ void CAN2_RX0_IRQHandler(void) {
     CAN_Receive(CAN2, CAN_FIFO0, &CanRxData);
 
     switch(CanRxData.StdId) {
-        case 0x201: case 0x202:
-        case 0x203: case 0x204: {
+        case FL_MOTOR_ID: case FR_MOTOR_ID:
+        case BR_MOTOR_ID: case BL_MOTOR_ID: {
             CHASSIS_UpdateMeasure(CanRxData.StdId, CanRxData.Data);
         } break;
     }
@@ -253,6 +270,7 @@ void TIM2_IRQHandler(void) {
     TIM_ClearFlag(TIM2, TIM_FLAG_Update);
 
     ++tick;
+    ++GlobalTick;
     if (tick == 1000) tick = 0;
 
     if (tick % 500 == 0) LED_Toggle();
