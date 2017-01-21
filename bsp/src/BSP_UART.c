@@ -24,7 +24,7 @@ void BSP_UART_InitConfig(void) {
     USART_DMACmd(USART1, USART_DMAReq_Rx, ENABLE);
     USART_Cmd(USART1, ENABLE);
 
-    // UART3 (Judge)
+    // UART3 (Judge + Data Monitor)
     USART_InitStructure.USART_BaudRate              =   115200;
     USART_InitStructure.USART_HardwareFlowControl   =   USART_HardwareFlowControl_None;
     USART_InitStructure.USART_Mode                  =   USART_Mode_Rx | USART_Mode_Tx;
@@ -34,5 +34,6 @@ void BSP_UART_InitConfig(void) {
     USART_Init(USART3, &USART_InitStructure);
     USART_ITConfig(USART3, USART_IT_IDLE, ENABLE);
     USART_DMACmd(USART3, USART_DMAReq_Rx, ENABLE);
+    USART_DMACmd(USART3, USART_DMAReq_Tx, ENABLE);
     USART_Cmd(USART3, ENABLE);
 }

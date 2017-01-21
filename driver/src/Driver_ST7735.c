@@ -1,3 +1,4 @@
+#include "BSP_DWT.h"
 #include "Driver_Pinout.h"
 #include "Driver_ST7735.h"
 #include "font.h"
@@ -256,11 +257,9 @@ static void ST7735_WriteData(uint8_t data) {
 
 static void ST7735_Reset(void) {
     GPIO_ResetBits(ST7735_RST_PORT, ST7735_RST_PIN);
-    for (uint16_t i = 0; i < 10000; ++i)
-        ;
+    BSP_DWT_DelayMs(1);
     GPIO_SetBits(ST7735_RST_PORT, ST7735_RST_PIN);
-    for (uint16_t i = 0; i < 10000; ++i)
-        ;
+    BSP_DWT_DelayMs(1);
 }
 
 static void ST7735_Startup(void) {

@@ -40,5 +40,6 @@ int main(void) {
         ST7735_Print(4, 4, GREEN, BLACK, "%d", JUDGE_Data.remainLife);
         ST7735_Print(4, 5, GREEN, BLACK, "%d", UnknownId);
         ST7735_Print(4, 6, GREEN, BLACK, "%d", Counter);
+        MONITOR_Send("haha\n", 5);
     }
 }
