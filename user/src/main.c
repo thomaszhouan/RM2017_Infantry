@@ -25,8 +25,6 @@ int main(void) {
     ST7735_Print(0, 2, GREEN, BLACK, "THE");
     ST7735_Print(0, 3, GREEN, BLACK, "I");
     ST7735_Print(0, 4, GREEN, BLACK, "RL");
-    ST7735_Print(0, 5, GREEN, BLACK, "ID");
-    ST7735_Print(0, 6, GREEN, BLACK, "CNT");
 
     BSP_TIM_Start();
 
@@ -38,8 +36,5 @@ int main(void) {
         ST7735_Print(4, 2, GREEN, BLACK, "%d", ADIS16_Data.theta);
         ST7735_Print(4, 3, GREEN, BLACK, "%.2f", JUDGE_Data.current);
         ST7735_Print(4, 4, GREEN, BLACK, "%d", JUDGE_Data.remainLife);
-        ST7735_Print(4, 5, GREEN, BLACK, "%d", UnknownId);
-        ST7735_Print(4, 6, GREEN, BLACK, "%d", Counter);
-        MONITOR_Send("haha\n", 5);
     }
 }

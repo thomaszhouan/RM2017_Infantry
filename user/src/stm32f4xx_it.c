@@ -53,6 +53,7 @@
 #include "Driver_Dbus.h"
 #include "Driver_Judge.h"
 #include "Driver_Led.h"
+#include "Driver_Monitor.h"
 
 /** @addtogroup STM32F4xx_HAL_Examples
   * @{
@@ -236,7 +237,22 @@ void USART3_IRQHandler(void) {
   * @param  None
   * @retval None   
   */
+char Buffer[256];
+#include <stdio.h>
+#include <string.h>
 void CAN1_RX0_IRQHandler(void) {
+    static CanRxMsg CanRxData;
+    CAN_Receive(CAN1, CAN_FIFO0, &CanRxData);
+
+    switch(CanRxData.StdId) {
+        default: {
+            if (DMA_GetCurrDataCounter(DMA1_Stream3) == 0) {
+                // memcpy(Buffer, CanRxData.Data, 8);
+                sprintf(Buffer, "%03X\n", CanRxData.StdId);
+                MONITOR_Send((uint8_t*)Buffer, strlen(Buffer));
+            }
+        }
+    }
     CAN_ITConfig(CAN1, CAN_IT_FMP0, ENABLE);
 }
 
@@ -245,13 +261,9 @@ void CAN1_RX0_IRQHandler(void) {
   * @param  None
   * @retval None   
   */
-volatile uint32_t Counter = 0;
-volatile uint32_t UnknownId = 0;
 void CAN2_RX0_IRQHandler(void) {
     static CanRxMsg CanRxData;
     CAN_Receive(CAN2, CAN_FIFO0, &CanRxData);
-    UnknownId = CanRxData.StdId;
-    ++Counter;
 
     switch(CanRxData.StdId) {
         case FL_MOTOR_ID: case FR_MOTOR_ID:
@@ -259,8 +271,11 @@ void CAN2_RX0_IRQHandler(void) {
             CHASSIS_UpdateMeasure(CanRxData.StdId, CanRxData.Data);
         } break;
         default: {
-            UnknownId = CanRxData.StdId;
-            ++Counter;
+            if (DMA_GetCurrDataCounter(DMA1_Stream3) == 0) {
+                // memcpy(Buffer, CanRxData.Data, 8);
+                sprintf(Buffer, "%03X\n", CanRxData.StdId);
+                MONITOR_Send((uint8_t*)Buffer, strlen(Buffer));
+            }
         }
     }
     CAN_ITConfig(CAN2, CAN_IT_FMP0, ENABLE);
@@ -273,6 +288,7 @@ void CAN2_RX0_IRQHandler(void) {
   */
 void TIM2_IRQHandler(void) {
     static uint32_t tick = 0;
+    static CanTxMsg CanTxData;
 
     TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
     TIM_ClearFlag(TIM2, TIM_FLAG_Update);
@@ -281,7 +297,9 @@ void TIM2_IRQHandler(void) {
     ++GlobalTick;
     if (tick == 1000) tick = 0;
 
-    if (tick % 500 == 0) LED_Toggle();
+    if (tick % 500 == 0) {
+        LED_Toggle();
+    }
 
     if (tick % 20 == 0) {
         DBUS_UpdateStatus();

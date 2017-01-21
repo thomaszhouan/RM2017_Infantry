@@ -34,15 +34,15 @@ void BSP_GPIO_InitConfig(void) {
     GPIO_PinAFConfig(GPIOB, GPIO_PinSource1, GPIO_AF_TIM8);
     GPIO_ResetBits(GPIOB, GPIO_Pin_1);
 
-    // // CAN1 (PA11 PA12)
-    // GPIO_InitStructure.GPIO_Mode   =   GPIO_Mode_AF;
-    // GPIO_InitStructure.GPIO_OType  =   GPIO_OType_PP;
-    // GPIO_InitStructure.GPIO_Pin    =   GPIO_Pin_11 | GPIO_Pin_12;
-    // GPIO_InitStructure.GPIO_PuPd   =   GPIO_PuPd_UP;
-    // GPIO_InitStructure.GPIO_Speed  =   GPIO_Speed_100MHz;
-    // GPIO_Init(GPIOA, &GPIO_InitStructure);
-    // GPIO_PinAFConfig(GPIOA, GPIO_PinSource11, GPIO_AF_CAN1);
-    // GPIO_PinAFConfig(GPIOA, GPIO_PinSource12, GPIO_AF_CAN1);
+    // CAN1 (PA11 PA12)
+    GPIO_InitStructure.GPIO_Mode   =   GPIO_Mode_AF;
+    GPIO_InitStructure.GPIO_OType  =   GPIO_OType_PP;
+    GPIO_InitStructure.GPIO_Pin    =   GPIO_Pin_11 | GPIO_Pin_12;
+    GPIO_InitStructure.GPIO_PuPd   =   GPIO_PuPd_UP;
+    GPIO_InitStructure.GPIO_Speed  =   GPIO_Speed_100MHz;
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
+    GPIO_PinAFConfig(GPIOA, GPIO_PinSource11, GPIO_AF_CAN1);
+    GPIO_PinAFConfig(GPIOA, GPIO_PinSource12, GPIO_AF_CAN1);
 
     // CAN2 (Chassis)
     GPIO_InitStructure.GPIO_Mode   =   GPIO_Mode_AF;
