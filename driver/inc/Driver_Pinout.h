@@ -33,6 +33,13 @@
                                                      GPIO_PinAFConfig(GPIOB, GPIO_PinSource11, GPIO_AF_USART3);\
                                                 } while(0)
 
+// CAN1 (Chassis)
+#define CAN1_PORT                               GPIOA
+#define CAN1_PIN                                (GPIO_Pin_11 | GPIO_Pin_12)
+#define CAN1_AF_CONFIG()                        do { GPIO_PinAFConfig(GPIOA, GPIO_PinSource11, GPIO_AF_CAN1);\
+                                                     GPIO_PinAFConfig(GPIOA, GPIO_PinSource12, GPIO_AF_CAN1);\
+                                                } while(0)
+
 // CAN2 (Chassis)
 #define CAN2_PORT                               GPIOB
 #define CAN2_PIN                                (GPIO_Pin_12 | GPIO_Pin_13)

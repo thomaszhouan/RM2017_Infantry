@@ -237,7 +237,13 @@ void USART3_IRQHandler(void) {
   * @param  None
   * @retval None   
   */
-char Buffer[256];
+typedef struct {
+    uint16_t id;
+    uint8_t data[8];
+    uint8_t dum[6];
+} Trans;
+Trans Buffer[3];
+volatile uint16_t Count = 0;
 #include <stdio.h>
 #include <string.h>
 void CAN1_RX0_IRQHandler(void) {
@@ -245,11 +251,16 @@ void CAN1_RX0_IRQHandler(void) {
     CAN_Receive(CAN1, CAN_FIFO0, &CanRxData);
 
     switch(CanRxData.StdId) {
-        default: {
-            if (DMA_GetCurrDataCounter(DMA1_Stream3) == 0) {
-                // memcpy(Buffer, CanRxData.Data, 8);
-                sprintf(Buffer, "%03X\n", CanRxData.StdId);
-                MONITOR_Send((uint8_t*)Buffer, strlen(Buffer));
+        case 0x130: {
+            if (Count < 3) {
+                Buffer[Count].id = CanRxData.StdId;
+                memcpy(Buffer[Count].data, CanRxData.Data, 8);
+                memset(Buffer[Count].dum, 0, 6);
+                ++Count;
+            }
+            if (Count == 3) {
+                MONITOR_Send((uint8_t*)Buffer, sizeof(Buffer));
+                Count = 0;
             }
         }
     }
@@ -270,13 +281,6 @@ void CAN2_RX0_IRQHandler(void) {
         case BR_MOTOR_ID: case BL_MOTOR_ID: {
             CHASSIS_UpdateMeasure(CanRxData.StdId, CanRxData.Data);
         } break;
-        default: {
-            if (DMA_GetCurrDataCounter(DMA1_Stream3) == 0) {
-                // memcpy(Buffer, CanRxData.Data, 8);
-                sprintf(Buffer, "%03X\n", CanRxData.StdId);
-                MONITOR_Send((uint8_t*)Buffer, strlen(Buffer));
-            }
-        }
     }
     CAN_ITConfig(CAN2, CAN_IT_FMP0, ENABLE);
 }
@@ -288,7 +292,6 @@ void CAN2_RX0_IRQHandler(void) {
   */
 void TIM2_IRQHandler(void) {
     static uint32_t tick = 0;
-    static CanTxMsg CanTxData;
 
     TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
     TIM_ClearFlag(TIM2, TIM_FLAG_Update);

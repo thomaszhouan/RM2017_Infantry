@@ -551,6 +551,16 @@
               <FilePath>.\driver\src\Driver_Led.c</FilePath>
             </File>
             <File>
+              <FileName>Driver_Monitor.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\driver\src\Driver_Monitor.c</FilePath>
+            </File>
+            <File>
+              <FileName>Driver_Simulator.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\driver\src\Driver_Simulator.c</FilePath>
+            </File>
+            <File>
               <FileName>Driver_ST7735.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\driver\src\Driver_ST7735.c</FilePath>

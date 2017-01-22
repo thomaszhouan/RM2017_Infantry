@@ -16,6 +16,7 @@
 #include "Driver_Judge.h"
 #include "Driver_Led.h"
 #include "Driver_Monitor.h"
+#include "Driver_Simulator.h"
 #include "Driver_ST7735.h"
 
 #endif // MAIN_H

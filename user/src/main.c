@@ -1,6 +1,6 @@
 #include "main.h"
 
-extern volatile uint32_t UnknownId, Counter;
+extern volatile uint32_t Count;
 int main(void) {
     BSP_GPIO_InitConfig();
     BSP_CAN_InitConfig();
@@ -17,6 +17,8 @@ int main(void) {
     ST7735_Print(0, 0, GREEN, BLACK, "RM2017 Infantry");
     ST7735_Print(0, 1, GREEN, BLACK, "Gyro Calibrate");
 
+    SIMULATOR_CameraInit(6);
+
     CHASSIS_Init();
     ADIS16_Init();
     ADIS16_Calibrate(512);
@@ -24,7 +26,10 @@ int main(void) {
     ST7735_Print(0, 1, GREEN, BLACK, "OMG");
     ST7735_Print(0, 2, GREEN, BLACK, "THE");
     ST7735_Print(0, 3, GREEN, BLACK, "I");
-    ST7735_Print(0, 4, GREEN, BLACK, "RL");
+    ST7735_Print(0, 4, GREEN, BLACK, "V");
+    ST7735_Print(0, 5, GREEN, BLACK, "P");
+    ST7735_Print(0, 6, GREEN, BLACK, "RL");
+    ST7735_Print(0, 7, GREEN, BLACK, "CNT");
 
     BSP_TIM_Start();
 
@@ -34,7 +39,10 @@ int main(void) {
         }
         ST7735_Print(4, 1, GREEN, BLACK, "%d", ADIS16_Data.omega);
         ST7735_Print(4, 2, GREEN, BLACK, "%d", ADIS16_Data.theta);
-        ST7735_Print(4, 3, GREEN, BLACK, "%.2f", JUDGE_Data.current);
-        ST7735_Print(4, 4, GREEN, BLACK, "%d", JUDGE_Data.remainLife);
+        ST7735_Print(4, 3, GREEN, BLACK, "%.4f", JUDGE_Data.current);
+        ST7735_Print(4, 4, GREEN, BLACK, "%.4f", JUDGE_Data.voltage);
+        ST7735_Print(4, 5, GREEN, BLACK, "%.4f", JUDGE_Data.power);
+        ST7735_Print(4, 6, GREEN, BLACK, "%d", JUDGE_Data.remainLife);
+        ST7735_Print(4, 7, GREEN, BLACK, "%d", Count);
     }
 }
