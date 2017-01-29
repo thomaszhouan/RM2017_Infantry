@@ -107,4 +107,13 @@ void BSP_GPIO_InitConfig(void) {
     GPIO_InitStructure.GPIO_Speed  =   GPIO_Speed_2MHz;
     GPIO_Init(ADIS16_CS_PORT, &GPIO_InitStructure);
     GPIO_SetBits(ADIS16_CS_PORT, ADIS16_CS_PIN);
+
+    // I2C1 (MPU6050)
+    GPIO_InitStructure.GPIO_Mode   =   GPIO_Mode_AF;
+    GPIO_InitStructure.GPIO_OType  =   GPIO_OType_OD;
+    GPIO_InitStructure.GPIO_Pin    =   I2C1_PIN;
+    GPIO_InitStructure.GPIO_PuPd   =   GPIO_PuPd_UP;
+    GPIO_InitStructure.GPIO_Speed  =   GPIO_Speed_100MHz;
+    GPIO_Init(I2C1_PORT, &GPIO_InitStructure);
+    I2C1_AF_CONFIG();
 }

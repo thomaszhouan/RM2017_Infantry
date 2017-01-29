@@ -47,6 +47,7 @@
 #include "stm32f4xx.h"
 #include "stm32f4xx_it.h"
 #include "Param.h"
+
 #include "Driver_ADIS16.h"
 #include "Driver_Chassis.h"
 #include "Driver_Common.h"
@@ -54,6 +55,7 @@
 #include "Driver_Judge.h"
 #include "Driver_Led.h"
 #include "Driver_Monitor.h"
+#include "Driver_MPU6050.h"
 
 /** @addtogroup STM32F4xx_HAL_Examples
   * @{
@@ -242,7 +244,7 @@ typedef struct {
     uint8_t data[8];
     uint8_t dum[6];
 } Trans;
-Trans Buffer[3];
+Trans Buffer[9];
 volatile uint16_t Count = 0;
 #include <stdio.h>
 #include <string.h>
@@ -251,16 +253,20 @@ void CAN1_RX0_IRQHandler(void) {
     CAN_Receive(CAN1, CAN_FIFO0, &CanRxData);
 
     switch(CanRxData.StdId) {
-        case 0x130: {
-            if (Count < 3) {
+        case 0x0FE: {
+
+        } break;
+        default: {
+            if (Count < 9) {
                 Buffer[Count].id = CanRxData.StdId;
                 memcpy(Buffer[Count].data, CanRxData.Data, 8);
                 memset(Buffer[Count].dum, 0, 6);
                 ++Count;
             }
-            if (Count == 3) {
+            if (Count == 9) {
                 MONITOR_Send((uint8_t*)Buffer, sizeof(Buffer));
                 Count = 0;
+                // ++Count;
             }
         }
     }
@@ -307,6 +313,8 @@ void TIM2_IRQHandler(void) {
     if (tick % 20 == 0) {
         DBUS_UpdateStatus();
     }
+
+    MPU6050_ReadAll();
 
     if (DBUS_Status == kConnected) {
         CHASSIS_Control();

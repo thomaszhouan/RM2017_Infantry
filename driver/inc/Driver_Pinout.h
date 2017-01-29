@@ -58,4 +58,11 @@
                                                      GPIO_PinAFConfig(GPIOC, GPIO_PinSource12, GPIO_AF_SPI3);\
                                                 } while(0)
 
+// I2C1 (MPU6050)
+#define I2C1_PORT                               GPIOB
+#define I2C1_PIN                                (GPIO_Pin_8 | GPIO_Pin_9)
+#define I2C1_AF_CONFIG()                        do { GPIO_PinAFConfig(GPIOB, GPIO_PinSource8, GPIO_AF_I2C1);\
+                                                     GPIO_PinAFConfig(GPIOB, GPIO_PinSource9, GPIO_AF_I2C1);\
+                                                } while(0)
+
 #endif
