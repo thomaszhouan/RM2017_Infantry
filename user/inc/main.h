@@ -1,6 +1,7 @@
 #ifndef MAIN_H
 #define MAIN_H
 
+#include "BSP_ADC.h"
 #include "BSP_CAN.h"
 #include "BSP_DMA.h"
 #include "BSP_DWT.h"

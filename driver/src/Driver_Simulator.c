@@ -1,6 +1,9 @@
+#define SIMULATOR_FILE
+
 #include "stm32f4xx.h"
 #include "BSP_DWT.h"
 #include "Driver_Simulator.h"
+#include "param.h"
 
 static const uint8_t NormalSequence[3][8] = {
      {0x5A, 0x01, 0x00, 0x00, 0x00, 0x01, 0x04, 0xFF},
@@ -123,6 +126,19 @@ static const uint8_t ArmorSequence[10][3][8] = {
 };
 
 static CanTxMsg CanTxData;
+static uint8_t SampleCount;
+
+static void VoltageConversion(void) {
+    SIMULATOR_VoltageBuffer[SampleCount] =
+        SIMULATOR_DataBuffer[3] * 0.008862305f;
+}
+
+static void CurrentConversion(void) {
+    SIMULATOR_CurrentBuffer[SampleCount] = 
+        (SIMULATOR_DataBuffer[11]-3172)*0.000805861/0.02f;
+    if (SIMULATOR_CurrentBuffer[SampleCount] < 0.00001f)
+        SIMULATOR_CurrentBuffer[SampleCount] = 0.00001f;
+}
 
 void SIMULATOR_Init(void) {
     CanTxData.StdId = 0x0FE;
@@ -138,6 +154,8 @@ void SIMULATOR_Init(void) {
         SIMULATOR_SendHeartBeat();
     }
 
+    SIMULATOR_Data.remainLife = 1500;
+    SIMULATOR_Data.remainEnergy = 60.0f;
 }
 
 void SIMULATOR_SendHeartBeat(void) {
@@ -174,4 +192,40 @@ void SIMULATOR_ArmorInit(uint8_t robotId) {
             CanTxData.Data[j] = ArmorSequence[robotId][i][j];
         CAN_Transmit(CAN1, &CanTxData);
     }
+}
+
+void SIMULATOR_UpdatePower(void) {
+    static float tmpCurrent, tmpVoltage, tmpBuffer;
+    static float ratio;
+
+    VoltageConversion();
+    CurrentConversion();
+    ++SampleCount;
+
+    if (SampleCount != 19) return;
+
+    tmpCurrent = tmpVoltage = 0.0f;
+    for (uint8_t i = 0; i < 20; ++i) {
+        tmpCurrent += SIMULATOR_CurrentBuffer[i];
+        tmpVoltage += SIMULATOR_VoltageBuffer[i];
+    }
+    SIMULATOR_Data.current = tmpCurrent/20.0f;
+    SIMULATOR_Data.voltage = tmpVoltage/20.0f;
+    SIMULATOR_Data.power = SIMULATOR_Data.current * SIMULATOR_Data.voltage;
+
+    tmpBuffer -= (SIMULATOR_Data.power - CHASSIS_MAX_POWER) * 0x02f;
+    if (tmpBuffer > 60.0f)
+        tmpBuffer = 60.0f;
+    SIMULATOR_Data.remainEnergy = tmpBuffer;
+    if (SIMULATOR_Data.remainEnergy < 0.0f) {
+        SIMULATOR_Data.remainEnergy = 0.0f;
+        ratio = (SIMULATOR_Data.power - CHASSIS_MAX_POWER) / CHASSIS_MAX_POWER;
+        if (ratio <= 0.1f)
+            SIMULATOR_Data.remainLife -= 3;
+        else if (ratio <= 0.2f)
+            SIMULATOR_Data.remainLife -= 6;
+        else
+            SIMULATOR_Data.remainLife -= 12;
+    }
+    SampleCount = 0;
 }

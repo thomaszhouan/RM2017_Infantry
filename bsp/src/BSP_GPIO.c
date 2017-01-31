@@ -116,4 +116,12 @@ void BSP_GPIO_InitConfig(void) {
     GPIO_InitStructure.GPIO_Speed  =   GPIO_Speed_100MHz;
     GPIO_Init(I2C1_PORT, &GPIO_InitStructure);
     I2C1_AF_CONFIG();
+
+    // ADC1 (current sensor)
+    GPIO_InitStructure.GPIO_Mode   =   GPIO_Mode_AN;
+    GPIO_InitStructure.GPIO_OType  =   GPIO_OType_OD;
+    GPIO_InitStructure.GPIO_Pin    =   GPIO_Pin_4;
+    GPIO_InitStructure.GPIO_PuPd   =   GPIO_PuPd_NOPULL;
+    GPIO_InitStructure.GPIO_Speed  =   GPIO_Speed_100MHz;
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
 }

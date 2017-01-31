@@ -1,6 +1,11 @@
 #ifndef PARAM_H
 #define PARAM_H
 
+/* Board type select */
+#define BOARD_TYPE_CONTROL                      0
+#define BOARD_TYPE_JUDGE                        1
+#define BOARD_TYPE                              BOARD_TYPE_JUDGE
+
 /* CHASSIS param */
 #define CHASSIS_MAX_POWER                       80
 #define CHASSIS_ENERGY                          60

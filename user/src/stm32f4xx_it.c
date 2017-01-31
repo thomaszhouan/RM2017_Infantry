@@ -56,6 +56,7 @@
 #include "Driver_Led.h"
 #include "Driver_Monitor.h"
 #include "Driver_MPU6050.h"
+#include "Driver_Simulator.h"
 
 /** @addtogroup STM32F4xx_HAL_Examples
   * @{
@@ -310,6 +311,7 @@ void TIM2_IRQHandler(void) {
         LED_Toggle();
     }
 
+#if BOARD_TYPE == BOARD_TYPE_CONTROL
     if (tick % 20 == 0) {
         DBUS_UpdateStatus();
     }
@@ -320,6 +322,11 @@ void TIM2_IRQHandler(void) {
         CHASSIS_Control();
     }
     CHASSIS_SendCmd();
+#endif
+
+#if BOARD_TYPE == BOARD_TYPE_JUDGE
+    SIMULATOR_UpdatePower();
+#endif
 }
 
 /**
