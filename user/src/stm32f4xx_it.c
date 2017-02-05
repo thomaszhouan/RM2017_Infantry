@@ -46,7 +46,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx.h"
 #include "stm32f4xx_it.h"
-#include "Param.h"
+#include "param.h"
 
 #include "Driver_ADIS16.h"
 #include "Driver_Chassis.h"
@@ -241,34 +241,47 @@ void USART3_IRQHandler(void) {
   * @retval None   
   */
 typedef struct {
+    // uint32_t time;
     uint16_t id;
     uint8_t data[8];
     uint8_t dum[6];
 } Trans;
-Trans Buffer[9];
+Trans Buffer[3];
 volatile uint16_t Count = 0;
 #include <stdio.h>
 #include <string.h>
 void CAN1_RX0_IRQHandler(void) {
     static CanRxMsg CanRxData;
+    static uint8_t isFirst[4] = {1, 1, 1, 1};
+    static uint8_t id;
     CAN_Receive(CAN1, CAN_FIFO0, &CanRxData);
 
     switch(CanRxData.StdId) {
-        case 0x0FE: {
-
+        case 0x150: {
+            ++Count;
+        } break;
+        case 0x240: case 0x241: case 0x242: case 0x243: {
+            if (CanRxData.Data[1] == 0) {
+                id = CanRxData.StdId & 0x0F;
+                if (isFirst[id]) {
+                    isFirst[id] = 0;
+                    SIMULATOR_ArmorInit(id, 7);
+                }
+            }
         } break;
         default: {
-            if (Count < 9) {
-                Buffer[Count].id = CanRxData.StdId;
-                memcpy(Buffer[Count].data, CanRxData.Data, 8);
-                memset(Buffer[Count].dum, 0, 6);
-                ++Count;
-            }
-            if (Count == 9) {
-                MONITOR_Send((uint8_t*)Buffer, sizeof(Buffer));
-                Count = 0;
-                // ++Count;
-            }
+            // if (Count < 3) {
+            //     // Buffer[Count].time = GlobalTick;
+            //     Buffer[Count].id = CanRxData.StdId;
+            //     memcpy(Buffer[Count].data, CanRxData.Data, 8);
+            //     memset(Buffer[Count].dum, 0, 6);
+            //     ++Count;
+            // }
+            // if (Count == 3) {
+            //     MONITOR_Send((uint8_t*)Buffer, sizeof(Buffer));
+            //     Count = 0;
+            //     // ++Count;
+            // }
         }
     }
     CAN_ITConfig(CAN1, CAN_IT_FMP0, ENABLE);
@@ -305,11 +318,15 @@ void TIM2_IRQHandler(void) {
 
     ++tick;
     ++GlobalTick;
-    if (tick == 1000) tick = 0;
+    if (tick == 1000) {
+        tick = 0;
+    }
 
     if (tick % 500 == 0) {
         LED_Toggle();
+        SIMULATOR_SendHeartBeat();
     }
+
 
 #if BOARD_TYPE == BOARD_TYPE_CONTROL
     if (tick % 20 == 0) {

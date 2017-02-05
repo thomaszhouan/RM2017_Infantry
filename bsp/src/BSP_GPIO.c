@@ -24,15 +24,15 @@ void BSP_GPIO_InitConfig(void) {
     GPIO_Init(LED_PORT, &GPIO_InitStructure);
     GPIO_SetBits(LED_PORT, LED_PIN);
 
-    // Buzzer
-    GPIO_InitStructure.GPIO_Mode   =   GPIO_Mode_AF;
-    GPIO_InitStructure.GPIO_OType  =   GPIO_OType_PP;
-    GPIO_InitStructure.GPIO_Pin    =   GPIO_Pin_1;
-    GPIO_InitStructure.GPIO_PuPd   =   GPIO_PuPd_NOPULL;
-    GPIO_InitStructure.GPIO_Speed  =   GPIO_Speed_100MHz;
-    GPIO_Init(GPIOB, &GPIO_InitStructure);
-    GPIO_PinAFConfig(GPIOB, GPIO_PinSource1, GPIO_AF_TIM8);
-    GPIO_ResetBits(GPIOB, GPIO_Pin_1);
+    // // Buzzer
+    // GPIO_InitStructure.GPIO_Mode   =   GPIO_Mode_AF;
+    // GPIO_InitStructure.GPIO_OType  =   GPIO_OType_PP;
+    // GPIO_InitStructure.GPIO_Pin    =   GPIO_Pin_1;
+    // GPIO_InitStructure.GPIO_PuPd   =   GPIO_PuPd_UP;
+    // GPIO_InitStructure.GPIO_Speed  =   GPIO_Speed_100MHz;
+    // GPIO_Init(GPIOB, &GPIO_InitStructure);
+    // GPIO_PinAFConfig(GPIOB, GPIO_PinSource1, GPIO_AF_TIM8);
+    // GPIO_ResetBits(GPIOB, GPIO_Pin_1);
 
     // CAN1 (PA11 PA12)
     GPIO_InitStructure.GPIO_Mode   =   GPIO_Mode_AF;
@@ -124,4 +124,11 @@ void BSP_GPIO_InitConfig(void) {
     GPIO_InitStructure.GPIO_PuPd   =   GPIO_PuPd_NOPULL;
     GPIO_InitStructure.GPIO_Speed  =   GPIO_Speed_100MHz;
     GPIO_Init(GPIOA, &GPIO_InitStructure);
+
+    GPIO_InitStructure.GPIO_Mode   =   GPIO_Mode_AN;
+    GPIO_InitStructure.GPIO_OType  =   GPIO_OType_OD;
+    GPIO_InitStructure.GPIO_Pin    =   GPIO_Pin_2;
+    GPIO_InitStructure.GPIO_PuPd   =   GPIO_PuPd_NOPULL;
+    GPIO_InitStructure.GPIO_Speed  =   GPIO_Speed_100MHz;
+    GPIO_Init(GPIOC, &GPIO_InitStructure);
 }

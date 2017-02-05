@@ -19,12 +19,13 @@ int main(void) {
     ST7735_Print(0, 0, GREEN, BLACK, "RM2017 Infantry");
     ST7735_Print(0, 1, GREEN, BLACK, "Gyro Calibrate");
 
-    // SIMULATOR_CameraInit(6);
-#if BOARD_TYPE == BOARD_TYPE_JUDGE
+#if (BOARD_TYPE == BOARD_TYPE_JUDGE)
     SIMULATOR_Init();
+    // SIMULATOR_ArmorInit(0);
+    SIMULATOR_CameraInit(7);
 #endif
 
-#if BOARD_TYPE == BOARD_TYPE_CONTROL
+#if (BOARD_TYPE == BOARD_TYPE_CONTROL)
     CHASSIS_Init();
     ADIS16_Init();
     ADIS16_Calibrate(512);
@@ -39,18 +40,21 @@ int main(void) {
     ST7735_Print(0, 7, GREEN, BLACK, "G_Z");
 #endif
 
-#if BOARD_TYPE == BOARD_TYPE_JUDGE
+#if (BOARD_TYPE == BOARD_TYPE_JUDGE)
     ST7735_Print(0, 1, GREEN, BLACK, "RL");
     ST7735_Print(0, 2, GREEN, BLACK, "PR");
     ST7735_Print(0, 3, GREEN, BLACK, "I");
     ST7735_Print(0, 4, GREEN, BLACK, "V");
     ST7735_Print(0, 5, GREEN, BLACK, "WR");
+    ST7735_Print(0, 6, GREEN, BLACK, "CNT");
 #endif
 
+    // while (!Count)
+    //     ;
     BSP_TIM_Start();
 
     while (1) {
-#if BOARD_TYPE == BOARD_TYPE_CONTROL
+#if (BOARD_TYPE == BOARD_TYPE_CONTROL)
         if (DBUS_Status == kLost) {
             CHASSIS_SetFree();
         }
@@ -63,12 +67,13 @@ int main(void) {
         ST7735_Print(4, 7, GREEN, BLACK, "%d", MPU6050_Data.RawGyro[2]);
 #endif
 
-#if BOARD_TYPE == BOARD_TYPE_JUDGE
+#if (BOARD_TYPE == BOARD_TYPE_JUDGE)
         ST7735_Print(4, 1, GREEN, BLACK, "%d", SIMULATOR_Data.remainLife);
         ST7735_Print(4, 2, GREEN, BLACK, "%.5f", SIMULATOR_Data.power);
         ST7735_Print(4, 3, GREEN, BLACK, "%.5f", SIMULATOR_Data.current);
         ST7735_Print(4, 4, GREEN, BLACK, "%.5f", SIMULATOR_Data.voltage);
         ST7735_Print(4, 5, GREEN, BLACK, "%.5f", SIMULATOR_Data.remainEnergy);
+        ST7735_Print(4, 6, GREEN, BLACK, "%d", Count);
 #endif
     }
 }

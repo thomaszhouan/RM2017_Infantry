@@ -12,6 +12,7 @@ void BSP_TIM_InitConfig(void) {
     
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE);
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM8, ENABLE);
     
     // TIM2 (main control 1kHz)
@@ -27,6 +28,14 @@ void BSP_TIM_InitConfig(void) {
     TIM_TimeBaseInitStructure.TIM_Period        =   125-1;
     TIM_TimeBaseInitStructure.TIM_Prescaler     =   (uint32_t) (((SystemCoreClock / 2) / 32000)-1);
     TIM_TimeBaseInit(TIM3, &TIM_TimeBaseInitStructure);
+
+    // TIM4 (for timing)
+    TIM_TimeBaseInitStructure.TIM_ClockDivision =   TIM_CKD_DIV1;
+    TIM_TimeBaseInitStructure.TIM_CounterMode   =   TIM_CounterMode_Up;
+    TIM_TimeBaseInitStructure.TIM_Period        =   0xFFFFU;
+    TIM_TimeBaseInitStructure.TIM_Prescaler     =   (uint32_t) (((SystemCoreClock / 2) / 1000000)-1); // 1MHz clock
+    TIM_TimeBaseInit(TIM4, &TIM_TimeBaseInitStructure);
+    TIM_Cmd(TIM4, ENABLE);
 
     // TIM8 (buzzer PWM)
     TIM_TimeBaseInitStructure.TIM_ClockDivision =   TIM_CKD_DIV1;

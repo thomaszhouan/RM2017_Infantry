@@ -22,4 +22,6 @@
 #include "Driver_Simulator.h"
 #include "Driver_ST7735.h"
 
+#include "Param.h"
+
 #endif // MAIN_H

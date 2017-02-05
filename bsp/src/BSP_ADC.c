@@ -24,8 +24,9 @@ void BSP_ADC_InitConfig(void) {
     ADC_Init(ADC1, &ADC_InitStructure);
 
     ADC_DMACmd(ADC1, ENABLE);
-    ADC_RegularChannelConfig(ADC1, ADC_Channel_4, 1, ADC_SampleTime_480Cycles);
+    ADC_RegularChannelConfig(ADC1, ADC_Channel_4, 4, ADC_SampleTime_480Cycles);
+    ADC_RegularChannelConfig(ADC1, ADC_Channel_12, 12, ADC_SampleTime_480Cycles);
     ADC_DMARequestAfterLastTransferCmd(ADC1, ENABLE);
     ADC_Cmd(ADC1, ENABLE);
-    ADC_SoftwareStartConv(ADC1); 
+    ADC_SoftwareStartConv(ADC1);
 }

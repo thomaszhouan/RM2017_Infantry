@@ -61,15 +61,20 @@
 uint8_t MPU6050_Init(void) {
     uint8_t temp;
 
-    MPU6050_AccelScale = MPU6050_Accel_4G;
-    MPU6050_GyroScale = MPU6050_Gyro_500s;
+    MPU6050_AccelScale = MPU6050_Accel_2G;
+    MPU6050_GyroScale = MPU6050_Gyro_1000s;
 
     /* Check if device is connected */
     if (!BSP_I2C_Probe(MPU6050_I2C, MPU6050_ADDR))
         return 0;
 
     /* Wakeup MPU6050 */
-    BSP_I2C_Write(MPU6050_I2C, MPU6050_ADDR, MPU6050_PWR_MGMT_1, 0x00);
+    BSP_I2C_Write(MPU6050_I2C, MPU6050_ADDR, MPU6050_PWR_MGMT_1, 0x01);
+
+    /* Config LPF */
+    BSP_I2C_Write(MPU6050_I2C, MPU6050_ADDR, MPU6050_CONFIG, 0x03);
+
+    /* Config sample rate */
     
     /* Config accelerometer */
     temp = BSP_I2C_Read(MPU6050_I2C, MPU6050_ADDR, MPU6050_ACCEL_CONFIG);
