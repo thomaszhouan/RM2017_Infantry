@@ -5,6 +5,16 @@
 #define LED_PORT                                GPIOB
 #define LED_PIN                                 GPIO_Pin_3
 
+// Joystick
+#define JS_PORT                                 GPIOC
+#define JS_PIN                                  (GPIO_Pin_0 | GPIO_Pin_1 | GPIO_Pin_13 | \
+                                                 GPIO_Pin_14 | GPIO_Pin_15)
+#define JS_U                                    GPIO_Pin_15
+#define JS_D                                    GPIO_Pin_1
+#define JS_L                                    GPIO_Pin_0
+#define JS_R                                    GPIO_Pin_14
+#define JS_C                                    GPIO_Pin_13
+
 // ST7735
 #define ST7735_SPI                              SPI1
 #define ST7735_SPI_PORT                         GPIOA

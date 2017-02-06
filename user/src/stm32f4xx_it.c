@@ -241,7 +241,6 @@ void USART3_IRQHandler(void) {
   * @retval None   
   */
 typedef struct {
-    // uint32_t time;
     uint16_t id;
     uint8_t data[8];
     uint8_t dum[6];
@@ -258,7 +257,7 @@ void CAN1_RX0_IRQHandler(void) {
 
     switch(CanRxData.StdId) {
         case 0x150: {
-            ++Count;
+            SIMULATOR_Hit();
         } break;
         case 0x240: case 0x241: case 0x242: case 0x243: {
             if (CanRxData.Data[1] == 0) {
@@ -324,7 +323,9 @@ void TIM2_IRQHandler(void) {
 
     if (tick % 500 == 0) {
         LED_Toggle();
+#if BOARD_TYPE == BOARD_TYPE_JUDGE
         SIMULATOR_SendHeartBeat();
+#endif
     }
 
 
@@ -333,7 +334,7 @@ void TIM2_IRQHandler(void) {
         DBUS_UpdateStatus();
     }
 
-    MPU6050_ReadAll();
+    // MPU6050_ReadAll();
 
     if (DBUS_Status == kConnected) {
         CHASSIS_Control();

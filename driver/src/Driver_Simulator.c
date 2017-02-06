@@ -3,7 +3,11 @@
 #include "stm32f4xx.h"
 #include "BSP_DWT.h"
 #include "Driver_Simulator.h"
+#include "Driver_Monitor.h"
+#include "Driver_Judge.h"
 #include "param.h"
+
+static SimulatedData_Struct SIMULATOR_InfoData;
 
 static const uint8_t NormalSequence[3][8] = {
     {0x5A, 0x01, 0x00, 0x00, 0x00, 0x01, 0x01, 0xFF},
@@ -454,6 +458,21 @@ void SIMULATOR_UpdatePower(void) {
             SIMULATOR_Data.remainLife -= 6;
         else
             SIMULATOR_Data.remainLife -= 12;
+
+        if (SIMULATOR_Data.remainLife < 0)
+            SIMULATOR_Data.remainLife = 0;
     }
     SampleCount = 0;
+
+    /* send info data */
+    SIMULATOR_InfoData.remainLifeValue = SIMULATOR_Data.remainLife;
+    SIMULATOR_InfoData.realChassisOutV = SIMULATOR_Data.voltage;
+    SIMULATOR_InfoData.realChassisOutA = SIMULATOR_Data.current;
+    MONITOR_Send((uint8_t*)&SIMULATOR_InfoData, sizeof(SIMULATOR_InfoData));
+}
+
+void SIMULATOR_Hit(void) {
+    SIMULATOR_Data.remainLife -= 50;
+    if (SIMULATOR_Data.remainLife < 0)
+        SIMULATOR_Data.remainLife = 0;
 }

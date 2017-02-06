@@ -70,6 +70,12 @@ typedef __packed struct {
     float realGolfShootFreq;
 } RealShootData_Struct;
 
+typedef __packed struct {
+    uint16_t remainLifeValue;
+    float realChassisOutV;
+    float realChassisOutA;
+} SimulatedData_Struct;
+
 // union for format transform
 typedef union {
     uint8_t U[4];

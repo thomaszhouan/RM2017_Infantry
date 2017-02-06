@@ -45,7 +45,7 @@
  extern "C" {
 #endif
 
-#ifdef STM32F4xx_IT_FILE
+#ifndef STM32F4xx_IT_FILE
     #define STM32F4xx_IT_EXT extern
 #else
     #define STM32F4xx_IT_EXT

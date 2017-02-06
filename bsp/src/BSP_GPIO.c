@@ -34,6 +34,14 @@ void BSP_GPIO_InitConfig(void) {
     // GPIO_PinAFConfig(GPIOB, GPIO_PinSource1, GPIO_AF_TIM8);
     // GPIO_ResetBits(GPIOB, GPIO_Pin_1);
 
+    // 5 way switch
+    GPIO_InitStructure.GPIO_Mode   =   GPIO_Mode_IN;
+    GPIO_InitStructure.GPIO_OType  =   GPIO_OType_PP;
+    GPIO_InitStructure.GPIO_Pin    =   JS_PIN;
+    GPIO_InitStructure.GPIO_PuPd   =   GPIO_PuPd_UP;
+    GPIO_InitStructure.GPIO_Speed  =   GPIO_Speed_2MHz;
+    GPIO_Init(JS_PORT, &GPIO_InitStructure);
+
     // CAN1 (PA11 PA12)
     GPIO_InitStructure.GPIO_Mode   =   GPIO_Mode_AF;
     GPIO_InitStructure.GPIO_OType  =   GPIO_OType_PP;

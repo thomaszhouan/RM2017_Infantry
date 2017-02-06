@@ -26,5 +26,6 @@ void SIMULATOR_SendHeartBeat(void);
 void SIMULATOR_CameraInit(uint8_t robotId);
 void SIMULATOR_ArmorInit(uint8_t armorId, uint8_t robotId);
 void SIMULATOR_UpdatePower(void);
+void SIMULATOR_Hit(void);
 
 #endif

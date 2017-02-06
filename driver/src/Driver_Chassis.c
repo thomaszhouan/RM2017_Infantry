@@ -251,6 +251,7 @@ void CHASSIS_SetTargetVelocity(uint16_t motorId, int32_t velocity) {
 void CHASSIS_SendCmd(void) {
     static uint8_t *data = ChassisCanTx.Data;
 
+#ifndef USE_SIMULATED_JUDGE
     data[0] = (MotorOutput[0]&0xFF00)>>8;
     data[1] = MotorOutput[0]&0x00FF;
     data[2] = (MotorOutput[1]&0xFF00)>>8;
@@ -259,6 +260,21 @@ void CHASSIS_SendCmd(void) {
     data[5] = MotorOutput[2]&0x00FF;
     data[6] = (MotorOutput[3]&0xFF00)>>8;
     data[7] = MotorOutput[3]&0x00FF;
+#else // USE_SIMULATED_JUDGE
+    if (JUDGE_Data.remainLife == 0)
+        memset((char*)data, 0, sizeof(data));
+    else {
+        data[0] = (MotorOutput[0]&0xFF00)>>8;
+        data[1] = MotorOutput[0]&0x00FF;
+        data[2] = (MotorOutput[1]&0xFF00)>>8;
+        data[3] = MotorOutput[1]&0x00FF;
+        data[4] = (MotorOutput[2]&0xFF00)>>8;
+        data[5] = MotorOutput[2]&0x00FF;
+        data[6] = (MotorOutput[3]&0xFF00)>>8;
+        data[7] = MotorOutput[3]&0x00FF;
+    }
+#endif
+
     CAN_Transmit(CAN2, &ChassisCanTx);
 }
 
