@@ -29,6 +29,7 @@ int main(void) {
 #if (BOARD_TYPE == BOARD_TYPE_CONTROL)
     CHASSIS_Init();
     GIMBAL_Init();
+    GUN_Init();
     ADIS16_Init();
     ADIS16_Calibrate(512);
     // MPU6050_Init();
@@ -39,6 +40,8 @@ int main(void) {
     ST7735_Print(0, 4, GREEN, BLACK, "pos");
     ST7735_Print(0, 5, GREEN, BLACK, "vel");
     ST7735_Print(0, 6, GREEN, BLACK, "enc");
+    ST7735_Print(0, 7, GREEN, BLACK, "out");
+    ST7735_Print(0, 8, GREEN, BLACK, "tar");
 #endif
 
 #if (BOARD_TYPE == BOARD_TYPE_JUDGE)
@@ -63,6 +66,8 @@ int main(void) {
         ST7735_Print(4, 4, GREEN, BLACK, "%d", GimbalPosition[0]);
         ST7735_Print(4, 5, GREEN, BLACK, "%d", GimbalVelocity[0]);
         ST7735_Print(4, 6, GREEN, BLACK, "%d", ENCODER_Data);
+        ST7735_Print(4, 7, GREEN, BLACK, "%d", GUN_Data.pokeOutput);
+        ST7735_Print(4, 8, GREEN, BLACK, "%d", GUN_Data.pokeTargetSpeed);
 #endif
 
 #if (BOARD_TYPE == BOARD_TYPE_JUDGE)

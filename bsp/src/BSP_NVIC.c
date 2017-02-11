@@ -27,8 +27,8 @@ void BSP_NVIC_InitConfig(void) {
     NVIC_Init(&NVIC_InitStructure);
     CAN_ITConfig(CAN2, CAN_IT_FMP0, ENABLE);
 
-    // TIM2 (main control)
-    NVIC_InitStructure.NVIC_IRQChannel                      =   TIM2_IRQn;
+    // TIM7 (main control)
+    NVIC_InitStructure.NVIC_IRQChannel                      =   TIM7_IRQn;
     NVIC_InitStructure.NVIC_IRQChannelCmd                   =   ENABLE;
     NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority    =   3;
     NVIC_InitStructure.NVIC_IRQChannelSubPriority           =   0;

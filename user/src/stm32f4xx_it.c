@@ -52,8 +52,8 @@
 #include "Driver_Chassis.h"
 #include "Driver_Common.h"
 #include "Driver_Dbus.h"
-#include "Driver_Encoder.h"
 #include "Driver_Gimbal.h"
+#include "Driver_Gun.h"
 #include "Driver_Judge.h"
 #include "Driver_Led.h"
 #include "Driver_Monitor.h"
@@ -203,6 +203,7 @@ void USART1_IRQHandler(void) {
     if(DMA2_Stream2->NDTR == 0) {
         DBUS_Decode();
         CHASSIS_SetMotion();
+        GUN_SetMotion();
     }
     
     DMA_ClearFlag(DMA2_Stream2, DMA_FLAG_TCIF2);
@@ -317,15 +318,15 @@ void CAN2_RX0_IRQHandler(void) {
 }
 
 /**
-  * @brief  This function handles TIM2 interrupt request.
+  * @brief  This function handles TIM7 interrupt request.
   * @param  None
   * @retval None
   */
-void TIM2_IRQHandler(void) {
+void TIM7_IRQHandler(void) {
     static uint32_t tick = 0;
 
-    TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
-    TIM_ClearFlag(TIM2, TIM_FLAG_Update);
+    TIM_ClearITPendingBit(TIM7, TIM_IT_Update);
+    TIM_ClearFlag(TIM7, TIM_FLAG_Update);
 
     ++tick;
     ++GlobalTick;
@@ -343,7 +344,7 @@ void TIM2_IRQHandler(void) {
 
 #if BOARD_TYPE == BOARD_TYPE_CONTROL
     if (tick % 20 == 0) {
-        ENCODER_Update();
+        GUN_PokeControl();
         DBUS_UpdateStatus();
     }
 
