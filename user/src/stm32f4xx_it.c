@@ -52,6 +52,7 @@
 #include "Driver_Chassis.h"
 #include "Driver_Common.h"
 #include "Driver_Dbus.h"
+#include "Driver_Gimbal.h"
 #include "Driver_Judge.h"
 #include "Driver_Led.h"
 #include "Driver_Monitor.h"
@@ -240,6 +241,7 @@ void USART3_IRQHandler(void) {
   * @param  None
   * @retval None   
   */
+#if BOARD_TYPE == BOARD_TYPE_JUDGE
 typedef struct {
     uint16_t id;
     uint8_t data[8];
@@ -249,13 +251,17 @@ Trans Buffer[3];
 volatile uint16_t Count = 0;
 #include <stdio.h>
 #include <string.h>
+#endif
 void CAN1_RX0_IRQHandler(void) {
     static CanRxMsg CanRxData;
+#if BOARD_TYPE == BOARD_TYPE_JUDGE
     static uint8_t isFirst[4] = {1, 1, 1, 1};
     static uint8_t id;
+#endif
     CAN_Receive(CAN1, CAN_FIFO0, &CanRxData);
 
     switch(CanRxData.StdId) {
+#if BOARD_TYPE == BOARD_TYPE_JUDGE
         case 0x150: {
             SIMULATOR_Hit();
         } break;
@@ -282,6 +288,11 @@ void CAN1_RX0_IRQHandler(void) {
             //     // ++Count;
             // }
         }
+#else // BOARD_TYPE == BOARD_TYPE_CONTROL
+        case GIMBAL_YAW_ID: case GIMBAL_PITCH_ID: {
+            GIMBAL_UpdateMeasure(CanRxData.StdId, CanRxData.Data);
+        } break;
+#endif
     }
     CAN_ITConfig(CAN1, CAN_IT_FMP0, ENABLE);
 }
@@ -348,14 +359,13 @@ void TIM2_IRQHandler(void) {
 }
 
 /**
-  * @brief  This function handles TIM3 interrupt request.
+  * @brief  This function handles TIM5 interrupt request.
   * @param  None
   * @retval None
   */
-
-void TIM3_IRQHandler(void) {
-    TIM_ClearITPendingBit(TIM3, TIM_IT_Update);
-    TIM_ClearFlag(TIM3, TIM_FLAG_Update);
+void TIM5_IRQHandler(void) {
+    TIM_ClearITPendingBit(TIM5, TIM_IT_Update);
+    TIM_ClearFlag(TIM5, TIM_FLAG_Update);
 
     ADIS16_Update();
 }

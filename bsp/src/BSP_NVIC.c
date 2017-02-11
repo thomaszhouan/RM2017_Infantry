@@ -34,8 +34,8 @@ void BSP_NVIC_InitConfig(void) {
     NVIC_InitStructure.NVIC_IRQChannelSubPriority           =   0;
     NVIC_Init(&NVIC_InitStructure);
 
-    // TIM3 (ADIS16 update)
-    NVIC_InitStructure.NVIC_IRQChannel                      =   TIM3_IRQn;
+    // TIM5 (ADIS16 update)
+    NVIC_InitStructure.NVIC_IRQChannel                      =   TIM5_IRQn;
     NVIC_InitStructure.NVIC_IRQChannelCmd                   =   ENABLE;
     NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority    =   13;
     NVIC_InitStructure.NVIC_IRQChannelSubPriority           =   0;

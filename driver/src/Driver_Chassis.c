@@ -4,7 +4,7 @@
 #include "Driver_Chassis.h"
 #include "Driver_Dbus.h"
 #include "Driver_Judge.h"
-#include "Param.h"
+#include "param.h"
 #include <string.h>
 
 #define _ID(x) ((x)-CHASSIS_CAN_ID_OFFSET)

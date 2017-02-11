@@ -481,6 +481,11 @@
           <GroupName>bsp</GroupName>
           <Files>
             <File>
+              <FileName>BSP_ADC.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\bsp\src\BSP_ADC.c</FilePath>
+            </File>
+            <File>
               <FileName>BSP_CAN.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\bsp\src\BSP_CAN.c</FilePath>
@@ -546,6 +551,16 @@
               <FilePath>.\driver\src\Driver_Dbus.c</FilePath>
             </File>
             <File>
+              <FileName>Driver_Flash.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\driver\src\Driver_Flash.c</FilePath>
+            </File>
+            <File>
+              <FileName>Driver_Gimbal.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\driver\src\Driver_Gimbal.c</FilePath>
+            </File>
+            <File>
               <FileName>Driver_Judge.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\driver\src\Driver_Judge.c</FilePath>
@@ -554,6 +569,11 @@
               <FileName>Driver_Led.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\driver\src\Driver_Led.c</FilePath>
+            </File>
+            <File>
+              <FileName>Driver_Menu.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\driver\src\Driver_Menu.c</FilePath>
             </File>
             <File>
               <FileName>Driver_Monitor.c</FileName>

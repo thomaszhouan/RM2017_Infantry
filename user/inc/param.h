@@ -4,7 +4,7 @@
 /* Board type select */
 #define BOARD_TYPE_CONTROL                      0
 #define BOARD_TYPE_JUDGE                        1
-#define BOARD_TYPE                              BOARD_TYPE_JUDGE
+#define BOARD_TYPE                              BOARD_TYPE_CONTROL
 #define USE_SIMULATED_JUDGE
 
 /* CHASSIS param */
@@ -61,6 +61,9 @@
 #endif // chassis motor parameter
 
 /* GIMBAL param */
+#define GIMBAL_USE_3510_19
+
+#if defined(GIMBAL_USE_6623)
 #define GIMBAL_MASTER_ID                        0x1FFU
 #define GIMBAL_CALIB_ID                         0x3F0U
 #define GIMBAL_MOTOR_CNT                        4
@@ -73,5 +76,16 @@
 #define PITCH                                   (GIMBAL_PITCH_ID-GIMBAL_CAN_ID_OFFSET)
 #define ROLL                                    (GIMBAL_ROLL_ID-GIMBAL_CAN_ID_OFFSET)
 #define GIMBAL_ReSV                             (GIMBAL_RESV_ID-GIMBAL_CAN_ID_OFFSET)
+
+#elif defined(GIMBAL_USE_3510_19)
+/* CAN ID */
+#define GIMBAL_MASTER_ID                        0x200U
+#define GIMBAL_CAN_ID_OFFSET                    0x201U
+#define GIMBAL_YAW_ID                           0x201U
+#define GIMBAL_PITCH_ID                         0x202U
+#define YAW                                     (GIMBAL_YAW_ID-GIMBAL_CAN_ID_OFFSET)
+#define PITCH                                   (GIMBAL_PITCH_ID-GIMBAL_CAN_ID_OFFSET)
+
+#endif
 
 #endif // PARAM_H

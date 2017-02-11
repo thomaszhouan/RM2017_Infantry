@@ -28,6 +28,7 @@ int main(void) {
 
 #if (BOARD_TYPE == BOARD_TYPE_CONTROL)
     CHASSIS_Init();
+    GIMBAL_Init();
     ADIS16_Init();
     ADIS16_Calibrate(512);
     // MPU6050_Init();
@@ -35,6 +36,9 @@ int main(void) {
     ST7735_Print(0, 1, GREEN, BLACK, "RL");
     ST7735_Print(0, 2, GREEN, BLACK, "V");
     ST7735_Print(0, 3, GREEN, BLACK, "I");
+    ST7735_Print(0, 4, GREEN, BLACK, "pos");
+    ST7735_Print(0, 5, GREEN, BLACK, "vel");
+    ST7735_Print(0, 6, GREEN, BLACK, "omg");
 #endif
 
 #if (BOARD_TYPE == BOARD_TYPE_JUDGE)
@@ -43,7 +47,6 @@ int main(void) {
     ST7735_Print(0, 3, GREEN, BLACK, "I");
     ST7735_Print(0, 4, GREEN, BLACK, "V");
     ST7735_Print(0, 5, GREEN, BLACK, "WR");
-    ST7735_Print(0, 6, GREEN, BLACK, "FOO");
 #endif
 
     BSP_TIM_Start();
@@ -57,6 +60,9 @@ int main(void) {
         ST7735_Print(4, 1, GREEN, BLACK, "%d", JUDGE_Data.remainLife);
         ST7735_Print(4, 2, GREEN, BLACK, "%.2f", JUDGE_Data.voltage);
         ST7735_Print(4, 3, GREEN, BLACK, "%.2f", JUDGE_Data.current);
+        ST7735_Print(4, 4, GREEN, BLACK, "%d", GimbalPosition[0]);
+        ST7735_Print(4, 5, GREEN, BLACK, "%d", GimbalVelocity[0]);
+        ST7735_Print(4, 6, GREEN, BLACK, "%d", ADIS16_Data.omega);
 #endif
 
 #if (BOARD_TYPE == BOARD_TYPE_JUDGE)
