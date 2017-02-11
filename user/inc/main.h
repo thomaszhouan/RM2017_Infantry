@@ -15,6 +15,7 @@
 #include "Driver_ADIS16.h"
 #include "Driver_Chassis.h"
 #include "Driver_Dbus.h"
+#include "Driver_Encoder.h"
 #include "Driver_Flash.h"
 #include "Driver_Gimbal.h"
 #include "Driver_Judge.h"

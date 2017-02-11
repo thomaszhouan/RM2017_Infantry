@@ -128,17 +128,17 @@ void BSP_GPIO_InitConfig(void) {
     // ADC1 (current sensor)
     GPIO_InitStructure.GPIO_Mode   =   GPIO_Mode_AN;
     GPIO_InitStructure.GPIO_OType  =   GPIO_OType_OD;
-    GPIO_InitStructure.GPIO_Pin    =   GPIO_Pin_4;
+    GPIO_InitStructure.GPIO_Pin    =   ADC_VOLTAGE_PIN;
     GPIO_InitStructure.GPIO_PuPd   =   GPIO_PuPd_NOPULL;
     GPIO_InitStructure.GPIO_Speed  =   GPIO_Speed_100MHz;
-    GPIO_Init(GPIOA, &GPIO_InitStructure);
+    GPIO_Init(ADC_VOLTAGE_PORT, &GPIO_InitStructure);
 
     GPIO_InitStructure.GPIO_Mode   =   GPIO_Mode_AN;
     GPIO_InitStructure.GPIO_OType  =   GPIO_OType_OD;
-    GPIO_InitStructure.GPIO_Pin    =   GPIO_Pin_2;
+    GPIO_InitStructure.GPIO_Pin    =   ADC_CURRENT_PIN;
     GPIO_InitStructure.GPIO_PuPd   =   GPIO_PuPd_NOPULL;
     GPIO_InitStructure.GPIO_Speed  =   GPIO_Speed_100MHz;
-    GPIO_Init(GPIOC, &GPIO_InitStructure);
+    GPIO_Init(ADC_CURRENT_PORT, &GPIO_InitStructure);
 
     // Encoder1
     GPIO_InitStructure.GPIO_Mode   =   GPIO_Mode_AF;
@@ -147,6 +147,5 @@ void BSP_GPIO_InitConfig(void) {
     GPIO_InitStructure.GPIO_PuPd   =   GPIO_PuPd_UP;
     GPIO_InitStructure.GPIO_Speed  =   GPIO_Speed_100MHz;
     GPIO_Init(GPIOB, &GPIO_InitStructure);
-    GPIO_PinAFConfig(GPIOB, GPIO_PinSource4, GPIO_AF_TIM3);
-    GPIO_PinAFConfig(GPIOB, GPIO_PinSource5, GPIO_AF_TIM3);
+    ENCODER_AF_CONFIG();
 }

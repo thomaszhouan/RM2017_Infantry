@@ -75,4 +75,17 @@
                                                      GPIO_PinAFConfig(GPIOB, GPIO_PinSource9, GPIO_AF_I2C1);\
                                                 } while(0)
 
+// ADC (current sensor)
+#define ADC_VOLTAGE_PORT                        GPIOA
+#define ADC_VOLTAGE_PIN                         GPIO_Pin_4
+#define ADC_CURRENT_PORT                        GPIOC
+#define ADC_CURRENT_PIN                         GPIO_Pin_2
+
+// Encoder
+#define ENCODER_PORT                            GPIOB
+#define ENCODER_PIN                             (GPIO_Pin_4 | GPIO_Pin_5)
+#define ENCODER_AF_CONFIG()                     do { GPIO_PinAFConfig(GPIOB, GPIO_PinSource4, GPIO_AF_TIM3);\
+                                                     GPIO_PinAFConfig(GPIOB, GPIO_PinSource5, GPIO_AF_TIM3);\
+                                                } while(0)
+
 #endif

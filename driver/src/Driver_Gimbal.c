@@ -26,7 +26,7 @@ static int32_t GIMBAL_Trim(int32_t val, int32_t lim) {
 }
 
 static void GIMBAL_ClearAll(void) {
-    GimbalPosition[0] = 7800;
+    GimbalPosition[0] = 0;
     _CLEAR(GimbalLastPosition);
     _CLEAR(GimbalRoundCount);
     _CLEAR(GimbalOutput);

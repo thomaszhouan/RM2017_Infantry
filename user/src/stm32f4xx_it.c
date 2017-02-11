@@ -52,6 +52,7 @@
 #include "Driver_Chassis.h"
 #include "Driver_Common.h"
 #include "Driver_Dbus.h"
+#include "Driver_Encoder.h"
 #include "Driver_Gimbal.h"
 #include "Driver_Judge.h"
 #include "Driver_Led.h"
@@ -342,6 +343,7 @@ void TIM2_IRQHandler(void) {
 
 #if BOARD_TYPE == BOARD_TYPE_CONTROL
     if (tick % 20 == 0) {
+        ENCODER_Update();
         DBUS_UpdateStatus();
     }
 

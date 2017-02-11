@@ -21,6 +21,11 @@ void BSP_TIM_InitConfig(void) {
     TIM_TimeBaseInitStructure.TIM_Period        =   1000-1;
     TIM_TimeBaseInitStructure.TIM_Prescaler     =   (uint32_t) (((SystemCoreClock / 2) / 1000000)-1); // 1MHz clock
     TIM_TimeBaseInit(TIM2, &TIM_TimeBaseInitStructure);
+
+    // TIM3 (encoder1)
+    TIM_EncoderInterfaceConfig(TIM3, TIM_EncoderMode_TI12, TIM_ICPolarity_Falling, TIM_ICPolarity_Falling);
+    TIM_Cmd(TIM3,ENABLE);
+    TIM3->CNT = 0x7FFF;
         
     // TIM5 (gyro update 256Hz)
     TIM_TimeBaseInitStructure.TIM_ClockDivision =   TIM_CKD_DIV1;
