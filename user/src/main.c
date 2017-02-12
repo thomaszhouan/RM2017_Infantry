@@ -22,7 +22,6 @@ int main(void) {
 #if (BOARD_TYPE == BOARD_TYPE_JUDGE)
     FLASH_Load();
     SIMULATOR_Init();
-    // SIMULATOR_ArmorInit(0);
     SIMULATOR_CameraInit(7);
 #endif
 
@@ -58,6 +57,15 @@ int main(void) {
 #if (BOARD_TYPE == BOARD_TYPE_CONTROL)
         if (DBUS_Status == kLost) {
             CHASSIS_SetFree();
+        }
+        if (DBUS_Status == kConnected &&
+            DBUS_Data.leftSwitchState == kSwitchMiddle) {
+            FRIC_SET_THRUST_L(1000);
+            FRIC_SET_THRUST_R(1000);
+        }
+        else {
+            FRIC_SET_THRUST_L(0);
+            FRIC_SET_THRUST_R(0);
         }
 
         ST7735_Print(4, 1, GREEN, BLACK, "%d", JUDGE_Data.remainLife);

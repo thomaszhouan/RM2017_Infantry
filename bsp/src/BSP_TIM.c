@@ -10,11 +10,35 @@ void BSP_TIM_InitConfig(void) {
     TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStructure;
     TIM_OCInitTypeDef TIM_OCInitStructure;
     
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM1, ENABLE);
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM5, ENABLE);
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM7, ENABLE);
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM8, ENABLE);
+
+    // TIM1 (friction wheel, 400Hz)
+    TIM_TimeBaseInitStructure.TIM_ClockDivision =   TIM_CKD_DIV1;
+    TIM_TimeBaseInitStructure.TIM_CounterMode   =   TIM_CounterMode_Up;
+    TIM_TimeBaseInitStructure.TIM_Period        =   2500-1;
+    TIM_TimeBaseInitStructure.TIM_Prescaler     =   (uint32_t) (((SystemCoreClock / 1) / 1000000)-1); // 1MHz clock
+    TIM_TimeBaseInit(TIM1, &TIM_TimeBaseInitStructure);
+
+    TIM_OCInitStructure.TIM_OCMode       =   TIM_OCMode_PWM1;
+    TIM_OCInitStructure.TIM_Pulse        =   1000;
+    TIM_OCInitStructure.TIM_OutputState  =   TIM_OutputState_Enable;
+    TIM_OCInitStructure.TIM_OutputNState =   TIM_OutputNState_Enable;
+    TIM_OCInitStructure.TIM_OCPolarity   =   TIM_OCPolarity_High;
+    TIM_OCInitStructure.TIM_OCNPolarity  =   TIM_OCNPolarity_High;
+    TIM_OCInitStructure.TIM_OCIdleState  =   TIM_OCIdleState_Reset;
+    TIM_OCInitStructure.TIM_OCNIdleState =   TIM_OCNIdleState_Set;
+    TIM_OC1Init(TIM1, &TIM_OCInitStructure);
+    TIM_OC1PreloadConfig(TIM1, TIM_OCPreload_Enable);
+    TIM_OC2Init(TIM1, &TIM_OCInitStructure);
+    TIM_OC2PreloadConfig(TIM1, TIM_OCPreload_Enable);
+    TIM_ARRPreloadConfig(TIM1, ENABLE);
+    TIM_CtrlPWMOutputs(TIM1, ENABLE);
+    TIM_Cmd(TIM1, ENABLE);
 
     // TIM2 (brush motor, 1kHz)
     TIM_TimeBaseInitStructure.TIM_ClockDivision =   TIM_CKD_DIV1;
@@ -55,7 +79,7 @@ void BSP_TIM_InitConfig(void) {
     TIM_TimeBaseInitStructure.TIM_ClockDivision =   TIM_CKD_DIV1;
     TIM_TimeBaseInitStructure.TIM_CounterMode   =   TIM_CounterMode_Up;
     TIM_TimeBaseInitStructure.TIM_Period        =   1000-1;
-    TIM_TimeBaseInitStructure.TIM_Prescaler     =   (uint32_t) (((SystemCoreClock / 2) / 1000000)-1); // 1MHz clock
+    TIM_TimeBaseInitStructure.TIM_Prescaler     =   (uint32_t) (((SystemCoreClock / 1) / 1000000)-1); // 1MHz clock
     TIM_TimeBaseInit(TIM8, &TIM_TimeBaseInitStructure);
 
     TIM_OCInitStructure.TIM_OCMode       =   TIM_OCMode_PWM1;

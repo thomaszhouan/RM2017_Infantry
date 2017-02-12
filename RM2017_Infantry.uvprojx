@@ -551,6 +551,11 @@
               <FilePath>.\driver\src\Driver_Dbus.c</FilePath>
             </File>
             <File>
+              <FileName>Driver_Encoder.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\driver\src\Driver_Encoder.c</FilePath>
+            </File>
+            <File>
               <FileName>Driver_Flash.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\driver\src\Driver_Flash.c</FilePath>
@@ -559,6 +564,11 @@
               <FileName>Driver_Gimbal.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\driver\src\Driver_Gimbal.c</FilePath>
+            </File>
+            <File>
+              <FileName>Driver_Gun.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\driver\src\Driver_Gun.c</FilePath>
             </File>
             <File>
               <FileName>Driver_Judge.c</FileName>

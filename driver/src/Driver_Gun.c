@@ -28,7 +28,6 @@ void GUN_SetMotion(void) {
         GUN_Data.pokeTargetSpeed = 0;
     else
         GUN_Data.pokeTargetSpeed = 160;
-    // GUN_Data.pokeTargetSpeed = DBUS_Data.ch2 / 4;
 }
 
 void GUN_PokeControl(void) {
