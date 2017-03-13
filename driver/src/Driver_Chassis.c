@@ -154,7 +154,7 @@ void CHASSIS_Control(void) {
 void CHASSIS_SetMotion(void) {
     static int32_t velocityX = 0, velocityY = 0;
     static int32_t tmpVelocity[4];
-    static const int32_t maxDelta = 300;
+    static const int32_t maxDelta = 50;
 
     static int16_t vxData, vyData, rotData;
 
@@ -197,7 +197,8 @@ void CHASSIS_SetMotion(void) {
     if (DBUS_Data.rightSwitchState == kSwitchDown) {
         ChassisOmegaOutput = (ChassisOmegaOutput*7+5*rotData)/8;
     }
-    else if (DBUS_Data.rightSwitchState == kSwitchMiddle) {
+    // else if (DBUS_Data.rightSwitchState == kSwitchMiddle) {
+    else {
         if (DBUS_LastData.rightSwitchState != kSwitchMiddle)
             PID_Reset(&ChassisOmegaController);
         if (ADIS16_DataUpdated) {
@@ -208,9 +209,9 @@ void CHASSIS_SetMotion(void) {
                 targetOmega, ADIS16_Data.omega);
         }
     }
-    else { // DBUS_Data.rightSwitchState == kSwitchUp
-        ChassisOmegaOutput = 5000;
-    }
+    // else { // DBUS_Data.rightSwitchState == kSwitchUp
+    //     ChassisOmegaOutput = 5000;
+    // }
 
     /* Mecanum wheel */
     tmpVelocity[0] = velocityY + velocityX + ChassisOmegaOutput;

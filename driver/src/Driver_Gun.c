@@ -7,32 +7,72 @@
 
 #include <string.h>
 
-static PID_Controller PokeController;
+static PID_Controller PokeSpeedController;
+static PID_Controller PokeAngleController;
 
 void GUN_Init(void) {
     memset((char*)&GUN_Data, 0, sizeof(GUN_Data));
 
-    PID_Reset(&PokeController);
-    PokeController.Kp = 150.0f;
-    PokeController.Ki = 24.00f;
-    PokeController.Kd = 0.00f;
-    PokeController.MAX_Pout = 12000;
-    PokeController.MAX_Integral = 100000;
-    PokeController.MAX_PIDout = 12000;
-    PokeController.MIN_PIDout = 0;
-    PokeController.mode = kPositional;
+    PID_Reset(&PokeSpeedController);
+    PokeSpeedController.Kp = 100.0f;
+    PokeSpeedController.Ki = 20.00f;
+    PokeSpeedController.Kd = 0.00f;
+    PokeSpeedController.MAX_Pout = 12000;
+    PokeSpeedController.MAX_Integral = 100000;
+    PokeSpeedController.MAX_PIDout = 12000;
+    PokeSpeedController.MIN_PIDout = 0;
+    PokeSpeedController.mode = kPositional;
+
+    PID_Reset(&PokeAngleController);
+    PokeAngleController.Kp = 0.30f;
+    PokeAngleController.Ki = 0.00f;
+    PokeAngleController.Kd = 0.00f;
+    PokeAngleController.MAX_Pout = 12000;
+    PokeAngleController.MAX_Integral = 100000;
+    PokeAngleController.MAX_PIDout = 80;
+    PokeAngleController.MIN_PIDout = 0;
+    PokeAngleController.mode = kPositional;
 }
 
+/*
+ * Called every DBUS package
+ */
+volatile int32_t pressCount = 0;
 void GUN_SetMotion(void) {
-    if (DBUS_Data.rightSwitchState != kSwitchMiddle)
-        GUN_Data.pokeTargetSpeed = 0;
-    else
-        GUN_Data.pokeTargetSpeed = 160;
+    static char shoot = 0;
+    static char jumpPress = 0, jumpRelease = 0;
+    // static int32_t pressCount = 0;
+
+    jumpPress = DBUS_Data.mouse.press_left &&
+        !DBUS_LastData.mouse.press_left;
+    jumpRelease = !DBUS_Data.mouse.press_left &&
+        DBUS_LastData.mouse.press_left;
+    if (jumpRelease) pressCount = 0;
+    if (DBUS_Data.mouse.press_left) {
+        ++pressCount;
+    }
+
+    shoot = jumpPress || (((pressCount & 0x000FU) == 0)&&pressCount);
+    shoot = shoot && (DBUS_Data.rightSwitchState != kSwitchDown);
+    if (shoot) {
+        GUN_ShootOne();
+    }
+}
+
+void GUN_ShootOne(void) {
+    GUN_Data.pokeTargetAngle += 660;
 }
 
 void GUN_PokeControl(void) {
+    GUN_Data.pokeTargetSpeed = PID_Update(&PokeAngleController,
+        GUN_Data.pokeTargetAngle, GUN_Data.pokeAngle);
+    GUN_PokeSpeedControl();
+}
+
+void GUN_PokeSpeedControl(void) {
     ENCODER_Update();
-    GUN_Data.pokeOutput = PID_Update(&PokeController,
+    GUN_Data.pokeAngle += ENCODER_Data;
+    GUN_Data.pokeOutput = PID_Update(&PokeSpeedController,
         GUN_Data.pokeTargetSpeed, ENCODER_Data);
     if (DBUS_Status == kLost)
         GUN_SetFree();
@@ -59,6 +99,10 @@ void GUN_PokeControl(void) {
 }
 
 void GUN_SetFree(void) {
-    PID_Reset(&PokeController);
-    memset((char*)&GUN_Data, 0, sizeof(GUN_Data));
+    PID_Reset(&PokeSpeedController);
+    PID_Reset(&PokeAngleController);
+    // memset((char*)&GUN_Data, 0, sizeof(GUN_Data));
+    GUN_Data.pokeOutput = 0;
+    GUN_Data.pokeTargetSpeed = 0;
+    GUN_Data.pokeTargetAngle = 0;
 }

@@ -64,7 +64,7 @@ void BSP_GPIO_InitConfig(void) {
     GPIO_InitStructure.GPIO_Mode   =   GPIO_Mode_AF;
     GPIO_InitStructure.GPIO_OType  =   GPIO_OType_PP;
     GPIO_InitStructure.GPIO_Pin    =   USART1_PIN;
-    GPIO_InitStructure.GPIO_PuPd   =   GPIO_PuPd_UP;
+    GPIO_InitStructure.GPIO_PuPd   =   GPIO_PuPd_NOPULL;
     GPIO_InitStructure.GPIO_Speed  =   GPIO_Speed_100MHz;
     GPIO_Init(USART1_PORT, &GPIO_InitStructure);
     USART1_AF_CONFIG();

@@ -1,5 +1,6 @@
 #include "main.h"
 
+extern volatile int32_t pressCount;
 extern volatile uint32_t Count;
 int main(void) {
     BSP_GPIO_InitConfig();
@@ -33,14 +34,11 @@ int main(void) {
     ADIS16_Calibrate(512);
     // MPU6050_Init();
 
-    ST7735_Print(0, 1, GREEN, BLACK, "RL");
-    ST7735_Print(0, 2, GREEN, BLACK, "V");
-    ST7735_Print(0, 3, GREEN, BLACK, "I");
-    ST7735_Print(0, 4, GREEN, BLACK, "pos");
-    ST7735_Print(0, 5, GREEN, BLACK, "vel");
-    ST7735_Print(0, 6, GREEN, BLACK, "enc");
-    ST7735_Print(0, 7, GREEN, BLACK, "out");
-    ST7735_Print(0, 8, GREEN, BLACK, "tar");
+    ST7735_Print(0, 0, GREEN, BLACK, "enc");
+    ST7735_Print(0, 1, GREEN, BLACK, "out");
+    ST7735_Print(0, 2, GREEN, BLACK, "tar");
+    ST7735_Print(0, 3, GREEN, BLACK, "acc");
+    ST7735_Print(0, 4, GREEN, BLACK, "tan");
 #endif
 
 #if (BOARD_TYPE == BOARD_TYPE_JUDGE)
@@ -59,23 +57,22 @@ int main(void) {
             CHASSIS_SetFree();
         }
         if (DBUS_Status == kConnected &&
-            DBUS_Data.leftSwitchState == kSwitchMiddle) {
-            FRIC_SET_THRUST_L(1000);
-            FRIC_SET_THRUST_R(1000);
+            DBUS_Data.rightSwitchState != kSwitchDown) {
+            FRIC_SET_THRUST_L(700);
+            FRIC_SET_THRUST_R(700);
         }
         else {
             FRIC_SET_THRUST_L(0);
             FRIC_SET_THRUST_R(0);
         }
 
-        ST7735_Print(4, 1, GREEN, BLACK, "%d", JUDGE_Data.remainLife);
-        ST7735_Print(4, 2, GREEN, BLACK, "%.2f", JUDGE_Data.voltage);
-        ST7735_Print(4, 3, GREEN, BLACK, "%.2f", JUDGE_Data.current);
-        ST7735_Print(4, 4, GREEN, BLACK, "%d", GimbalPosition[0]);
-        ST7735_Print(4, 5, GREEN, BLACK, "%d", GimbalVelocity[0]);
-        ST7735_Print(4, 6, GREEN, BLACK, "%d", ENCODER_Data);
-        ST7735_Print(4, 7, GREEN, BLACK, "%d", GUN_Data.pokeOutput);
-        ST7735_Print(4, 8, GREEN, BLACK, "%d", GUN_Data.pokeTargetSpeed);
+        ST7735_Print(4, 0, GREEN, BLACK, "%d", ENCODER_Data);
+        ST7735_Print(4, 1, GREEN, BLACK, "%d", GUN_Data.pokeOutput);
+        ST7735_Print(4, 2, GREEN, BLACK, "%d", GUN_Data.pokeTargetSpeed);
+        ST7735_Print(4, 3, GREEN, BLACK, "%d", GUN_Data.pokeAngle);
+        ST7735_Print(4, 4, GREEN, BLACK, "%d", GUN_Data.pokeTargetAngle);
+        ST7735_Print(4, 5, GREEN, BLACK, "%d", DBUS_Data.mouse.press_left);
+        ST7735_Print(4, 6, GREEN, BLACK, "%d", pressCount);
 #endif
 
 #if (BOARD_TYPE == BOARD_TYPE_JUDGE)

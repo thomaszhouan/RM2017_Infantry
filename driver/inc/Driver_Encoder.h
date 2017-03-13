@@ -4,7 +4,7 @@
 #include "stm32f4xx.h"
 
 // 0: normal  1: reverse
-#define ENCODER_DIR                             0
+#define ENCODER_DIR                             1
 #define ENCODER_TIM                             TIM3
 
 #ifndef ENCODER_FILE

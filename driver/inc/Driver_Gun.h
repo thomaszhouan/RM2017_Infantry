@@ -18,7 +18,9 @@
 
 typedef struct {
     int32_t pokeTargetSpeed;
+    int32_t pokeTargetAngle;
     int32_t pokeOutput;
+    int32_t pokeAngle;
 } GUN_DataTypeDef;
 
 GUN_EXT volatile GUN_DataTypeDef GUN_Data;
@@ -26,6 +28,7 @@ GUN_EXT volatile GUN_DataTypeDef GUN_Data;
 void GUN_Init(void);
 void GUN_SetMotion(void);
 void GUN_PokeControl(void);
+void GUN_PokeSpeedControl(void);
 void GUN_SetFree(void);
 
 void GUN_ShootOne(void);

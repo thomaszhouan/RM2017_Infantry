@@ -272,7 +272,7 @@ void CAN1_RX0_IRQHandler(void) {
                 id = CanRxData.StdId & 0x0F;
                 if (isFirst[id]) {
                     isFirst[id] = 0;
-                    SIMULATOR_ArmorInit(id, 7);
+                    SIMULATOR_ArmorInit(id, 0);
                 }
             }
         } break;
@@ -304,6 +304,7 @@ void CAN1_RX0_IRQHandler(void) {
   * @param  None
   * @retval None   
   */
+volatile uint16_t Count = 0;
 void CAN2_RX0_IRQHandler(void) {
     static CanRxMsg CanRxData;
     CAN_Receive(CAN2, CAN_FIFO0, &CanRxData);
@@ -315,6 +316,7 @@ void CAN2_RX0_IRQHandler(void) {
         } break;
     }
     CAN_ITConfig(CAN2, CAN_IT_FMP0, ENABLE);
+    ++Count;
 }
 
 /**
