@@ -11,13 +11,11 @@
 
 #define GIMBAL_MOTOR_CNT                        4
 
-GIMBAL_EXT volatile int32_t GimbalOutput[GIMBAL_MOTOR_CNT]; // [-5000, 5000]
-GIMBAL_EXT volatile int32_t GimbalPosition[GIMBAL_MOTOR_CNT], GimbalLastPosition[GIMBAL_MOTOR_CNT]; // [0, 8191]
+GIMBAL_EXT volatile int32_t GimbalOutput[GIMBAL_MOTOR_CNT];
+GIMBAL_EXT volatile int32_t GimbalPosition[GIMBAL_MOTOR_CNT], GimbalLastPosition[GIMBAL_MOTOR_CNT];
 GIMBAL_EXT volatile int32_t GimbalRoundCount[GIMBAL_MOTOR_CNT];
-GIMBAL_EXT volatile int32_t GimbalRealCurrent[GIMBAL_MOTOR_CNT]; // [-13000, 13000]
-GIMBAL_EXT volatile int32_t GimbalGivenCurrent[GIMBAL_MOTOR_CNT]; // [-5000, 5000]
 GIMBAL_EXT volatile int32_t GimbalVelocity[GIMBAL_MOTOR_CNT];
-GIMBAL_EXT volatile int32_t TargetVelocity[GIMBAL_MOTOR_CNT];
+GIMBAL_EXT volatile int32_t GimbalTargetVelocity[GIMBAL_MOTOR_CNT];
 
 void GIMBAL_Init(void);
 void GIMBAL_UpdateMeasure(uint16_t motorId, uint8_t *data);

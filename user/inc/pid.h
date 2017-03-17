@@ -23,6 +23,7 @@ typedef struct {
     float Kp, Ki, Kd;
     float IDecayFactor;
     float MAX_Integral, MAX_Pout, MAX_PIDout, MIN_PIDout;
+    float MIN_Error;
     PID_ModeTypeDef mode;
 
     /* updated by calling PID_Update */

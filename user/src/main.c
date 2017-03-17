@@ -34,11 +34,11 @@ int main(void) {
     ADIS16_Calibrate(512);
     // MPU6050_Init();
 
-    ST7735_Print(0, 0, GREEN, BLACK, "enc");
-    ST7735_Print(0, 1, GREEN, BLACK, "out");
-    ST7735_Print(0, 2, GREEN, BLACK, "tar");
-    ST7735_Print(0, 3, GREEN, BLACK, "acc");
-    ST7735_Print(0, 4, GREEN, BLACK, "tan");
+    ST7735_Print(0, 1, GREEN, BLACK, "pos");
+    ST7735_Print(0, 2, GREEN, BLACK, "out");
+    ST7735_Print(0, 3, GREEN, BLACK, "tarv");
+    ST7735_Print(0, 4, GREEN, BLACK, "vel");
+    ST7735_Print(0, 5, GREEN, BLACK, "verr");
 #endif
 
 #if (BOARD_TYPE == BOARD_TYPE_JUDGE)
@@ -55,6 +55,7 @@ int main(void) {
 #if (BOARD_TYPE == BOARD_TYPE_CONTROL)
         if (DBUS_Status == kLost) {
             CHASSIS_SetFree();
+            GIMBAL_SetFree();
         }
         if (DBUS_Status == kConnected &&
             DBUS_Data.rightSwitchState != kSwitchDown) {
@@ -66,13 +67,11 @@ int main(void) {
             FRIC_SET_THRUST_R(0);
         }
 
-        ST7735_Print(4, 0, GREEN, BLACK, "%d", ENCODER_Data);
-        ST7735_Print(4, 1, GREEN, BLACK, "%d", GUN_Data.pokeOutput);
-        ST7735_Print(4, 2, GREEN, BLACK, "%d", GUN_Data.pokeTargetSpeed);
-        ST7735_Print(4, 3, GREEN, BLACK, "%d", GUN_Data.pokeAngle);
-        ST7735_Print(4, 4, GREEN, BLACK, "%d", GUN_Data.pokeTargetAngle);
-        ST7735_Print(4, 5, GREEN, BLACK, "%d", DBUS_Data.mouse.press_left);
-        ST7735_Print(4, 6, GREEN, BLACK, "%d", pressCount);
+        ST7735_Print(5, 1, GREEN, BLACK, "%d", GimbalPosition[YAW]);
+        ST7735_Print(5, 2, GREEN, BLACK, "%d", GimbalOutput[YAW]);
+        ST7735_Print(5, 3, GREEN, BLACK, "%d", GimbalTargetVelocity[YAW]);
+        ST7735_Print(5, 4, GREEN, BLACK, "%d", GimbalVelocity[YAW]);
+        ST7735_Print(5, 5, GREEN, BLACK, "%d", GimbalTargetVelocity[YAW]-GimbalVelocity[YAW]/2);
 #endif
 
 #if (BOARD_TYPE == BOARD_TYPE_JUDGE)

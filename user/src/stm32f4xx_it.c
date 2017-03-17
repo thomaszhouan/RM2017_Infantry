@@ -203,6 +203,7 @@ void USART1_IRQHandler(void) {
     if(DMA2_Stream2->NDTR == 0) {
         DBUS_Decode();
         CHASSIS_SetMotion();
+        GIMBAL_SetMotion();
         GUN_SetMotion();
     }
     
@@ -253,17 +254,15 @@ Trans Buffer[3];
 volatile uint16_t Count = 0;
 #include <stdio.h>
 #include <string.h>
-#endif
+
 void CAN1_RX0_IRQHandler(void) {
     static CanRxMsg CanRxData;
-#if BOARD_TYPE == BOARD_TYPE_JUDGE
     static uint8_t isFirst[4] = {1, 1, 1, 1};
     static uint8_t id;
-#endif
+
     CAN_Receive(CAN1, CAN_FIFO0, &CanRxData);
 
     switch(CanRxData.StdId) {
-#if BOARD_TYPE == BOARD_TYPE_JUDGE
         case 0x150: {
             SIMULATOR_Hit();
         } break;
@@ -276,28 +275,23 @@ void CAN1_RX0_IRQHandler(void) {
                 }
             }
         } break;
-        default: {
-            // if (Count < 3) {
-            //     // Buffer[Count].time = GlobalTick;
-            //     Buffer[Count].id = CanRxData.StdId;
-            //     memcpy(Buffer[Count].data, CanRxData.Data, 8);
-            //     memset(Buffer[Count].dum, 0, 6);
-            //     ++Count;
-            // }
-            // if (Count == 3) {
-            //     MONITOR_Send((uint8_t*)Buffer, sizeof(Buffer));
-            //     Count = 0;
-            //     // ++Count;
-            // }
-        }
-#else // BOARD_TYPE == BOARD_TYPE_CONTROL
-        case GIMBAL_YAW_ID: case GIMBAL_PITCH_ID: {
-            GIMBAL_UpdateMeasure(CanRxData.StdId, CanRxData.Data);
-        } break;
-#endif
     }
     CAN_ITConfig(CAN1, CAN_IT_FMP0, ENABLE);
 }
+#else // BOARD_TYPE == BOARD_TYPE_CONTROL
+void CAN1_RX0_IRQHandler(void) {
+    static CanRxMsg CanRxData;
+
+    CAN_Receive(CAN1, CAN_FIFO0, &CanRxData);
+
+    switch(CanRxData.StdId) {
+        case GIMBAL_YAW_ID: case GIMBAL_PITCH_ID: {
+            GIMBAL_UpdateMeasure(CanRxData.StdId, CanRxData.Data);
+        } break;
+    }
+    CAN_ITConfig(CAN1, CAN_IT_FMP0, ENABLE);
+}
+#endif // BOARD_TYPE
 
 /**
   * @brief  This function handles CAN2 RX0 interrupt request.
@@ -324,6 +318,7 @@ void CAN2_RX0_IRQHandler(void) {
   * @param  None
   * @retval None
   */
+#if BOARD_TYPE == BOARD_TYPE_CONTROL
 void TIM7_IRQHandler(void) {
     static uint32_t tick = 0;
 
@@ -338,13 +333,8 @@ void TIM7_IRQHandler(void) {
 
     if (tick % 500 == 0) {
         LED_Toggle();
-#if BOARD_TYPE == BOARD_TYPE_JUDGE
-        SIMULATOR_SendHeartBeat();
-#endif
     }
 
-
-#if BOARD_TYPE == BOARD_TYPE_CONTROL
     if (tick % 20 == 0) {
         GUN_PokeControl();
         DBUS_UpdateStatus();
@@ -354,14 +344,31 @@ void TIM7_IRQHandler(void) {
 
     if (DBUS_Status == kConnected) {
         CHASSIS_Control();
+        GIMBAL_Control();
     }
     CHASSIS_SendCmd();
-#endif
-
-#if BOARD_TYPE == BOARD_TYPE_JUDGE
-    SIMULATOR_UpdatePower();
-#endif
+    GIMBAL_SendCmd();
 }
+#else // BOARD_TYPE == BOARD_TYPE_JUDGE
+void TIM7_IRQHandler(void) {
+    static uint32_t tick = 0;
+
+    TIM_ClearITPendingBit(TIM7, TIM_IT_Update);
+    TIM_ClearFlag(TIM7, TIM_FLAG_Update);
+
+    ++tick;
+    ++GlobalTick;
+    if (tick == 1000) {
+        tick = 0;
+    }
+
+    if (tick % 500 == 0) {
+        LED_Toggle();
+        SIMULATOR_SendHeartBeat();
+    }
+    SIMULATOR_UpdatePower();
+}
+#endif// BOARD_TYPE
 
 /**
   * @brief  This function handles TIM5 interrupt request.

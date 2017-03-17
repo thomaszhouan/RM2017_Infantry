@@ -4,6 +4,7 @@
 #include "Driver_Encoder.h"
 #include "Driver_Gun.h"
 #include "PID.h"
+#include "stm32f4xx_it.h"
 
 #include <string.h>
 
@@ -37,11 +38,11 @@ void GUN_Init(void) {
 /*
  * Called every DBUS package
  */
-volatile int32_t pressCount = 0;
 void GUN_SetMotion(void) {
     static char shoot = 0;
     static char jumpPress = 0, jumpRelease = 0;
-    // static int32_t pressCount = 0;
+    static volatile int32_t lastTick = 0;
+    static volatile int32_t pressCount = 0;
 
     jumpPress = DBUS_Data.mouse.press_left &&
         !DBUS_LastData.mouse.press_left;
@@ -54,8 +55,10 @@ void GUN_SetMotion(void) {
 
     shoot = jumpPress || (((pressCount & 0x000FU) == 0)&&pressCount);
     shoot = shoot && (DBUS_Data.rightSwitchState != kSwitchDown);
+    shoot = shoot && (GlobalTick - lastTick > 220);
     if (shoot) {
         GUN_ShootOne();
+        lastTick = GlobalTick;
     }
 }
 
@@ -72,6 +75,9 @@ void GUN_PokeControl(void) {
 void GUN_PokeSpeedControl(void) {
     ENCODER_Update();
     GUN_Data.pokeAngle += ENCODER_Data;
+    if (GUN_Data.pokeAngle > 16777216) {
+        GUN_Data.pokeAngle = GUN_Data.pokeTargetAngle = 0;
+    }
     GUN_Data.pokeOutput = PID_Update(&PokeSpeedController,
         GUN_Data.pokeTargetSpeed, ENCODER_Data);
     if (DBUS_Status == kLost)
@@ -101,7 +107,7 @@ void GUN_PokeSpeedControl(void) {
 void GUN_SetFree(void) {
     PID_Reset(&PokeSpeedController);
     PID_Reset(&PokeAngleController);
-    // memset((char*)&GUN_Data, 0, sizeof(GUN_Data));
+
     GUN_Data.pokeOutput = 0;
     GUN_Data.pokeTargetSpeed = 0;
     GUN_Data.pokeTargetAngle = 0;

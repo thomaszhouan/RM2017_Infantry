@@ -36,6 +36,8 @@ float PID_Update(PID_Controller *pid, float target, float measure) {
     pid->set[kNOW] = target;
     pid->real[kNOW] = measure;
     pid->err[kNOW] = target - measure;
+    if (ABS(pid->err[kNOW])<pid->MIN_Error)
+        pid->err[kNOW] = 0;
 
     float Pout, Iout, Dout;
     if (pid->mode == kIncremental) {
