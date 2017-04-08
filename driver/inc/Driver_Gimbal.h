@@ -12,6 +12,7 @@
 #define GIMBAL_MOTOR_CNT                        4
 
 GIMBAL_EXT volatile int32_t GimbalOutput[GIMBAL_MOTOR_CNT];
+GIMBAL_EXT volatile int32_t GimbalPosOffset[GIMBAL_MOTOR_CNT];
 GIMBAL_EXT volatile int32_t GimbalPosition[GIMBAL_MOTOR_CNT], GimbalLastPosition[GIMBAL_MOTOR_CNT];
 GIMBAL_EXT volatile int32_t GimbalRoundCount[GIMBAL_MOTOR_CNT];
 GIMBAL_EXT volatile int32_t GimbalVelocity[GIMBAL_MOTOR_CNT];

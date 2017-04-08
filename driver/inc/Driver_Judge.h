@@ -99,7 +99,8 @@ typedef struct {
     uint32_t lastShootTick;
 } JUDGE_DecodeTypeDef;
 
-JUDGE_EXT volatile uint8_t JUDGE_DataBuffer[JUDGE_BUFFER_LENGTH];
+// JUDGE_EXT volatile uint8_t JUDGE_DataBuffer[JUDGE_BUFFER_LENGTH];
+JUDGE_EXT volatile uint8_t JUDGE_DataBuffer[300];
 JUDGE_EXT volatile JUDGE_DecodeTypeDef JUDGE_Data;
 JUDGE_EXT volatile uint32_t JUDGE_FrameCounter;
 

@@ -29,8 +29,9 @@ void JUDGE_Decode(uint32_t length) {
     uint32_t frameByteCount = JUDGE_BUFFER_LENGTH - length;
 
 #ifndef USE_SIMULATED_JUDGE
-    if (frameByteCount == JUDGE_INFO_FRAME_LENGTH &&
-        Verify_CRC16_Check_Sum((uint8_t*)JUDGE_DataBuffer, JUDGE_INFO_FRAME_LENGTH)) {
+    // if (frameByteCount == JUDGE_INFO_FRAME_LENGTH &&
+    //     Verify_CRC16_Check_Sum((uint8_t*)JUDGE_DataBuffer, JUDGE_INFO_FRAME_LENGTH)) {
+    if (1) {
         ++JUDGE_FrameCounter;
 
         FT.U[0] = JUDGE_DataBuffer[12];

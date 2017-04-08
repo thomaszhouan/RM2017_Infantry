@@ -17,6 +17,7 @@ static PID_Controller GimbalVelController[GIMBAL_MOTOR_CNT];
 static uint16_t MeasureUpdated[GIMBAL_MOTOR_CNT];
 static volatile int16_t GimbalVelocityBuffer[4][2];
 static volatile uint8_t BufferId[4];
+static uint32_t FrameCount[GIMBAL_MOTOR_CNT];
 
 // static int32_t GIMBAL_Trim(int32_t val, int32_t lim) {
 //     if (val > lim) val = lim;
@@ -25,9 +26,6 @@ static volatile uint8_t BufferId[4];
 // }
 
 static void GIMBAL_ClearAll(void) {
-    GimbalPosition[0] = 0;
-    _CLEAR(GimbalLastPosition);
-    _CLEAR(GimbalRoundCount);
     _CLEAR(GimbalOutput);
     _CLEAR(GimbalVelocity);
     _CLEAR(GimbalTargetVelocity);
@@ -40,6 +38,10 @@ void GIMBAL_Init(void) {
     GimbalCanTx.DLC = 8;
 
     GIMBAL_ClearAll();
+    _CLEAR(GimbalRoundCount);
+    _CLEAR(FrameCount);
+    _CLEAR(GimbalPosOffset);
+
     for (uint8_t i = 0; i < GIMBAL_MOTOR_CNT; ++i)
         PID_Reset(GimbalVelController+i);
     GimbalVelController[YAW].Kp = 8.00f;
@@ -55,6 +57,7 @@ void GIMBAL_Init(void) {
 
 void GIMBAL_UpdateMeasure(uint16_t motorId, uint8_t *data) {
     uint16_t id = _ID(motorId);
+    ++FrameCount[id];
 
 #if defined(GIMBAL_USE_6623)
     GimbalLastPosition[id] = GimbalPosition[id];
@@ -75,8 +78,10 @@ void GIMBAL_UpdateMeasure(uint16_t motorId, uint8_t *data) {
     }
 #elif defined(GIMBAL_USE_3510_19)
     GimbalLastPosition[id] = GimbalPosition[id];
-    GimbalPosition[id] = ((uint16_t)data[0]<<8) | ((uint16_t)data[1]) + GimbalRoundCount[id] * 8192;
+    GimbalPosition[id] = (((uint16_t)data[0]<<8) | ((uint16_t)data[1])) + GimbalRoundCount[id] * 8192;
     int16_t newVelocity = ((uint16_t)data[2]<<8) | ((uint16_t)data[3]);
+    if (FrameCount[id] > 256)
+        GimbalPosition[id] -= GimbalPosOffset[id];
 
     /* overflow protection */
     if (GimbalTargetVelocity[id] > 10 && newVelocity < -3000) newVelocity += 16384;
@@ -88,13 +93,20 @@ void GIMBAL_UpdateMeasure(uint16_t motorId, uint8_t *data) {
     BufferId[id] = (BufferId[id]+1)&0x1U;
 
     /* handle round count */
-    if (GimbalPosition[id] - GimbalLastPosition[id] < -6000) {
-        GimbalRoundCount[id] += 1;
-        GimbalPosition[id] += 8192;
+    if (FrameCount[id] > 256) { // ignore initial frames
+        if (GimbalPosition[id] - GimbalLastPosition[id] < -6000) {
+            GimbalRoundCount[id] += 1;
+            GimbalPosition[id] += 8192;
+        }
+        else if (GimbalPosition[id] - GimbalLastPosition[id] > 6000) {
+            GimbalRoundCount[id] -= 1 ;
+            GimbalPosition[id] -= 8192;
+        }
     }
-    else if (GimbalPosition[id] - GimbalLastPosition[id] > 6000) {
-        GimbalRoundCount[id] -=1 ;
-        GimbalPosition[id] -= 8192;
+    else {
+        GimbalPosOffset[id] += GimbalPosition[id];
+        if (FrameCount[id] == 256)
+            GimbalPosOffset[id] /= 256;
     }
 #endif
 

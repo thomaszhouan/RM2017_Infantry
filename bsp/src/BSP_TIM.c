@@ -36,6 +36,8 @@ void BSP_TIM_InitConfig(void) {
     TIM_OC1PreloadConfig(TIM1, TIM_OCPreload_Enable);
     TIM_OC2Init(TIM1, &TIM_OCInitStructure);
     TIM_OC2PreloadConfig(TIM1, TIM_OCPreload_Enable);
+    TIM_OC3Init(TIM1, &TIM_OCInitStructure);
+    TIM_OC3PreloadConfig(TIM1, TIM_OCPreload_Enable);
     TIM_ARRPreloadConfig(TIM1, ENABLE);
     TIM_CtrlPWMOutputs(TIM1, ENABLE);
     TIM_Cmd(TIM1, ENABLE);

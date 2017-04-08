@@ -221,13 +221,17 @@ void USART1_IRQHandler(void) {
   * @param  None
   * @retval None
   */
+uint32_t IdleCount = 0;
+uint32_t FrameLength = 0;
 void USART3_IRQHandler(void) {
     static uint8_t dum;
     dum = USART3->DR;
     dum = USART3->SR;
+    ++IdleCount;
 
     DMA_Cmd(DMA1_Stream1, DISABLE);
 
+    FrameLength = 300-DMA1_Stream1->NDTR;
     JUDGE_Decode(DMA1_Stream1->NDTR);
     
     DMA_ClearFlag(DMA1_Stream1, DMA_FLAG_TCIF1);
@@ -251,7 +255,7 @@ typedef struct {
     uint8_t dum[6];
 } Trans;
 Trans Buffer[3];
-volatile uint16_t Count = 0;
+// volatile uint16_t Count = 0;
 #include <stdio.h>
 #include <string.h>
 
@@ -271,7 +275,10 @@ void CAN1_RX0_IRQHandler(void) {
                 id = CanRxData.StdId & 0x0F;
                 if (isFirst[id]) {
                     isFirst[id] = 0;
-                    SIMULATOR_ArmorInit(id, 0);
+                    if (GlobalTick & 1)
+                      SIMULATOR_ArmorInit(id, 0);
+                    else
+                      SIMULATOR_ArmorInit(id, 5);
                 }
             }
         } break;
