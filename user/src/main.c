@@ -3,7 +3,8 @@
 extern volatile int32_t pressCount;
 extern volatile uint32_t Count;
 extern volatile uint32_t IdleCount;
-extern volatile uint32_t FrameLength;
+extern volatile int32_t JudgeFrameLength;
+extern volatile int32_t Freq;
 int main(void) {
 #if (BOARD_TYPE == BOARD_TYPE_CONTROL)
     CHASSIS_Init();
@@ -50,7 +51,9 @@ int main(void) {
     ST7735_Print(0, 1, GREEN, BLACK, "CNT");
     ST7735_Print(0, 2, GREEN, BLACK, "LEN");
     ST7735_Print(0, 3, GREEN, BLACK, "V");
-    ST7735_Print(0, 9, GREEN, BLACK, "RL");
+    ST7735_Print(0, 4, GREEN, BLACK, "I");
+    ST7735_Print(0, 5, GREEN, BLACK, "RL");
+    ST7735_Print(0, 6, GREEN, BLACK, "BUF");
 #endif
 
     BSP_TIM_Start();
@@ -82,10 +85,11 @@ int main(void) {
 
 #if (BOARD_TYPE == BOARD_TYPE_JUDGE)
         ST7735_Print(4, 1, GREEN, BLACK, "%d", IdleCount);
-        ST7735_Print(4, 2, GREEN, BLACK, "%d", FrameLength);
+        ST7735_Print(4, 2, GREEN, BLACK, "%d", JudgeFrameLength);
         ST7735_Print(4, 3, GREEN, BLACK, "%.3f", JUDGE_Data.voltage);
         ST7735_Print(4, 4, GREEN, BLACK, "%.3f", JUDGE_Data.current);
         ST7735_Print(4, 5, GREEN, BLACK, "%d", JUDGE_Data.remainLife);
+        ST7735_Print(4, 6, GREEN, BLACK, "%.3f", JUDGE_Data.remainEnergy);
 #endif
     }
 }

@@ -3,10 +3,13 @@
 
 #include "stm32f4xx.h"
 
-#define JUDGE_BUFFER_LENGTH           150
-#define JUDGE_INFO_FRAME_LENGTH       46
-#define JUDGE_BLOOD_FRAME_LENGTH      11
-#define JUDGE_SHOOT_FRAME_LENGTH      24
+#define JUDGE_BUFFER_LENGTH           200
+// #define JUDGE_INFO_FRAME_LENGTH       46
+// #define JUDGE_BLOOD_FRAME_LENGTH      11
+// #define JUDGE_SHOOT_FRAME_LENGTH      24
+#define JUDGE_INFO_FRAME_LENGTH       44
+#define JUDGE_BLOOD_FRAME_LENGTH      12
+#define JUDGE_SHOOT_FRAME_LENGTH      25
 
 #define JUDGE_FRAME_HEADER            0xA5
 
@@ -16,65 +19,101 @@
     #define JUDGE_EXT
 #endif
 
-// BUFF
-typedef enum {
-    BUFF_TYPE_NONE,
-    BUFF_TYPE_ARMOR   = 0x01,
-    BUFF_TYPE_SUPPLY  = 0x04,
-    BUFF_TYPE_BULLFTS = 0x08,
-} LBuffType_Enum;
+// // BUFF
+// typedef enum {
+//     BUFF_TYPE_NONE,
+//     BUFF_TYPE_ARMOR   = 0x01,
+//     BUFF_TYPE_SUPPLY  = 0x04,
+//     BUFF_TYPE_BULLFTS = 0x08,
+// } LBuffType_Enum;
 
 
-// Postion data
-typedef __packed struct {
-    uint8_t flag; // 0: valid; 1: invalid
-    uint32_t x;
-    uint32_t y;
-    uint32_t z;
-    uint32_t compass;
-} GpsData_Struct;
+// // Postion data
+// typedef __packed struct {
+//     uint8_t flag; // 0: valid; 1: invalid
+//     uint32_t x;
+//     uint32_t y;
+//     uint32_t z;
+//     uint32_t compass;
+// } GpsData_Struct;
 
 
-// Game infomation
-typedef __packed struct {
-    uint32_t remainTime;
-    uint16_t remainLifeValue;
-    float realChassisOutV;
-    float realChassisOutA;
-    uint8_t runeStatus[4];
-    uint8_t bigRune0Status;
-    uint8_t bigRune1status;
-    uint8_t conveyorBelts0:2;
-    uint8_t conveyorBelts1:2;
-    uint8_t parkingApron0:1;
-    uint8_t parkingApron1:1;
-    uint8_t parkingApron2:1;
-    uint8_t parkingApron3:1;
-    GpsData_Struct gpsData;
-} GameInfo_Struct;
+// // Game infomation
+// typedef __packed struct {
+//     uint32_t remainTime;
+//     uint16_t remainLifeValue;
+//     float realChassisOutV;
+//     float realChassisOutA;
+//     uint8_t runeStatus[4];
+//     uint8_t bigRune0Status;
+//     uint8_t bigRune1status;
+//     uint8_t conveyorBelts0:2;
+//     uint8_t conveyorBelts1:2;
+//     uint8_t parkingApron0:1;
+//     uint8_t parkingApron1:1;
+//     uint8_t parkingApron2:1;
+//     uint8_t parkingApron3:1;
+//     GpsData_Struct gpsData;
+// } GameInfo_Struct;
 
 
-// Blood data
-typedef __packed struct {
-    uint8_t weakId:4;
-    uint8_t way:4;
-    uint16_t value;
-} RealBloodChangedData_Struct;
+// // Blood data
+// typedef __packed struct {
+//     uint8_t weakId:4;
+//     uint8_t way:4;
+//     uint16_t value;
+// } RealBloodChangedData_Struct;
 
 
-// Shoot data
-typedef __packed struct {
-    float realBulletShootSpeed;
-    float realBulletShootFreq;
-    float realGolfShootSpeed;
-    float realGolfShootFreq;
-} RealShootData_Struct;
+// // Shoot data
+// typedef __packed struct {
+//     float realBulletShootSpeed;
+//     float realBulletShootFreq;
+//     float realGolfShootSpeed;
+//     float realGolfShootFreq;
+// } RealShootData_Struct;
 
 typedef __packed struct {
     uint16_t remainLifeValue;
     float realChassisOutV;
     float realChassisOutA;
 } SimulatedData_Struct;
+
+typedef __packed struct {
+    uint8_t flag; // 0 invalid, 1 valid
+    uint32_t x;
+    uint32_t y;
+    uint32_t z;
+    uint32_t compass;
+} tLocData;
+
+typedef __packed struct {
+    uint32_t remainTime;
+    uint16_t remainLifeValue;
+    float realChassisOutV;
+    float realChassisOutA;
+    tLocData locData;
+    float remainPower;
+} tGameInfo;
+
+typedef __packed struct {
+    uint8_t weakId:4;
+    uint8_t way:4;
+    uint16_t value;
+} tRealBloodChangedData;
+
+typedef __packed struct {
+    float realBulletShootSpeed;
+    float realBulletShootFreq;
+    float realGolfShootSpeed;
+    float realGolfShootFreq;
+} tRealShootData;
+
+typedef __packed struct {
+    float data1;
+    float data2;
+    float data3;
+} tSelfDef;
 
 // union for format transform
 typedef union {
@@ -99,8 +138,7 @@ typedef struct {
     uint32_t lastShootTick;
 } JUDGE_DecodeTypeDef;
 
-// JUDGE_EXT volatile uint8_t JUDGE_DataBuffer[JUDGE_BUFFER_LENGTH];
-JUDGE_EXT volatile uint8_t JUDGE_DataBuffer[300];
+JUDGE_EXT volatile uint8_t JUDGE_DataBuffer[JUDGE_BUFFER_LENGTH];
 JUDGE_EXT volatile JUDGE_DecodeTypeDef JUDGE_Data;
 JUDGE_EXT volatile uint32_t JUDGE_FrameCounter;
 

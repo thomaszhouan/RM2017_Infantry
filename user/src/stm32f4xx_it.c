@@ -221,17 +221,13 @@ void USART1_IRQHandler(void) {
   * @param  None
   * @retval None
   */
-uint32_t IdleCount = 0;
-uint32_t FrameLength = 0;
 void USART3_IRQHandler(void) {
     static uint8_t dum;
     dum = USART3->DR;
     dum = USART3->SR;
-    ++IdleCount;
 
     DMA_Cmd(DMA1_Stream1, DISABLE);
 
-    FrameLength = 300-DMA1_Stream1->NDTR;
     JUDGE_Decode(DMA1_Stream1->NDTR);
     
     DMA_ClearFlag(DMA1_Stream1, DMA_FLAG_TCIF1);
@@ -258,7 +254,7 @@ Trans Buffer[3];
 // volatile uint16_t Count = 0;
 #include <stdio.h>
 #include <string.h>
-
+int8_t ArmorId = 0;
 void CAN1_RX0_IRQHandler(void) {
     static CanRxMsg CanRxData;
     static uint8_t isFirst[4] = {1, 1, 1, 1};
@@ -357,8 +353,10 @@ void TIM7_IRQHandler(void) {
     GIMBAL_SendCmd();
 }
 #else // BOARD_TYPE == BOARD_TYPE_JUDGE
+int32_t Freq = 0;
 void TIM7_IRQHandler(void) {
     static uint32_t tick = 0;
+    static int32_t lastIdleCount = 0;
 
     TIM_ClearITPendingBit(TIM7, TIM_IT_Update);
     TIM_ClearFlag(TIM7, TIM_FLAG_Update);
@@ -367,6 +365,8 @@ void TIM7_IRQHandler(void) {
     ++GlobalTick;
     if (tick == 1000) {
         tick = 0;
+        Freq = IdleCount - lastIdleCount;
+        lastIdleCount = IdleCount;
     }
 
     if (tick % 500 == 0) {
