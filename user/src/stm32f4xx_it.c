@@ -226,15 +226,15 @@ void USART3_IRQHandler(void) {
     dum = USART3->DR;
     dum = USART3->SR;
 
-    DMA_Cmd(DMA1_Stream1, DISABLE);
+    /*DMA_Cmd(DMA1_Stream1, DISABLE);*/
 
-    JUDGE_Decode(DMA1_Stream1->NDTR);
-    
-    DMA_ClearFlag(DMA1_Stream1, DMA_FLAG_TCIF1);
-    while(DMA_GetCmdStatus(DMA1_Stream1) != DISABLE)
-        ;
-    DMA_SetCurrDataCounter(DMA1_Stream1, JUDGE_BUFFER_LENGTH);
-    DMA_Cmd(DMA1_Stream1, ENABLE);
+    JUDGE_Decode(DMA1_Stream1->NDTR); 
+
+    /*DMA_ClearFlag(DMA1_Stream1, DMA_FLAG_TCIF1);*/
+    /*while(DMA_GetCmdStatus(DMA1_Stream1) != DISABLE)*/
+        /*;*/
+    /*DMA_SetCurrDataCounter(DMA1_Stream1, JUDGE_BUFFER_LENGTH);*/
+    /*DMA_Cmd(DMA1_Stream1, ENABLE);*/
 
     UNUSED(dum);
 }
@@ -345,12 +345,12 @@ void TIM7_IRQHandler(void) {
 
     // MPU6050_ReadAll();
 
-    if (DBUS_Status == kConnected) {
-        CHASSIS_Control();
-        GIMBAL_Control();
-    }
-    CHASSIS_SendCmd();
-    GIMBAL_SendCmd();
+    /*if (DBUS_Status == kConnected) {*/
+        /*CHASSIS_Control();*/
+        /*GIMBAL_Control();*/
+    /*}*/
+    /*CHASSIS_SendCmd();*/
+    /*GIMBAL_SendCmd();*/
 }
 #else // BOARD_TYPE == BOARD_TYPE_JUDGE
 int32_t Freq = 0;

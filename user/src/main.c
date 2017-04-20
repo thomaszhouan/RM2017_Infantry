@@ -1,15 +1,12 @@
 #include "main.h"
 
-extern volatile int32_t pressCount;
-extern volatile uint32_t Count;
-extern volatile uint32_t IdleCount;
-extern volatile int32_t JudgeFrameLength;
-extern volatile int32_t Freq;
+extern uint8_t judgeFrameDataLength;
 int main(void) {
 #if (BOARD_TYPE == BOARD_TYPE_CONTROL)
     CHASSIS_Init();
     GIMBAL_Init();
     GUN_Init();
+    JUDGE_Init();
 #endif
 
     BSP_GPIO_InitConfig();
@@ -40,11 +37,14 @@ int main(void) {
     ADIS16_Calibrate(512);
     // MPU6050_Init();
 
-    ST7735_Print(0, 1, GREEN, BLACK, "pos");
-    ST7735_Print(0, 2, GREEN, BLACK, "out");
-    ST7735_Print(0, 3, GREEN, BLACK, "tarv");
-    ST7735_Print(0, 4, GREEN, BLACK, "vel");
-    ST7735_Print(0, 5, GREEN, BLACK, "verr");
+    ST7735_Print(0, 1, GREEN, BLACK, "RL");
+    ST7735_Print(0, 2, GREEN, BLACK, "Hit");
+    ST7735_Print(0, 3, GREEN, BLACK, "V");
+    ST7735_Print(0, 4, GREEN, BLACK, "I");
+    ST7735_Print(0, 5, GREEN, BLACK, "s");
+    ST7735_Print(0, 6, GREEN, BLACK, "flen");
+    ST7735_Print(0, 7, GREEN, BLACK, "os");
+    ST7735_Print(0, 8, GREEN, BLACK, "cnt");
 #endif
 
 #if (BOARD_TYPE == BOARD_TYPE_JUDGE)
@@ -60,27 +60,30 @@ int main(void) {
 
     while (1) {
 #if (BOARD_TYPE == BOARD_TYPE_CONTROL)
-        if (DBUS_Status == kLost) {
-            CHASSIS_SetFree();
-            GIMBAL_SetFree();
-        }
-        if (DBUS_Status == kConnected &&
-            DBUS_Data.rightSwitchState != kSwitchDown) {
-            FRIC_SET_THRUST_L(800);
-            FRIC_SET_THRUST_R(800);
-            FRIC_SET_THRUST_M(800);
-        }
-        else {
-            FRIC_SET_THRUST_L(800);
-            FRIC_SET_THRUST_R(800);
-            FRIC_SET_THRUST_M(800);
-        }
+        /*if (DBUS_Status == kLost) {*/
+            /*CHASSIS_SetFree();*/
+            /*GIMBAL_SetFree();*/
+        /*}*/
+        /*if (DBUS_Status == kConnected &&*/
+            /*DBUS_Data.rightSwitchState != kSwitchDown) {*/
+            /*FRIC_SET_THRUST_L(800);*/
+            /*FRIC_SET_THRUST_R(800);*/
+            /*FRIC_SET_THRUST_M(800);*/
+        /*}*/
+        /*else {*/
+            /*FRIC_SET_THRUST_L(800);*/
+            /*FRIC_SET_THRUST_R(800);*/
+            /*FRIC_SET_THRUST_M(800);*/
+        /*}*/
 
-        ST7735_Print(5, 1, GREEN, BLACK, "%d", GimbalPosition[YAW]);
-        ST7735_Print(5, 2, GREEN, BLACK, "%d", GimbalOutput[YAW]);
-        ST7735_Print(5, 3, GREEN, BLACK, "%d", GimbalTargetVelocity[YAW]);
-        ST7735_Print(5, 4, GREEN, BLACK, "%d", GimbalVelocity[YAW]);
-        ST7735_Print(5, 5, GREEN, BLACK, "%d", GimbalTargetVelocity[YAW]-GimbalVelocity[YAW]/2);
+        ST7735_Print(5, 1, GREEN, BLACK, "%d", JUDGE_Data.remainLife);
+        ST7735_Print(5, 2, GREEN, BLACK, "%d", JUDGE_Data.armorDamage);
+        ST7735_Print(5, 3, GREEN, BLACK, "%.3f", JUDGE_Data.voltage);
+        ST7735_Print(5, 4, GREEN, BLACK, "%.3f", JUDGE_Data.current);
+        ST7735_Print(5, 5, GREEN, BLACK, "%d", JUDGE_Started);
+        ST7735_Print(5, 6, GREEN, BLACK, "%d", judgeFrameDataLength);
+        ST7735_Print(5, 7, GREEN, BLACK, "%d", JUDGE_Data.nextDecodeOffset);
+        ST7735_Print(5, 8, GREEN, BLACK, "%d", JUDGE_FrameCounter);
 #endif
 
 #if (BOARD_TYPE == BOARD_TYPE_JUDGE)

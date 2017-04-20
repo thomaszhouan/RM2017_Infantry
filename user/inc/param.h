@@ -4,7 +4,7 @@
 /* Board type select */
 #define BOARD_TYPE_CONTROL                      0
 #define BOARD_TYPE_JUDGE                        1
-#define BOARD_TYPE                              BOARD_TYPE_JUDGE
+#define BOARD_TYPE                              BOARD_TYPE_CONTROL
 // #define USE_SIMULATED_JUDGE
 
 /* CHASSIS param */

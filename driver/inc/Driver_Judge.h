@@ -3,13 +3,12 @@
 
 #include "stm32f4xx.h"
 
-#define JUDGE_BUFFER_LENGTH           200
-// #define JUDGE_INFO_FRAME_LENGTH       46
-// #define JUDGE_BLOOD_FRAME_LENGTH      11
-// #define JUDGE_SHOOT_FRAME_LENGTH      24
-#define JUDGE_INFO_FRAME_LENGTH       44
-#define JUDGE_BLOOD_FRAME_LENGTH      12
-#define JUDGE_SHOOT_FRAME_LENGTH      25
+#define JUDGE_BUFFER_LENGTH           256
+#define JUDGE_INFO_FRAME_LENGTH       ((uint8_t)44)
+#define JUDGE_BLOOD_FRAME_LENGTH      ((uint8_t)12)
+#define JUDGE_SHOOT_FRAME_LENGTH      ((uint8_t)25)
+#define JUDGE_FRAME_HEADER_LENGTH     ((uint8_t)5)
+#define JUDGE_EXTRA_LENGTH            ((uint8_t)9)
 
 #define JUDGE_FRAME_HEADER            0xA5
 
@@ -18,60 +17,6 @@
 #else
     #define JUDGE_EXT
 #endif
-
-// // BUFF
-// typedef enum {
-//     BUFF_TYPE_NONE,
-//     BUFF_TYPE_ARMOR   = 0x01,
-//     BUFF_TYPE_SUPPLY  = 0x04,
-//     BUFF_TYPE_BULLFTS = 0x08,
-// } LBuffType_Enum;
-
-
-// // Postion data
-// typedef __packed struct {
-//     uint8_t flag; // 0: valid; 1: invalid
-//     uint32_t x;
-//     uint32_t y;
-//     uint32_t z;
-//     uint32_t compass;
-// } GpsData_Struct;
-
-
-// // Game infomation
-// typedef __packed struct {
-//     uint32_t remainTime;
-//     uint16_t remainLifeValue;
-//     float realChassisOutV;
-//     float realChassisOutA;
-//     uint8_t runeStatus[4];
-//     uint8_t bigRune0Status;
-//     uint8_t bigRune1status;
-//     uint8_t conveyorBelts0:2;
-//     uint8_t conveyorBelts1:2;
-//     uint8_t parkingApron0:1;
-//     uint8_t parkingApron1:1;
-//     uint8_t parkingApron2:1;
-//     uint8_t parkingApron3:1;
-//     GpsData_Struct gpsData;
-// } GameInfo_Struct;
-
-
-// // Blood data
-// typedef __packed struct {
-//     uint8_t weakId:4;
-//     uint8_t way:4;
-//     uint16_t value;
-// } RealBloodChangedData_Struct;
-
-
-// // Shoot data
-// typedef __packed struct {
-//     float realBulletShootSpeed;
-//     float realBulletShootFreq;
-//     float realGolfShootSpeed;
-//     float realGolfShootFreq;
-// } RealShootData_Struct;
 
 typedef __packed struct {
     uint16_t remainLifeValue;
@@ -122,6 +67,8 @@ typedef union {
 } FormatTrans_TypeDef;
 
 typedef struct {
+    uint8_t nextDecodeOffset;
+
     float voltage;              // V
     float current;              // A
     uint16_t remainLife;
@@ -132,6 +79,12 @@ typedef struct {
 
     int8_t hitArmorId;
     uint32_t lastHitTick;
+    uint16_t armorDamage;
+    uint16_t speedDamage;
+    uint16_t freqDamage;
+    uint16_t powerDamage;
+    uint16_t moduleDamage;
+    uint16_t violationDamage;
 
     uint16_t shootNum;
     float shootSpeed;
@@ -141,13 +94,17 @@ typedef struct {
 JUDGE_EXT volatile uint8_t JUDGE_DataBuffer[JUDGE_BUFFER_LENGTH];
 JUDGE_EXT volatile JUDGE_DecodeTypeDef JUDGE_Data;
 JUDGE_EXT volatile uint32_t JUDGE_FrameCounter;
+JUDGE_EXT volatile uint8_t JUDGE_Started, JUDGE_RemainByte;
 
 void JUDGE_Init(void);
 void JUDGE_Decode(uint32_t length);
 void JUDGE_UpdatePower(void);
+void JUDGE_DecodeFrame(uint8_t type);
 
 unsigned char Get_CRC8_Check_Sum(unsigned char *pchMessage,unsigned int dwLength,unsigned char ucCRC8);
 unsigned int Verify_CRC8_Check_Sum(unsigned char *pchMessage, unsigned int dwLength);
+uint8_t GetCRC8(uint8_t idx, uint8_t len, uint8_t ucCRC8);
+unsigned int VerifyCRC8(uint8_t idx, uint8_t len);
 void Append_CRC8_Check_Sum(unsigned char *pchMessage, unsigned int dwLength);
 uint16_t Get_CRC16_Check_Sum(uint8_t *pchMessage,uint32_t dwLength,uint16_t wCRC);
 uint32_t Verify_CRC16_Check_Sum(uint8_t *pchMessage, uint32_t dwLength);
