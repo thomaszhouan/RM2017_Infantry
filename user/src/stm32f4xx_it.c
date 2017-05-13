@@ -226,15 +226,7 @@ void USART3_IRQHandler(void) {
     dum = USART3->DR;
     dum = USART3->SR;
 
-    /*DMA_Cmd(DMA1_Stream1, DISABLE);*/
-
     JUDGE_Decode(DMA1_Stream1->NDTR); 
-
-    /*DMA_ClearFlag(DMA1_Stream1, DMA_FLAG_TCIF1);*/
-    /*while(DMA_GetCmdStatus(DMA1_Stream1) != DISABLE)*/
-        /*;*/
-    /*DMA_SetCurrDataCounter(DMA1_Stream1, JUDGE_BUFFER_LENGTH);*/
-    /*DMA_Cmd(DMA1_Stream1, ENABLE);*/
 
     UNUSED(dum);
 }
